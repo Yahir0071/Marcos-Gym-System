@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Afluencia - Energy Gym</title></head>
+<body>
+    <section>
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+        <div class="container-fluid px-5 page-container">
+            <div class="section-subtitle has-line mb-3">PLANIFICA TU VISITA</div>
+            <h1 class="display-3 font-anton leading-none mb-1 text-light">AFLUENCIA<br><span class="text-primary">EN EL GIMNASIO</span></h1>
+            <p class="font-anton text-muted mb-5 tracking-wide text-lg">CONOCE LOS HORARIOS CON MAYOR Y MENOR AFLUENCIA</p>
+            <div class="card p-0 mb-4">
+                <div class="p-4 border-bottom border-secondary d-flex align-items-center flex-wrap gap-4">
+                    <div class="w-150px">
+                        <h6 class="font-anton m-0">MAÑANA</h6>
+                        <small class="text-muted">06:00 - 11:00</small>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom" role="progressbar" style="width: 60%;"></div>
+                        </div>
+                    </div>
+                    <div class="text-end w-150px">
+                        <h4 class="font-anton text-light m-0">60%</h4>
+                        <small class="text-muted text-xs">AFLUENCIA MODERADA</small>
+                    </div>
+                </div>
+                <div class="p-4 border-bottom border-secondary d-flex align-items-center flex-wrap gap-4">
+                    <div class="w-150px">
+                        <h6 class="font-anton m-0">MEDIODÍA</h6>
+                        <small class="text-muted">11:00 - 18:00</small>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom" role="progressbar" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                    <div class="text-end w-150px">
+                        <h4 class="font-anton text-light m-0">85%</h4>
+                        <small class="text-muted text-xs">AFLUENCIA ALTA</small>
+                    </div>
+                </div>
+                <div class="p-4 d-flex align-items-center flex-wrap gap-4">
+                    <div class="w-150px">
+                        <h6 class="font-anton m-0">TARDE-NOCHE</h6>
+                        <small class="text-muted">18:00 - 23:00</small>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom" role="progressbar" style="width: 70%;"></div>
+                        </div>
+                    </div>
+                    <div class="text-end w-150px">
+                        <h4 class="font-anton text-light m-0">70%</h4>
+                        <small class="text-muted text-xs">AFLUENCIA MODERADA</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-3 d-flex flex-row align-items-center gap-4 mb-5">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-muted"></i>
+                    <span class="text-muted font-anton text-xs tracking-wide">INFORMACIÓN APROXIMADA, NO EN TIEMPO REAL.</span>
+                </div>
+                <div class="text-muted font-anton text-xs tracking-wide">ÚLTIMA ACTUALIZACIÓN: 30 ENE 2025</div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

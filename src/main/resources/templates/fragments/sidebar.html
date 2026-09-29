@@ -1,0 +1,19 @@
+<div th:fragment="sidebar" class="sidebar">
+    <div class="px-3 pb-3 mb-3 border-bottom border-secondary text-center">
+        <h5 class="text-primary"><i class="fa-solid fa-dumbbell"></i> ENERGY GYM</h5>
+        <small class="text-muted">Panel Admin</small>
+    </div>
+    <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/socios}"><i class="fa-solid fa-users me-2"></i> Socios</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/planes}"><i class="fa-solid fa-tags me-2"></i> Planes</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/membresias}"><i class="fa-solid fa-id-card me-2"></i> Membresías</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/pagos}"><i class="fa-solid fa-money-bill me-2"></i> Pagos</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/promociones}"><i class="fa-solid fa-bullhorn me-2"></i> Promociones</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/productos}"><i class="fa-solid fa-box-open me-2"></i> Productos</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/reservas}"><i class="fa-solid fa-calendar-check me-2"></i> Reservas</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/afluencia}"><i class="fa-solid fa-people-group me-2"></i> Afluencia</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/equipos}"><i class="fa-solid fa-dumbbell me-2"></i> Equipos</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/mantenimientos}"><i class="fa-solid fa-wrench me-2"></i> Mantenimiento</a></li>
+    </ul>
+</div>

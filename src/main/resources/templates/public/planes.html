@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Planes - Energy Gym</title></head>
+<body>
+    <section>
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+        <div class="container-fluid px-5 page-container">
+            <div class="section-subtitle has-line mb-3">ELIGE TU PLAN</div>
+            <h1 class="display-3 font-anton leading-none mb-1 text-light">PLANES DE<br><span class="text-primary">MEMBRESÍA</span></h1>
+            <p class="font-anton text-muted mb-5 tracking-wide text-lg">ENTRENA A TU MANERA</p>
+
+            <div class="grid-plans mb-5">
+                <div class="card p-4 d-flex flex-column">
+                    <h3 class="font-anton mb-2">BÁSICO</h3>
+                    <p class="text-muted text-sm mb-4">Ideal para empezar</p>
+                    <div class="d-flex align-items-baseline gap-2 mb-4">
+                        <h2 class="font-anton m-0 text-light text-3xl">S/ 79</h2>
+                        <span class="text-muted text-xs font-anton">AL MES</span>
+                    </div>
+                    <ul class="list-unstyled mb-5">
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a todas las áreas</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Equipos de última generación</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Horario completo</li>
+                    </ul>
+                    <button class="btn btn-outline mt-auto w-100 text-start">ELEGIR PLAN</button>
+                </div>
+                <div class="card card-active p-4 d-flex flex-column">
+                    <h3 class="font-anton mb-2">PLUS</h3>
+                    <p class="text-muted text-sm mb-4">El más elegido</p>
+                    <div class="d-flex align-items-baseline gap-2 mb-4">
+                        <h2 class="font-anton m-0 text-light text-3xl">S/ 119</h2>
+                        <span class="text-muted text-xs font-anton">AL MES</span>
+                    </div>
+                    <ul class="list-unstyled mb-5">
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a todas las áreas</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Equipos de última generación</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Horario completo</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a zona premium</li>
+                    </ul>
+                    <button class="btn btn-primary mt-auto w-100 text-start text-dark">ELEGIR PLAN</button>
+                </div>
+                <div class="card p-4 d-flex flex-column">
+                    <h3 class="font-anton mb-2">PREMIUM</h3>
+                    <p class="text-muted text-sm mb-4">Máximo rendimiento</p>
+                    <div class="d-flex align-items-baseline gap-2 mb-4">
+                        <h2 class="font-anton m-0 text-light text-3xl">S/ 159</h2>
+                        <span class="text-muted text-xs font-anton">AL MES</span>
+                    </div>
+                    <ul class="list-unstyled mb-5">
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a todas las áreas</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Equipos de última generación</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Horario completo</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a zona premium</li>
+                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Beneficios exclusivos</li>
+                    </ul>
+                    <button class="btn btn-outline mt-auto w-100 text-start">ELEGIR PLAN</button>
+                </div>
+            </div>
+            <div class="card p-3 d-flex flex-row align-items-center gap-3">
+                <i class="fa-solid fa-circle-info text-muted"></i>
+                <span class="text-muted font-anton text-xs tracking-wide">LA ACTIVACIÓN DEL PLAN ES PRESENCIAL EN NUESTRO LOCAL.</span>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Productos - Energy Gym</title></head>
+<body>
+    <section class="client-wrapper">
+        <div th:replace="~{fragments/cliente-sidebar :: sidebar('productos')}"></div>
+        <div class="client-main">
+            <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
+            <div class="client-content">
+                <div class="section-subtitle mb-3 text-primary text-2xs">NUTRE TU ESFUERZO</div>
+                <h1 class="display-3 font-anton leading-none mb-1 text-light">PRODUCTOS</h1>
+                <p class="font-anton text-muted mb-5 tracking-wide text-lg">CALIDAD PARA TU MEJOR VERSIÓN</p>
+                
+                <label class="form-label mb-2">BUSCAR PRODUCTOS</label>
+                <div class="d-flex gap-3 mb-4">
+                    <input type="text" class="form-control w-50 bg-transparent text-light border-secondary" placeholder="Buscar productos, marcas o categorías...">
+                </div>
+                <div class="d-flex gap-2 flex-wrap mb-5">
+                    <button class="btn btn-primary px-4">TODOS</button>
+                    <button class="btn btn-outline px-4">SUPLEMENTOS</button>
+                    <button class="btn btn-outline px-4">ACCESORIOS</button>
+                    <button class="btn btn-outline px-4">ROPA</button>
+                </div>
+                
+                <div class="grid-products">
+                    <div class="card d-flex flex-column border-secondary overflow-hidden bg-card"  >
+                        <img th:src="@{/img/whey.jpg}" alt="Whey Protein" class="card-img-top h-250px obj-contain bg-deep-dark">
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <span class="badge text-success mb-3 align-self-start border border-success bg-transparent tracking-wide text-xs">DISPONIBLE</span>
+                            <h6 class="font-anton mb-1 text-light">WHEY PROTEIN 2 LB</h6>
+                            <h4 class="font-anton text-primary mb-4">S/ 149</h4>
+                            <a th:href="@{/detalle-producto}" class="btn btn-outline w-100 text-start mt-auto">VER DETALLE</a>
+                        </div>
+                    </div>
+                    <div class="card d-flex flex-column border-secondary overflow-hidden bg-card"  >
+                        <img th:src="@{/img/creatina.jpg}" alt="Creatina" class="card-img-top h-250px obj-contain bg-deep-dark">
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <span class="badge text-success mb-3 align-self-start border border-success bg-transparent tracking-wide text-xs">DISPONIBLE</span>
+                            <h6 class="font-anton mb-1 text-light">CREATINA 300 G</h6>
+                            <h4 class="font-anton text-primary mb-4">S/ 89</h4>
+                            <a th:href="@{/detalle-producto}" class="btn btn-outline w-100 text-start mt-auto">VER DETALLE</a>
+                        </div>
+                    </div>
+                    <div class="card d-flex flex-column border-secondary overflow-hidden bg-card"  >
+                        <img th:src="@{/img/shaker.jpg}" alt="Shaker" class="card-img-top h-250px obj-contain bg-deep-dark">
+                        <div class="p-4 d-flex flex-column flex-grow-1">
+                            <span class="badge text-success mb-3 align-self-start border border-success bg-transparent tracking-wide text-xs">DISPONIBLE</span>
+                            <h6 class="font-anton mb-1 text-light">SHAKER 700 ML</h6>
+                            <h4 class="font-anton text-primary mb-4">S/ 39</h4>
+                            <a th:href="@{/detalle-producto}" class="btn btn-outline w-100 text-start mt-auto">VER DETALLE</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

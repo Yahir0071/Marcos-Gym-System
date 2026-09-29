@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Promociones - Energy Gym</title></head>
+<body>
+    <section>
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+        <div class="container-fluid px-5 page-container">
+            <div class="section-subtitle has-line mb-3">APROVECHA AHORA</div>
+            <h1 class="display-3 font-anton leading-none mb-1 text-light">PROMOCIONES<br><span class="text-primary">EXCLUSIVAS</span></h1>
+            <p class="font-anton text-muted mb-5 tracking-wide text-lg">MÁS ENERGÍA, MÁS RESULTADOS.</p>
+            <hr class="border-secondary mb-5">
+            <div class="card promo-banner p-5 mb-5 d-flex justify-content-between align-items-center flex-row flex-wrap gap-4 z-1">
+                <div>
+                    <div class="badge bg-primary font-anton mb-3 px-3 py-2 text-xs">PROMOCIÓN DESTACADA</div>
+                    <h2 class="font-anton text-light text-3xl leading-none">2 MESES<br>X EL PRECIO DE 1</h2>
+                    <p class="text-muted mt-3 mb-0 text-sm">Duplica tu energía este mes. Vigencia: 01-31 Ene 2025.</p>
+                </div>
+                <button class="btn btn-primary d-flex align-items-center gap-2">VER DETALLE <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <h5 class="font-anton text-light mb-4">TODAS LAS PROMOCIONES ACTIVAS</h5>
+            <div class="grid-plans">
+                <div class="card p-4 d-flex flex-column position-relative">
+                    <span class="badge bg-primary position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
+                    <h4 class="font-anton mt-2 mb-3">SHAKER GRATIS</h4>
+                    <p class="text-muted text-sm mb-5">En planes Plus o Premium</p>
+                    <button class="btn btn-outline w-100 mt-auto text-start">VER DETALLE</button>
+                </div>
+                <div class="card p-4 d-flex flex-column position-relative">
+                    <span class="badge bg-primary position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
+                    <h4 class="font-anton mt-2 mb-3">20% DSCTO</h4>
+                    <p class="text-muted text-sm mb-5">En accesorios seleccionados</p>
+                    <button class="btn btn-outline w-100 mt-auto text-start">VER DETALLE</button>
+                </div>
+                <div class="card p-4 d-flex flex-column position-relative">
+                    <span class="badge bg-primary position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
+                    <h4 class="font-anton mt-2 mb-3">COMBO SUPLEMENTOS</h4>
+                    <p class="text-muted text-sm mb-5">Ahorra en packs seleccionados</p>
+                    <button class="btn btn-outline w-100 mt-auto text-start">VER DETALLE</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

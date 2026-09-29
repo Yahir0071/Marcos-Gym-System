@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Inicio - Energy Gym</title></head>
+<body>
+    <section class="bg-hero-image">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+        <div class="container-fluid px-5 hero-container">
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-7 pe-lg-5">
+                    <div class="section-subtitle has-line mb-4">TU MOMENTO ES AHORA</div>
+                    <h1 class="display-1 font-anton leading-none mb-3 text-6xl">
+                        TU MEJOR VERSIÓN<br><span class="text-primary">COMIENZA AQUÍ</span>
+                    </h1>
+                    <p class="fs-5 mb-5 mt-4 tracking-wider">Entrena &nbsp;&bull;&nbsp; Cuida tu salud &nbsp;&bull;&nbsp; Cumple tus metas</p>
+                    <div class="d-flex gap-3">
+                        <a th:href="@{/planes}" class="btn btn-primary d-flex align-items-center gap-2">VER PLANES <i class="fa-solid fa-arrow-right"></i></a>
+                        <a href="#" class="btn btn-outline">CONOCE MÁS</a>
+                    </div>
+                </div>
+                <div class="col-lg-5 position-relative mt-5 mt-lg-0">
+                    <div class="decor-logo-box bg-transparent-border-0">
+                        <div class="decor-bar-vertical z-index-3"></div>
+                        <div class="decor-glass bg-glass-dark">
+                            <h2 class="font-anton text-center m-0 text-3xl leading-none">
+                                <span class="text-light">ENERGY</span><br><span class="text-primary">GYM</span>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-features mt-5 pt-4">
+                <div class="card p-4 d-flex flex-row align-items-center gap-3">
+                    <span class="text-primary font-anton fs-3">01</span>
+                    <h6 class="font-anton m-0 tracking-wide text-lg">MODERNAS INSTALACIONES</h6>
+                </div>
+                <div class="card p-4 d-flex flex-row align-items-center gap-3">
+                    <span class="text-primary font-anton fs-3">02</span>
+                    <h6 class="font-anton m-0 tracking-wide text-lg">EQUIPOS DE CALIDAD</h6>
+                </div>
+                <div class="card p-4 d-flex flex-row align-items-center gap-3">
+                    <span class="text-primary font-anton fs-3">03</span>
+                    <h6 class="font-anton m-0 tracking-wide text-lg">AMBIENTE MOTIVADOR</h6>
+                </div>
+                <div class="card p-4 d-flex flex-row align-items-center gap-3">
+                    <span class="text-primary font-anton fs-3">04</span>
+                    <h6 class="font-anton m-0 tracking-wide text-lg">RESULTADOS REALES</h6>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

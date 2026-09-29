@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Iniciar Sesión - Energy Gym</title></head>
+<body>
+    <section class="d-flex flex-column min-vh-100 bg-dark">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+        <div class="row g-0 flex-grow-1">
+            <!-- LADO IZQUIERDO: Imagen del chico y texto -->
+            <div class="col-lg-7 d-flex flex-column justify-content-center p-5 login-split-left position-relative">
+                <!-- Línea amarilla decorativa a la derecha -->
+                <div class="login-split-divider"></div>
+                
+                <!-- Contenedor del texto, movido a la derecha para no tapar al chico -->
+                <div class="w-100 ms-auto pe-5 mw-550px z-index-2 mr-2rem">
+                    <div class="section-subtitle mb-3 text-2xs text-muted">BIENVENIDO DE NUEVO</div>
+                    <h1 class="display-3 font-anton leading-none mb-4 text-light text-6xl">TU DISCIPLINA<br><span class="text-primary">CONTINÚA AQUÍ</span></h1>
+                    <p class="font-anton text-muted tracking-wide text-sm">INICIA SESIÓN PARA SEGUIR ENTRENANDO</p>
+                </div>
+            </div>
+            
+            <!-- LADO DERECHO: Formulario sobre fondo negro -->
+            <div class="col-lg-5 d-flex flex-column justify-content-center p-5 bg-login-right">
+                <div class="w-100 mx-auto ps-lg-4 mw-420px">
+                    <h2 class="font-anton mb-5 text-light text-3xl">INICIAR SESIÓN</h2>
+                    
+                    <form th:action="@{/cliente/mi-membresia}" method="get">
+                        <div class="mb-4">
+                            <label for="username" class="form-label text-xs">CORREO ELECTRÓNICO</label>
+                            <input type="email" class="form-control bg-transparent text-light border-secondary" id="username" name="username" placeholder="tucorreo@ejemplo.com" required>
+                        </div>
+                        <div class="mb-5">
+                            <label for="password" class="form-label text-xs">CONTRASEÑA</label>
+                            <input type="password" class="form-control bg-transparent text-light border-secondary" id="password" name="password" placeholder="••••••••••" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 d-flex justify-content-between align-items-center mb-5 py-3">
+                            <span class="font-anton tracking-wide text-md">INGRESAR</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        
+                        <hr class="border-secondary mb-4">
+                        
+                        <div class="text-center">
+                            <a th:href="@{/inicio}" class="btn-link-white font-anton text-xs tracking-wide d-inline-flex align-items-center gap-2">
+                                <i class="fa-solid fa-arrow-left"></i> VOLVER AL INICIO
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

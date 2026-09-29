@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Notificaciones - Energy Gym</title></head>
+<body>
+    <section class="client-wrapper">
+        <div th:replace="~{fragments/cliente-sidebar :: sidebar('notificaciones')}"></div>
+        <div class="client-main">
+            <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
+            <div class="client-content">
+                <div class="section-subtitle mb-3 text-primary text-2xs">TUS NOTIFICACIONES</div>
+                <h1 class="display-3 font-anton leading-none mb-1 text-light">NOTIFICACIONES</h1>
+                <p class="font-anton text-muted mb-5 tracking-wide text-lg">INFORMACIÓN IMPORTANTE PARA TI</p>
+                
+                <div class="d-flex gap-2 mb-4">
+                    <button class="btn btn-primary px-4 py-2 font-anton text-sm">TODAS (2)</button>
+                    <button class="btn btn-outline px-4 py-2 font-anton text-muted text-sm">MEMBRESÍA (1)</button>
+                    <button class="btn btn-outline px-4 py-2 font-anton text-muted text-sm">RESERVAS (1)</button>
+                    <button class="btn btn-outline px-4 py-2 font-anton text-muted text-sm">PROMOCIONES (0)</button>
+                </div>
+                
+                <div class="d-flex flex-column gap-3">
+                    <div class="card p-4 position-relative">
+                        <div class="notification-line"></div>
+                        <div class="d-flex justify-content-between align-items-baseline mb-2">
+                            <h5 class="font-anton m-0 text-light">TU MEMBRESÍA ESTÁ POR VENCER</h5>
+                            <span class="text-muted text-xs font-anton tracking-wide">23 Ene 2025</span>
+                        </div>
+                        <p class="text-muted text-sm m-0">Te quedan 15 días de membresía. Renueva tu plan.</p>
+                    </div>
+                    <div class="card p-4">
+                        <div class="d-flex justify-content-between align-items-baseline mb-2">
+                            <h5 class="font-anton m-0 text-light">RESERVA CONFIRMADA</h5>
+                            <span class="text-muted text-xs font-anton tracking-wide">18 Ene 2025</span>
+                        </div>
+                        <p class="text-muted text-sm m-0">Tu reserva #RES-00473 ha sido confirmada.</p>
+                    </div>
+                    <div class="card p-4">
+                        <div class="d-flex justify-content-between align-items-baseline mb-2">
+                            <h5 class="font-anton m-0 text-light">NUEVA PROMOCIÓN DISPONIBLE</h5>
+                            <span class="text-muted text-xs font-anton tracking-wide">10 Ene 2025</span>
+                        </div>
+                        <p class="text-muted text-sm m-0">Aprovecha nuestra promoción de 2 meses por el precio de 1.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

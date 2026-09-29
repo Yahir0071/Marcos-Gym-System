@@ -1,0 +1,17 @@
+<div th:fragment="sidebar(activeItem)" class="client-sidebar">
+    <div class="p-4 mb-3">
+        <a class="text-light text-decoration-none d-flex align-items-center" th:href="@{/inicio}">
+            <span class="text-primary me-2">⚡</span> <span class="font-anton text-lg tracking-wide">ENERGY GYM</span>
+        </a>
+    </div>
+    <div class="flex-grow-1 d-flex flex-column gap-2 px-3 mt-4">
+        <a th:href="@{/cliente/mi-membresia}" th:class="'sidebar-link ' + (${activeItem == 'membresia'} ? 'active' : '')">MI MEMBRESÍA</a>
+        <a th:href="@{/cliente/productos}" th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')">PRODUCTOS</a>
+        <a th:href="@{/cliente/mis-reservas}" th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')">MIS RESERVAS</a>
+        <a th:href="@{/cliente/afluencia}" th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')">AFLUENCIA</a>
+        <a th:href="@{/cliente/notificaciones}" th:class="'sidebar-link ' + (${activeItem == 'notificaciones'} ? 'active' : '')">NOTIFICACIONES</a>
+    </div>
+    <div class="p-4 mt-auto">
+        <a th:href="@{/logout}" class="sidebar-link">CERRAR SESIÓN</a>
+    </div>
+</div>
