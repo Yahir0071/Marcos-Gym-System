@@ -1,4 +1,4 @@
-package com.energygym.controller;
+package pe.edu.utp.Grupo04.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +35,11 @@ public class WebController {
     @GetMapping("/login")
     public String login() {
         return "login";
+    }
+
+    @GetMapping("/logout")
+    public String logout() {
+        return "redirect:/inicio";
     }
 
     // --- ÁREA CLIENTE ---
