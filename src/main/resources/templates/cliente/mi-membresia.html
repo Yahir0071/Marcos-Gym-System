@@ -51,9 +51,10 @@
         </div>
     </section>
 
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // SIMULADOR: Cambia este número para probar los colores (ej. 25, 12, 3)
+            // SIMULADOR: Cambia este número para probar los colores (ej. 25, 12, 4)
             const daysRemaining = 4; 
             
             document.getElementById('days-count').textContent = daysRemaining;
@@ -64,31 +65,49 @@
             const title = document.getElementById('alert-title');
             const btn = document.getElementById('alert-btn');
             
+            // Colores profesionales tipo Neón/Dark Gym
+            const colorDanger = '#ff3366';
+            const colorWarning = 'var(--primary)'; // #f0ff00
+            const colorSuccess = '#00e676';
+            
             if (daysRemaining <= 5) {
-                // Alerta Roja: Menos de 5 días
-                card.style.borderColor = 'var(--bs-danger)';
-                card.style.boxShadow = '0 0 15px rgba(220,53,69,0.2)';
-                icon.className = 'fa-solid fa-triangle-exclamation text-danger fs-5';
-                title.className = 'font-anton m-0 text-danger';
+                // Alerta Roja (Crítica)
+                card.style.borderColor = colorDanger;
+                card.style.boxShadow = `0 0 20px rgba(255, 51, 102, 0.15)`;
+                icon.className = 'fa-solid fa-triangle-exclamation fs-5';
+                icon.style.color = colorDanger;
+                title.className = 'font-anton m-0';
+                title.style.color = colorDanger;
                 title.textContent = '¡ALERTA ROJA: TU PLAN VENCE PRONTO!';
-                btn.className = 'btn btn-danger mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold';
+                btn.className = 'btn mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold';
+                btn.style.backgroundColor = colorDanger;
+                btn.style.color = '#fff';
+                btn.style.border = 'none';
             } else if (daysRemaining <= 15) {
-                // Alerta Amarilla: Menos de 15 días
-                card.style.borderColor = 'var(--primary)';
-                icon.className = 'fa-solid fa-triangle-exclamation text-primary fs-5';
+                // Alerta Amarilla (Preventiva)
+                card.style.borderColor = colorWarning;
+                card.style.boxShadow = `0 0 20px rgba(240, 255, 0, 0.1)`;
+                icon.className = 'fa-solid fa-triangle-exclamation fs-5 text-primary';
                 title.className = 'font-anton m-0 text-primary';
                 title.textContent = 'TU PLAN ESTÁ POR VENCER';
                 btn.className = 'btn btn-primary mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold';
                 btn.style.color = '#000';
             } else {
-                // Estado Verde: Más de 15 días
-                card.style.borderColor = 'var(--bs-success)';
-                icon.className = 'fa-solid fa-check-circle text-success fs-5';
-                title.className = 'font-anton m-0 text-success';
+                // Estado Verde (Vigente)
+                card.style.borderColor = colorSuccess;
+                card.style.boxShadow = 'none';
+                icon.className = 'fa-solid fa-check-circle fs-5';
+                icon.style.color = colorSuccess;
+                title.className = 'font-anton m-0';
+                title.style.color = colorSuccess;
                 title.textContent = 'TU PLAN ESTÁ VIGENTE';
-                btn.className = 'btn btn-outline-success mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold';
+                btn.className = 'btn mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold';
+                btn.style.backgroundColor = 'transparent';
+                btn.style.border = `1px solid ${colorSuccess}`;
+                btn.style.color = colorSuccess;
             }
         });
     </script>
 </body>
+
 </html>
