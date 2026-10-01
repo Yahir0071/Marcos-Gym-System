@@ -23,7 +23,7 @@
                     </div>
                     <div class="card p-4">
                         <span class="text-muted font-anton mb-2 text-xs tracking-wide">DÍAS RESTANTES</span>
-                        <h4 class="font-anton m-0"><span id="days-count">4</span> días</h4>
+                        <h4 class="font-anton m-0"><span id="days-count">15</span> días</h4>
                     </div>
                 </div>
                 
@@ -43,7 +43,7 @@
                             <i class="fa-solid fa-triangle-exclamation" id="alert-icon"></i>
                             <h6 class="font-anton m-0" id="alert-title">ESTADO DE TU PLAN</h6>
                         </div>
-                        <p class="text-muted text-sm mb-4" id="alert-text">Te quedan <strong id="alert-days-count" class="text-light">4</strong> días de membresía.</p>
+                        <p class="text-muted text-sm mb-4" id="alert-text">Te quedan <strong id="alert-days-count" class="text-light">15</strong> días de membresía.</p>
                         <button class="btn mt-auto text-start d-flex justify-content-between align-items-center w-100" id="alert-btn">RENOVAR PLAN <i class="fa-solid fa-arrow-right"></i></button>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // SIMULADOR: Cambia este número para probar los colores (ej. 25, 12, 4)
-            const daysRemaining = 4; 
+            const daysRemaining = 15; 
             
             document.getElementById('days-count').textContent = daysRemaining;
             document.getElementById('alert-days-count').textContent = daysRemaining;
