@@ -23,7 +23,7 @@
                     </div>
                     <div class="card p-4">
                         <span class="text-muted font-anton mb-2 text-xs tracking-wide">DÍAS RESTANTES</span>
-                        <h4 class="font-anton m-0">15 días</h4>
+                        <h4 class="font-anton m-0"><span id="days-count">15</span> días</h4>
                     </div>
                 </div>
                 
@@ -38,17 +38,57 @@
                             <li class="mb-0 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Beneficios exclusivos</li>
                         </ul>
                     </div>
-                    <div class="card p-4 card-active d-flex flex-column">
+                    <div class="card p-4 d-flex flex-column" id="alert-card" style="transition: all 0.3s ease;">
                         <div class="d-flex align-items-center gap-2 mb-3">
-                            <i class="fa-solid fa-triangle-exclamation text-primary"></i>
-                            <h6 class="font-anton text-primary m-0">TU PLAN ESTÁ POR VENCER</h6>
+                            <i class="fa-solid fa-triangle-exclamation" id="alert-icon"></i>
+                            <h6 class="font-anton m-0" id="alert-title">ESTADO DE TU PLAN</h6>
                         </div>
-                        <p class="text-muted text-sm mb-4">Te quedan 15 días de membresía. Renueva tu plan para que tu progreso no se detenga.</p>
-                        <button class="btn btn-primary mt-auto text-start d-flex justify-content-between align-items-center w-100">RENOVAR PLAN <i class="fa-solid fa-arrow-right"></i></button>
+                        <p class="text-muted text-sm mb-4" id="alert-text">Te quedan <strong id="alert-days-count" class="text-light">15</strong> días de membresía.</p>
+                        <button class="btn mt-auto text-start d-flex justify-content-between align-items-center w-100" id="alert-btn">RENOVAR PLAN <i class="fa-solid fa-arrow-right"></i></button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // SIMULADOR: Cambia este número para probar los colores (ej. 25, 12, 3)
+            const daysRemaining = 4; 
+            
+            document.getElementById('days-count').textContent = daysRemaining;
+            document.getElementById('alert-days-count').textContent = daysRemaining;
+            
+            const card = document.getElementById('alert-card');
+            const icon = document.getElementById('alert-icon');
+            const title = document.getElementById('alert-title');
+            const btn = document.getElementById('alert-btn');
+            
+            if (daysRemaining <= 5) {
+                // Alerta Roja: Menos de 5 días
+                card.style.borderColor = 'var(--bs-danger)';
+                card.style.boxShadow = '0 0 15px rgba(220,53,69,0.2)';
+                icon.className = 'fa-solid fa-triangle-exclamation text-danger fs-5';
+                title.className = 'font-anton m-0 text-danger';
+                title.textContent = '¡ALERTA ROJA: TU PLAN VENCE PRONTO!';
+                btn.className = 'btn btn-danger mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold';
+            } else if (daysRemaining <= 15) {
+                // Alerta Amarilla: Menos de 15 días
+                card.style.borderColor = 'var(--primary)';
+                icon.className = 'fa-solid fa-triangle-exclamation text-primary fs-5';
+                title.className = 'font-anton m-0 text-primary';
+                title.textContent = 'TU PLAN ESTÁ POR VENCER';
+                btn.className = 'btn btn-primary mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold';
+                btn.style.color = '#000';
+            } else {
+                // Estado Verde: Más de 15 días
+                card.style.borderColor = 'var(--bs-success)';
+                icon.className = 'fa-solid fa-check-circle text-success fs-5';
+                title.className = 'font-anton m-0 text-success';
+                title.textContent = 'TU PLAN ESTÁ VIGENTE';
+                btn.className = 'btn btn-outline-success mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold';
+            }
+        });
+    </script>
 </body>
 </html>
