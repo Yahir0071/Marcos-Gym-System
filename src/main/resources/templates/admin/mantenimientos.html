@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'mantenimientos', ~{::main})}">
+<head><title>Mantenimiento - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">REGISTRA INTERVENCIONES Y DA SEGUIMIENTO</small>
+            <h1>HISTORIAL DE MANTENIMIENTO</h1>
+            <p>CONSULTA EL ESTADO DE LOS EQUIPOS</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ REGISTRAR INTERVENCIÓN</button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label>BUSCAR MANTENIMIENTO</label>
+            <input type="text" placeholder="Buscar por equipo o descripción...">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS ESTADOS</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>DESDE</label>
+            <input type="text" value="01 Ene 2025">
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>FECHA</th>
+                <th>EQUIPO</th>
+                <th>DESCRIPCIÓN</th>
+                <th>RESPONSABLE</th>
+                <th>ESTADO</th>
+                <th>PRÓX. REVISIÓN</th>
+                <th>ACCIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>20 Ene 2025</td>
+                <td>Cinta de Correr</td>
+                <td>Cambio de banda</td>
+                <td>José Torres</td>
+                <td><span>FINALIZADO</span></td>
+                <td>20 Abr 2025</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td>18 Ene 2025</td>
+                <td>Elíptica</td>
+                <td>Ajuste general</td>
+                <td>Luis Pérez</td>
+                <td><span>FINALIZADO</span></td>
+                <td>18 Abr 2025</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td>15 Ene 2025</td>
+                <td>Prensa de Piernas</td>
+                <td>Lubricación</td>
+                <td>Técnico Externo</td>
+                <td><span>FINALIZADO</span></td>
+                <td>15 Abr 2025</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td>10 Ene 2025</td>
+                <td>Remadora</td>
+                <td>Revisión de frenos</td>
+                <td>José Torres</td>
+                <td><span class="in-process">EN PROCESO</span></td>
+                <td>—</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td>05 Ene 2025</td>
+                <td>Bicicleta Estática</td>
+                <td>Cambio de pedal</td>
+                <td>Luis Pérez</td>
+                <td><span>FINALIZADO</span></td>
+                <td>05 Abr 2025</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Alert Banner -->
+    <div class="alert-banner">
+        <span>🕒</span>
+        <span>ÚLTIMA INTERVENCIÓN REGISTRADA: CINTA DE CORRIER · 20 ENE 2025 · FINALIZADO</span>
+    </div>
+
+</main>
+</body>
+</html>

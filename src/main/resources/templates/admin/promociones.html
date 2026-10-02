@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'promociones', ~{::main})}">
+<head><title>Promociones - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">CREA Y GESTIONA TUS PROMOCIONES</small>
+            <h1>PROMOCIONES</h1>
+            <p>OFERTAS DISPONIBLES PARA LOS SOCIOS</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ NUEVA PROMOCIÓN</button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label>BUSCAR PROMOCIÓN</label>
+            <input type="text" placeholder="Buscar promoción...">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS ESTADOS</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>NOMBRE</th>
+                <th>DESCRIPCIÓN</th>
+                <th>VIGENCIA</th>
+                <th>ESTADO</th>
+                <th>ACCIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="fw-bold">2×1 EN PLAN PLUS</td>
+                <td>Entrena con un amigo</td>
+                <td>01 Ene–31 Ene 2025</td>
+                <td><span>PUBLICADA</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">20% DSCTO</td>
+                <td>Descuento en accesorios</td>
+                <td>15 Ene–15 Feb 2025</td>
+                <td><span>PUBLICADA</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">SEMANA FIT</td>
+                <td>Una semana gratis</td>
+                <td>01 Feb–07 Feb 2025</td>
+                <td><span class="status-draft">BORRADOR</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">BLACK GYM</td>
+                <td>Hasta 50% en planes</td>
+                <td>01 Nov–30 Nov 2024</td>
+                <td><span class="status-expired">VENCIDA</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">TRAÉ A UN AMIGO</td>
+                <td>Ambos obtienen 1 mes</td>
+                <td>15 Ene–15 Feb 2025</td>
+                <td><span>PUBLICADA</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

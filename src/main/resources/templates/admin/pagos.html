@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'pagos', ~{::main})}">
+<head><title>Pagos Presenciales - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">REGISTRA PAGOS RECIBIDOS EN EL GIMNASIO</small>
+            <h1>PAGOS PRESENCIALES</h1>
+            <p>SOLO REGISTRO DE PAGOS REALIZADOS EN NUESTRO LOCAL</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ REGISTRAR PAGO</button>
+        </div>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+        <span class="info-icon">ⓘ</span>
+        <div>
+            <strong>SOLO REGISTRO DE PAGOS RECIBIDOS PRESENCIALMENTE</strong>
+            <small>No incluye pagos en línea.</small>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label>BUSCAR PAGO</label>
+            <input type="text" placeholder="Buscar socio...">
+        </div>
+        <div class="filter-group">
+            <label>DESDE</label>
+            <input type="text" value="01 Ene 2025">
+        </div>
+        <div class="filter-group">
+            <label>HASTA</label>
+            <input type="text" value="31 Ene 2025">
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>N°</th>
+                <th>FECHA</th>
+                <th>SOCIO</th>
+                <th>PLAN / CONCEPTO</th>
+                <th>MONTO</th>
+                <th>MÉTODO</th>
+                <th>ESTADO</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="fw-bold">001</td>
+                <td>20 Ene 2025</td>
+                <td>Carlos Mendoza</td>
+                <td>Plan Plus</td>
+                <td>S/ 129</td>
+                <td>Efectivo</td>
+                <td><span>PAGADO</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">002</td>
+                <td>19 Ene 2025</td>
+                <td>Ana Torres</td>
+                <td>Plan Básico</td>
+                <td>S/ 79</td>
+                <td>Tarjeta</td>
+                <td><span>PAGADO</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">003</td>
+                <td>18 Ene 2025</td>
+                <td>Luis Ramírez</td>
+                <td>Plan Premium</td>
+                <td>S/ 159</td>
+                <td>Efectivo</td>
+                <td><span>PAGADO</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">004</td>
+                <td>17 Ene 2025</td>
+                <td>Sofía Vega</td>
+                <td>Plan Plus</td>
+                <td>S/ 129</td>
+                <td>Transferencia</td>
+                <td><span>PAGADO</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">005</td>
+                <td>16 Ene 2025</td>
+                <td>Diego Flores</td>
+                <td>Plan Básico</td>
+                <td>S/ 79</td>
+                <td>Tarjeta</td>
+                <td><span>PAGADO</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

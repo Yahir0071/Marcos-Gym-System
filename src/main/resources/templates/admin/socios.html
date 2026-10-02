@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Socios - Energy Gym</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f6f9; color: #333; }
+        h1 { color: #1a202c; }
+        .btn { background: #1a202c; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f6ad55; color: white; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>👥 CONTROL DE SOCIOS - ENERGY GYM</h1>
+    <p>Vista de contingencia del módulo de administración de clientes.</p>
+    <a href="/admin/dashboard" class="btn">⬅️ Volver al Dashboard</a>
+</header>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nombre del Socio</th>
+        <th>Plan Activo</th>
+        <th>Estado</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>1</td>
+        <td>Marcos Pérez (Usuario de Prueba)</td>
+        <td>Plan VIP Anual</td>
+        <td><span style="color: green; font-weight: bold;">Activo</span></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

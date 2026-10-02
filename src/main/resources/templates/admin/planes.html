@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'planes', ~{::main})}">
+<head><title>Planes y Membresías - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">GESTIONA PLANES Y ASIGNACIONES</small>
+            <h1>PLANES Y MEMBRESÍAS</h1>
+            <p>CATÁLOGO DE PLANES Y MEMBRESÍAS ASIGNADAS</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ NUEVO PLAN</button>
+        </div>
+    </div>
+
+    <!-- Tabs / Subheaders -->
+    <div class="tab-navigation">
+        <button class="tab-btn active">PLANES</button>
+        <button class="tab-btn">MEMBRESÍAS ASIGNADAS</button>
+    </div>
+
+    <!-- Catalog Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>NOMBRE</th>
+                <th>PRECIO</th>
+                <th>DURACIÓN</th>
+                <th>BENEFICIOS</th>
+                <th>ESTADO</th>
+                <th>ACCIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="fw-bold">Plan Básico</td>
+                <td>S/ 79</td>
+                <td>1 mes</td>
+                <td>Acceso a áreas generales</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Plan Plus</td>
+                <td>S/ 119</td>
+                <td>1 mes</td>
+                <td>Áreas + equipos premium</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Plan Premium</td>
+                <td>S/ 159</td>
+                <td>1 mes</td>
+                <td>Acceso total + beneficios</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Plan Trimestral</td>
+                <td>S/ 349</td>
+                <td>3 meses</td>
+                <td>Acceso total + beneficios</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Section Action Header -->
+    <div class="section-actions text-end">
+        <button class="btn-primary">+ ASIGNAR MEMBRESÍA</button>
+    </div>
+
+    <!-- Assigned Memberships Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>SOCIO</th>
+                <th>PLAN</th>
+                <th>FECHA INICIO</th>
+                <th>FECHA FIN</th>
+                <th>DÍAS RESTANTES</th>
+                <th>ESTADO</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="fw-bold">Carlos Mendoza</td>
+                <td>Plan Plus</td>
+                <td>01 Ene 2025</td>
+                <td>31 Ene 2025</td>
+                <td>15</td>
+                <td><span>ACTIVA</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Ana Torres</td>
+                <td>Plan Básico</td>
+                <td>15 Ene 2025</td>
+                <td>14 Feb 2025</td>
+                <td>30</td>
+                <td><span>ACTIVA</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Luis Ramírez</td>
+                <td>Plan Premium</td>
+                <td>01 Dic 2024</td>
+                <td>01 Ene 2025</td>
+                <td>0</td>
+                <td><span class="status-warning">POR VENCER</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'equipos', ~{::main})}">
+<head><title>Equipos - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">ADMINISTRA LOS EQUIPOS DEL GIMNASIO</small>
+            <h1>EQUIPOS</h1>
+            <p>INVENTARIO DE MÁQUINAS Y EQUIPOS</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ REGISTRAR EQUIPO</button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label>BUSCAR EQUIPO</label>
+            <input type="text" placeholder="Buscar por código, nombre o ubicación...">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS TIPOS</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS ESTADOS</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>CÓDIGO</th>
+                <th>NOMBRE</th>
+                <th>TIPO</th>
+                <th>UBICACIÓN</th>
+                <th>ÚLT. MANTENIMIENTO</th>
+                <th>ESTADO</th>
+                <th>ACCIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="code-cell">EQP-001</td>
+                <td>Cinta de Correr</td>
+                <td>Cardio</td>
+                <td>Zona Cardio</td>
+                <td>10 Ene 2025</td>
+                <td><span>OPERATIVO</span></td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="code-cell">EQP-002</td>
+                <td>Bicicleta Estática</td>
+                <td>Cardio</td>
+                <td>Zona Cardio</td>
+                <td>05 Ene 2025</td>
+                <td><span>OPERATIVO</span></td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="code-cell">EQP-003</td>
+                <td>Prensa de Piernas</td>
+                <td>Fuerza</td>
+                <td>Zona Fuerza</td>
+                <td>12 Dic 2024</td>
+                <td><span class="in-maintenance">EN MANTENIMIENTO</span></td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="code-cell">EQP-004</td>
+                <td>Mancuernas</td>
+                <td>Pesas</td>
+                <td>Sala Principal</td>
+                <td>20 Ene 2025</td>
+                <td><span>OPERATIVO</span></td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="code-cell">EQP-005</td>
+                <td>Banco Plano</td>
+                <td>Fuerza</td>
+                <td>Zona Fuerza</td>
+                <td>08 Ene 2025</td>
+                <td><span>OPERATIVO</span></td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="code-cell">EQP-006</td>
+                <td>Elíptica</td>
+                <td>Cardio</td>
+                <td>Zona Cardio</td>
+                <td>02 Ene 2025</td>
+                <td><span class="out-service">FUERA DE SERVICIO</span></td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

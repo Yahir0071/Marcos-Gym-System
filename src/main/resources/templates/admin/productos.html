@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'productos', ~{::main})}">
+<head><title>Productos - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">GESTIONA EL INVENTARIO DE PRODUCTOS</small>
+            <h1>PRODUCTOS</h1>
+            <p>SUPLEMENTOS, ACCESORIOS Y STOCK</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ NUEVO PRODUCTO</button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label>BUSCAR PRODUCTO</label>
+            <input type="text" placeholder="Buscar producto...">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODAS LAS CATEGORÍAS</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS ESTADOS</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>IMAGEN</th>
+                <th>NOMBRE</th>
+                <th>CATEGORÍA</th>
+                <th>PRECIO</th>
+                <th>STOCK</th>
+                <th>ESTADO</th>
+                <th>ACCIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><div class="image-placeholder">🖼️</div></td>
+                <td>Whey Protein 2 LB</td>
+                <td>Suplementos</td>
+                <td>S/ 149</td>
+                <td>12</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td><div class="image-placeholder">🖼️</div></td>
+                <td>Creatina 300 g</td>
+                <td>Suplementos</td>
+                <td>S/ 89</td>
+                <td>8</td>
+                <td><span class="stock-low">STOCK BAJO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td><div class="image-placeholder">🖼️</div></td>
+                <td>Pre Entreno 300 g</td>
+                <td>Suplementos</td>
+                <td>S/ 99</td>
+                <td>25</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td><div class="image-placeholder">🖼️</div></td>
+                <td>Shaker 700 ml</td>
+                <td>Accesorios</td>
+                <td>S/ 45</td>
+                <td>4</td>
+                <td><span class="stock-low">STOCK BAJO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td><div class="image-placeholder">🖼️</div></td>
+                <td>Correas de Levante</td>
+                <td>Accesorios</td>
+                <td>S/ 65</td>
+                <td>15</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            <tr>
+                <td><div class="image-placeholder">🖼️</div></td>
+                <td>Guantes para Gym</td>
+                <td>Accesorios</td>
+                <td>S/ 59</td>
+                <td>3</td>
+                <td><span class="stock-low">STOCK BAJO</span></td>
+                <td><a href="#">EDITAR</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

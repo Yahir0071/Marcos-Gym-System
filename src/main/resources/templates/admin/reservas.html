@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'reservas', ~{::main})}">
+<head><title>Reservas - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">GESTIONA LAS RESERVAS DE PRODUCTOS</small>
+            <h1>RESERVAS</h1>
+            <p>REVISA, GESTIONA Y ACTUALIZA EL ESTADO DE LAS RESERVAS</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ NUEVA RESERVA</button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group filter-large">
+            <label>BUSCAR RESERVA</label>
+            <input type="text" placeholder="Buscar por código, cliente o producto...">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS ESTADOS</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>CÓDIGO</th>
+                <th>CLIENTE</th>
+                <th>PRODUCTO</th>
+                <th>CANT.</th>
+                <th>FECHA RESERVA</th>
+                <th>ESTADO</th>
+                <th>STOCK</th>
+                <th>ACCIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="fw-bold">#RES-0051</td>
+                <td>Carlos Mendoza</td>
+                <td>Whey Protein 2 LB</td>
+                <td>1</td>
+                <td>20 Ene 2025</td>
+                <td>PENDIENTE</td>
+                <td>12</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">#RES-0050</td>
+                <td>Ana Torres</td>
+                <td>Creatina 300 g</td>
+                <td>2</td>
+                <td>19 Ene 2025</td>
+                <td>CONFIRMADA</td>
+                <td>8</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">#RES-0049</td>
+                <td>Luis Ramírez</td>
+                <td>Shaker 700 ml</td>
+                <td>1</td>
+                <td>18 Ene 2025</td>
+                <td>ENTREGADA</td>
+                <td>4</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">#RES-0048</td>
+                <td>María López</td>
+                <td>Pre Entreno 300 g</td>
+                <td>1</td>
+                <td>17 Ene 2025</td>
+                <td>CANCELADA</td>
+                <td>25</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">#RES-0047</td>
+                <td>Diego Flores</td>
+                <td>Guantes para Gym</td>
+                <td>1</td>
+                <td>16 Ene 2025</td>
+                <td>CONFIRMADA</td>
+                <td>3</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">#RES-0046</td>
+                <td>Sofía Vega</td>
+                <td>Camiseta ENERGY</td>
+                <td>2</td>
+                <td>15 Ene 2025</td>
+                <td>PENDIENTE</td>
+                <td>0</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

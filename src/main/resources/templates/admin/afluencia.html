@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'afluencia', ~{::main})}">
+<head><title>Registro de Afluencia - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">CONSULTA LOS REGISTROS DE AFLUENCIA</small>
+            <h1>REGISTRO DE AFLUENCIA</h1>
+            <p>DATOS APROXIMADOS DE VISITAS AL GIMNASIO</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ NUEVO REGISTRO</button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label>DESDE</label>
+            <input type="text" value="01 Ene 2025" placeholder="dd mm aaaa">
+        </div>
+        <div class="filter-group">
+            <label>HASTA</label>
+            <input type="text" value="31 Ene 2025" placeholder="dd mm aaaa">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS HORARIOS</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS ESTADOS</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>FECHA</th>
+                <th>HORARIO</th>
+                <th>CANTIDAD APROX.</th>
+                <th>ESTADO</th>
+                <th>REGISTRADO POR</th>
+                <th>ACCIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="fw-bold">20 Ene 2025</td>
+                <td>06:00–11:00</td>
+                <td>42</td>
+                <td>REGISTRADO</td>
+                <td>Administrador</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">20 Ene 2025</td>
+                <td>11:00–16:00</td>
+                <td>38</td>
+                <td>REGISTRADO</td>
+                <td>Administrador</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">20 Ene 2025</td>
+                <td>16:00–23:00</td>
+                <td>55</td>
+                <td>REGISTRADO</td>
+                <td>Administrador</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">19 Ene 2025</td>
+                <td>06:00–11:00</td>
+                <td>35</td>
+                <td>REGISTRADO</td>
+                <td>Administrador</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">19 Ene 2025</td>
+                <td>11:00–16:00</td>
+                <td>41</td>
+                <td>REGISTRADO</td>
+                <td>Administrador</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">18 Ene 2025</td>
+                <td>16:00–23:00</td>
+                <td>48</td>
+                <td>REGISTRADO</td>
+                <td>Administrador</td>
+                <td><a href="#">VER</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Note -->
+    <div class="info-note">
+        <span class="info-icon">ⓘ</span>
+        <span>LA AFLUENCIA ES UNA CIFRA APROXIMADA REGISTRADA MANUALMENTE POR EL ADMINISTRADOR.</span>
+    </div>
+
+</main>
+</body>
+</html>

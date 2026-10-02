@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Socios - Energy Gym</title>
+</head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <div>
+            <small class="subtitle">GESTIÓN DE USUARIOS DEL GIMNASIO</small>
+            <h1>SOCIOS</h1>
+            <p>ADMINISTRA TUS SOCIOS, REVISA SU ESTADO Y MEMBRESÍAS</p>
+        </div>
+        <div>
+            <button class="btn-primary">+ REGISTRAR SOCIO</button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label>BUSCAR SOCIO</label>
+            <input type="text" placeholder="Buscar por nombre, documento o email...">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS ESTADOS</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODAS LAS MEMBRESÍAS</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>N°</th>
+                <th>NOMBRE</th>
+                <th>DOCUMENTO</th>
+                <th>TELÉFONO</th>
+                <th>MEMBRESÍA</th>
+                <th>ESTADO</th>
+                <th>ACCIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="fw-bold">01</td>
+                <td>Carlos Mendoza</td>
+                <td>72563123</td>
+                <td>987 654 321</td>
+                <td>Plan Plus</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">VER / EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">02</td>
+                <td>Ana Torres</td>
+                <td>40215876</td>
+                <td>912 345 678</td>
+                <td>Plan Básico</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">VER / EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">03</td>
+                <td>Luis Ramírez</td>
+                <td>71553049</td>
+                <td>923 456 789</td>
+                <td>Plan Premium</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">VER / EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">04</td>
+                <td>María López</td>
+                <td>46789211</td>
+                <td>934 567 890</td>
+                <td>Plan Plus</td>
+                <td><span class="status-inactive">INACTIVO</span></td>
+                <td><a href="#">VER / EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">05</td>
+                <td>Diego Flores</td>
+                <td>73801234</td>
+                <td>987 321 654</td>
+                <td>Plan Básico</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">VER / EDITAR</a></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">06</td>
+                <td>Sofía Vega</td>
+                <td>70554321</td>
+                <td>914 876 123</td>
+                <td>Plan Premium</td>
+                <td><span>ACTIVO</span></td>
+                <td><a href="#">VER / EDITAR</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

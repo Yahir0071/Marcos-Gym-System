@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'reporte', ~{::main})}">
+<head><title>Reporte de Mantenimiento - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <div class="page-header">
+        <small class="subtitle">RESUMEN DEL ESTADO DE LOS EQUIPOS</small>
+        <h1>REPORTE DE MANTENIMIENTO</h1>
+        <p>VISUALIZA EL ESTADO GENERAL Y PRÓXIMAS REVISIONES</p>
+    </div>
+
+    <!-- Status Cards Grid -->
+    <div class="status-cards-grid">
+        <div class="card-metric operational">
+            <div>
+                <h2>18</h2>
+            </div>
+            <div>
+                <span>OPERATIVOS</span>
+            </div>
+        </div>
+        <div class="card-metric maintenance">
+            <div>
+                <h2>6</h2>
+            </div>
+            <div>
+                <span>EN MANTENIMIENTO</span>
+            </div>
+        </div>
+        <div class="card-metric out-of-service">
+            <div>
+                <h2>4</h2>
+            </div>
+            <div>
+                <span>FUERA DE SERVICIO</span>
+            </div>
+        </div>
+        <div class="card-metric pending">
+            <div>
+                <h2>2</h2>
+            </div>
+            <div>
+                <span>PENDIENTES DE ATENCIÓN</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label>BUSCAR REPORTE</label>
+            <input type="text" placeholder="Buscar por equipo...">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODOS LOS ESTADOS</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <select>
+                <option selected>TODAS LAS UBICACIONES</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr>
+                <th>CÓDIGO</th>
+                <th>EQUIPO</th>
+                <th>TIPO</th>
+                <th>ZONA</th>
+                <th>ESTADO</th>
+                <th>ÚLT. MANTENIMIENTO</th>
+                <th>PRÓX. REVISIÓN</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="code-cell">EQP-001</td>
+                <td>Cinta de Correr</td>
+                <td>Cardio</td>
+                <td>Zona Cardio</td>
+                <td><span>OPERATIVO</span></td>
+                <td>20 Ene 2025</td>
+                <td>20 Abr 2025</td>
+            </tr>
+            <tr>
+                <td class="code-cell">EQP-003</td>
+                <td>Prensa de Piernas</td>
+                <td>Fuerza</td>
+                <td>Zona Fuerza</td>
+                <td><span class="in-maintenance">EN MANTENIMIENTO</span></td>
+                <td>15 Ene 2025</td>
+                <td>15 Abr 2025</td>
+            </tr>
+            <tr>
+                <td class="code-cell">EQP-006</td>
+                <td>Elíptica</td>
+                <td>Cardio</td>
+                <td>Zona Cardio</td>
+                <td><span class="out-service">FUERA DE SERVICIO</span></td>
+                <td>02 Ene 2025</td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td class="code-cell">EQP-008</td>
+                <td>Remadora</td>
+                <td>Cardio</td>
+                <td>Zona Cardio</td>
+                <td><span>OPERATIVO</span></td>
+                <td>06 Ene 2025</td>
+                <td>06 Abr 2025</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

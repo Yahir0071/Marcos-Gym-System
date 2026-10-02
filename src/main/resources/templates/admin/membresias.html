@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'membresias', ~{::main})}">
+<head><title>Membresías asignadas - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <header class="page-header">
+        <div>
+            <small class="subtitle">GESTIONA LAS ASIGNACIONES ACTIVAS</small>
+            <h1>MEMBRESÍAS</h1>
+            <p>CONSULTA PLANES, VIGENCIAS Y ESTADO DE CADA SOCIO</p>
+        </div>
+        <a class="admin-button" th:href="@{/admin/planes}">VER PLANES</a>
+    </header>
+    <nav class="tab-navigation" aria-label="Planes y membresías">
+        <a th:href="@{/admin/planes}">PLANES</a>
+        <a class="active" th:href="@{/admin/membresias}">MEMBRESÍAS ASIGNADAS</a>
+    </nav>
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+            <tr><th>SOCIO</th><th>PLAN</th><th>FECHA INICIO</th><th>FECHA FIN</th><th>DÍAS RESTANTES</th><th>ESTADO</th></tr>
+            </thead>
+            <tbody>
+            <tr><td>Carlos Mendoza</td><td>Plan Plus</td><td>01 Ene 2025</td><td>31 Ene 2025</td><td>15</td><td><span>ACTIVA</span></td></tr>
+            <tr><td>Ana Torres</td><td>Plan Básico</td><td>15 Ene 2025</td><td>14 Feb 2025</td><td>30</td><td><span>ACTIVA</span></td></tr>
+            <tr><td>Luis Ramírez</td><td>Plan Premium</td><td>01 Dic 2024</td><td>01 Ene 2025</td><td>0</td><td><span class="status-warning">POR VENCER</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>
