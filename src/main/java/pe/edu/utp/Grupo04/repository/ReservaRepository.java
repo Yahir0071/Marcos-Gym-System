@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     List<Reserva> findBySocioIdOrderByFechaReservaDesc(Long socioId);
+    List<Reserva> findBySocioUsuarioUsernameOrderByFechaReservaDesc(String username);
+    long countByEstado(pe.edu.utp.Grupo04.model.enums.EstadoReserva estado);
 }

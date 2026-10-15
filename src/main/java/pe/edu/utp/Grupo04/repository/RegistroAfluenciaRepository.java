@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface RegistroAfluenciaRepository extends JpaRepository<RegistroAfluencia, Long> {
     List<RegistroAfluencia> findByFecha(LocalDate fecha);
+    java.util.Optional<RegistroAfluencia> findByFechaAndFranjaHoraria(LocalDate fecha, pe.edu.utp.Grupo04.model.enums.FranjaHoraria franjaHoraria);
+    java.util.Optional<RegistroAfluencia> findTopByOrderByFechaRegistroDesc();
 }

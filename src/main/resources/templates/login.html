@@ -23,7 +23,14 @@
                 <div class="w-100 mx-auto ps-lg-4 mw-420px">
                     <h2 class="font-anton mb-5 text-light text-3xl">INICIAR SESIÓN</h2>
                     
-                    <form th:action="@{/cliente/mi-membresia}" method="get">
+                    <div th:if="${param.error}" class="alert alert-danger py-2 mb-4 text-xs font-anton tracking-wide" style="background-color: rgba(220,53,69,0.2); border: 1px solid #dc3545; color: #ff6b6b;">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i> CORREO O CONTRASEÑA INCORRECTOS
+                    </div>
+                    <div th:if="${param.logout}" class="alert alert-info py-2 mb-4 text-xs font-anton tracking-wide" style="background-color: rgba(13,202,240,0.2); border: 1px solid #0dcaf0; color: #0dcaf0;">
+                        <i class="fa-solid fa-circle-check me-1"></i> SESIÓN CERRADA CORRECTAMENTE
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
                         <div class="mb-4">
                             <label for="username" class="form-label text-xs">CORREO ELECTRÓNICO</label>
                             <input type="email" class="form-control bg-transparent text-light border-secondary" id="username" name="username" placeholder="tucorreo@ejemplo.com" required>
