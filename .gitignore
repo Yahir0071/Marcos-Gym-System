@@ -35,4 +35,5 @@ graphify-out/
 _docs/
 *.docx
 *.txt
+*.md
 HELP.md

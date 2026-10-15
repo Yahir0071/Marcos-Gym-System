@@ -28,7 +28,7 @@
 
         <div class="card-metric operational">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <h2>S/ <span class="counter-value" th:text="${metricas != null and metricas.ingresosMes != null ? #numbers.formatDecimal(metricas.ingresosMes, 1, 'COMMA', 2, 'POINT') : '16,450.00'}">16,450</span></h2>
+                <h2>S/ <span class="counter-value" th:text="${metricas != null and metricas['ingresosMes'] != null ? #numbers.formatDecimal(metricas['ingresosMes'], 1, 'COMMA', 2, 'POINT') : '16,450.00'}">16,450</span></h2>
                 <span class="badge bg-dark text-success border border-success">ESTABLE</span>
             </div>
             <span>INGRESOS DEL MES</span>

@@ -80,13 +80,14 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="eq : ${equipos}">
-                <td class="code-cell" th:text="${eq.codigo}">EQP-001</td>
-                <td class="fw-bold" th:text="${eq.nombre}">Cinta de Correr</td>
+            <tr th:each="equipo : ${equipos}">
+                <td class="code-cell" th:text="${equipo.codigo}">EQP-001</td>
+                <td class="fw-bold" th:text="${equipo.nombre}">Cinta de Correr</td>
                 <td>
-                    <span th:if="${eq.estado.name() == 'OPERATIVO'}">OPERATIVO</span>
-                    <span th:if="${eq.estado.name() == 'EN_MANTENIMIENTO'}" class="status-warning">EN MANTENIMIENTO</span>
-                    <span th:if="${eq.estado.name() == 'FUERA_DE_SERVICIO'}" class="status-inactive">FUERA DE SERVICIO</span>
+                    <span th:if="${equipo.estado != null and equipo.estado.name() == 'OPERATIVO'}">OPERATIVO</span>
+                    <span th:if="${equipo.estado != null and equipo.estado.name() == 'EN_MANTENIMIENTO'}" class="status-warning">EN MANTENIMIENTO</span>
+                    <span th:if="${equipo.estado != null and equipo.estado.name() == 'FUERA_DE_SERVICIO'}" class="status-inactive">FUERA DE SERVICIO</span>
+                    <span th:if="${equipo.estado == null}" class="text-muted">-</span>
                 </td>
                 <td>
                     <a th:href="@{/admin/mantenimientos}" class="btn-edit-row">VER HISTORIAL</a>

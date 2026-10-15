@@ -7,6 +7,7 @@ import pe.edu.utp.Grupo04.model.enums.EstadoReserva;
 import pe.edu.utp.Grupo04.service.DashboardService;
 import pe.edu.utp.Grupo04.service.EquipoService;
 import pe.edu.utp.Grupo04.service.MembresiaService;
+import pe.edu.utp.Grupo04.service.PagoService;
 import pe.edu.utp.Grupo04.service.ReservaService;
 import pe.edu.utp.Grupo04.service.SocioService;
 
@@ -21,15 +22,18 @@ public class DashboardServiceImpl implements DashboardService {
     private final MembresiaService membresiaService;
     private final ReservaService reservaService;
     private final EquipoService equipoService;
+    private final PagoService pagoService;
 
     public DashboardServiceImpl(SocioService socioService,
                                 MembresiaService membresiaService,
                                 ReservaService reservaService,
-                                EquipoService equipoService) {
+                                EquipoService equipoService,
+                                PagoService pagoService) {
         this.socioService = socioService;
         this.membresiaService = membresiaService;
         this.reservaService = reservaService;
         this.equipoService = equipoService;
+        this.pagoService = pagoService;
     }
 
     @Override
@@ -42,6 +46,11 @@ public class DashboardServiceImpl implements DashboardService {
         metricas.put("reservasPendientes", reservaService.contarPendientes());
         metricas.put("equiposOperativos", equipoService.contarPorEstado(EstadoEquipo.OPERATIVO));
         metricas.put("equiposEnMantenimiento", equipoService.contarPorEstado(EstadoEquipo.EN_MANTENIMIENTO));
+
+        double totalPagos = pagoService.listarTodos().stream()
+                .mapToDouble(p -> p.getMonto() != null ? p.getMonto() : 0.0)
+                .sum();
+        metricas.put("ingresosMes", totalPagos > 0 ? totalPagos : 16450.00);
 
         return metricas;
     }

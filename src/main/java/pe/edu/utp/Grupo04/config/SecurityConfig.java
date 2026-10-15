@@ -39,9 +39,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf
+                // Eximir /login del token CSRF para evitar 403 por desincronización de sesiones demo en navegadores
+                .ignoringRequestMatchers("/login")
+            )
             .authorizeHttpRequests(auth -> auth
-                // Recursos estáticos públicos
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico").permitAll()
+                // Recursos estáticos públicos y ruta de error
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
                 // Vistas públicas
                 .requestMatchers("/", "/inicio", "/planes", "/promociones", "/productos", "/afluencia", "/detalle-producto").permitAll()
                 // Autenticación pública

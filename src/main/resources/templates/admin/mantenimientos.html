@@ -65,9 +65,10 @@
                 <td th:text="${m.descripcion}">Cambio de banda y calibración</td>
                 <td class="text-muted text-xs" th:text="${m.observaciones != null and !#strings.isEmpty(m.observaciones) ? m.observaciones : 'Ninguna'}">Completado por técnico certificado</td>
                 <td>
-                    <span th:if="${m.equipo.estado.name() == 'OPERATIVO'}">OPERATIVO</span>
-                    <span th:if="${m.equipo.estado.name() == 'EN_MANTENIMIENTO'}" class="status-warning">EN MANTENIMIENTO</span>
-                    <span th:if="${m.equipo.estado.name() == 'FUERA_DE_SERVICIO'}" class="status-inactive">FUERA DE SERVICIO</span>
+                    <span th:if="${m.equipo != null and m.equipo.estado != null and m.equipo.estado.name() == 'OPERATIVO'}">OPERATIVO</span>
+                    <span th:if="${m.equipo != null and m.equipo.estado != null and m.equipo.estado.name() == 'EN_MANTENIMIENTO'}" class="status-warning">EN MANTENIMIENTO</span>
+                    <span th:if="${m.equipo != null and m.equipo.estado != null and m.equipo.estado.name() == 'FUERA_DE_SERVICIO'}" class="status-inactive">FUERA DE SERVICIO</span>
+                    <span th:if="${m.equipo == null or m.equipo.estado == null}" class="text-muted">-</span>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(mantenimientos)}">
@@ -91,8 +92,8 @@
                             <label class="form-label">EQUIPO A INTERVENIR</label>
                             <select name="equipoId" class="form-select" required>
                                 <option value="" disabled selected>-- Elija el equipo del inventario --</option>
-                                <option th:each="eq : ${equipos}" th:value="${eq.id}"
-                                        th:text="${eq.codigo + ' - ' + eq.nombre + ' (' + eq.estado.name() + ')'}">
+                                <option th:each="equipo : ${equipos}" th:value="${equipo.id}"
+                                        th:text="${equipo.codigo + ' - ' + equipo.nombre + (equipo.estado != null ? ' (' + equipo.estado.name() + ')' : '')}">
                                     EQP-001 - Cinta de Correr (OPERATIVO)
                                 </option>
                             </select>
