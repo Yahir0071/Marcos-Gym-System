@@ -9,28 +9,39 @@
             <h1>RESERVAS</h1>
             <p>REVISA, GESTIONA Y ACTUALIZA EL ESTADO DE LAS RESERVAS</p>
         </div>
-        <div>
-            <button class="btn-primary">+ NUEVA RESERVA</button>
-        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show bg-dark text-danger border border-danger mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
     </div>
 
     <!-- Filters -->
     <div class="filters-bar">
         <div class="filter-group filter-large">
             <label>BUSCAR RESERVA</label>
-            <input type="text" placeholder="Buscar por código, cliente o producto...">
+            <input type="text" class="table-search-input" placeholder="Buscar por código, cliente o producto...">
         </div>
         <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODOS LOS ESTADOS</option>
+            <label>ESTADO</label>
+            <select class="table-filter-select" data-filter-col="5">
+                <option value="">TODOS LOS ESTADOS</option>
+                <option value="PENDIENTE">PENDIENTE</option>
+                <option value="CONFIRMADA">CONFIRMADA</option>
+                <option value="ENTREGADA">ENTREGADA</option>
+                <option value="CANCELADA">CANCELADA</option>
             </select>
         </div>
     </div>
 
     <!-- Table -->
     <div class="table-container">
-        <table class="custom-table">
+        <table class="custom-table filterable-table" id="tablaReservasAdmin">
             <thead>
             <tr>
                 <th>CÓDIGO</th>
@@ -39,75 +50,46 @@
                 <th>CANT.</th>
                 <th>FECHA RESERVA</th>
                 <th>ESTADO</th>
-                <th>STOCK</th>
-                <th>ACCIÓN</th>
+                <th>STOCK DISPONIBLE</th>
+                <th>GESTIÓN DE ESTADO</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td class="fw-bold">#RES-0051</td>
-                <td>Carlos Mendoza</td>
-                <td>Whey Protein 2 LB</td>
-                <td>1</td>
-                <td>20 Ene 2025</td>
-                <td>PENDIENTE</td>
-                <td>12</td>
-                <td><a href="#">VER</a></td>
+            <tr th:each="res : ${reservas}">
+                <td class="code-cell" th:text="${'#RES-' + #numbers.formatInteger(res.id, 5)}">#RES-00051</td>
+                <td>
+                    <div class="fw-bold" th:text="${res.socio.nombres + ' ' + res.socio.apellidos}">Carlos Mendoza</div>
+                    <small class="text-muted" th:text="${'DNI: ' + res.socio.dni}">DNI: 72563123</small>
+                </td>
+                <td class="fw-bold text-primary" th:text="${res.producto.nombre}">Whey Protein 2 LB</td>
+                <td th:text="${res.cantidad}">1</td>
+                <td th:text="${#temporals.format(res.fechaReserva, 'dd MMM yyyy, HH:mm')}">20 Ene 2025, 15:40</td>
+                <td>
+                    <span th:class="${res.estado.name() == 'PENDIENTE' ? 'status-warning' : (res.estado.name() == 'CANCELADA' ? 'status-inactive' : '')}"
+                          th:text="${res.estado.name()}">PENDIENTE</span>
+                </td>
+                <td>
+                    <span th:text="${res.producto.stock + ' un.'}">12 un.</span>
+                </td>
+                <td>
+                    <form th:action="@{/admin/reservas/cambiar-estado}" method="post" class="d-flex gap-1 align-items-center">
+                        <input type="hidden" name="reservaId" th:value="${res.id}">
+                        <select name="nuevoEstado" class="form-select form-select-sm py-1 bg-dark text-light border-secondary">
+                            <option value="PENDIENTE" th:selected="${res.estado.name() == 'PENDIENTE'}">PENDIENTE</option>
+                            <option value="CONFIRMADA" th:selected="${res.estado.name() == 'CONFIRMADA'}">CONFIRMADA</option>
+                            <option value="ENTREGADA" th:selected="${res.estado.name() == 'ENTREGADA'}">ENTREGADA</option>
+                            <option value="CANCELADA" th:selected="${res.estado.name() == 'CANCELADA'}">CANCELADA</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm px-2 py-1 text-xs">APLICAR</button>
+                    </form>
+                </td>
             </tr>
-            <tr>
-                <td class="fw-bold">#RES-0050</td>
-                <td>Ana Torres</td>
-                <td>Creatina 300 g</td>
-                <td>2</td>
-                <td>19 Ene 2025</td>
-                <td>CONFIRMADA</td>
-                <td>8</td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">#RES-0049</td>
-                <td>Luis Ramírez</td>
-                <td>Shaker 700 ml</td>
-                <td>1</td>
-                <td>18 Ene 2025</td>
-                <td>ENTREGADA</td>
-                <td>4</td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">#RES-0048</td>
-                <td>María López</td>
-                <td>Pre Entreno 300 g</td>
-                <td>1</td>
-                <td>17 Ene 2025</td>
-                <td>CANCELADA</td>
-                <td>25</td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">#RES-0047</td>
-                <td>Diego Flores</td>
-                <td>Guantes para Gym</td>
-                <td>1</td>
-                <td>16 Ene 2025</td>
-                <td>CONFIRMADA</td>
-                <td>3</td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">#RES-0046</td>
-                <td>Sofía Vega</td>
-                <td>Camiseta ENERGY</td>
-                <td>2</td>
-                <td>15 Ene 2025</td>
-                <td>PENDIENTE</td>
-                <td>0</td>
-                <td><a href="#">VER</a></td>
+            <tr th:if="${#lists.isEmpty(reservas)}">
+                <td colspan="8" class="text-center text-muted py-4">No se han registrado reservas de suplementos o accesorios.</td>
             </tr>
             </tbody>
         </table>
     </div>
-
 </main>
 </body>
 </html>

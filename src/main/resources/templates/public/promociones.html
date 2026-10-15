@@ -4,41 +4,96 @@
 <body>
     <section>
         <div th:replace="~{fragments/navbar :: navbar}"></div>
-        <div class="container-fluid px-5 page-container">
+        <div class="container-fluid px-4 px-lg-5 page-container">
             <div class="section-subtitle has-line mb-3">APROVECHA AHORA</div>
             <h1 class="display-3 font-anton leading-none mb-1 text-light">PROMOCIONES<br><span class="text-primary">EXCLUSIVAS</span></h1>
             <p class="font-anton text-muted mb-5 tracking-wide text-lg">MÁS ENERGÍA, MÁS RESULTADOS.</p>
-            <hr class="border-secondary mb-5">
-            <div class="card promo-banner p-5 mb-5 d-flex justify-content-between align-items-center flex-row flex-wrap gap-4 z-1">
+
+            <!-- Featured Promo Banner with Live Countdown -->
+            <div class="card promo-banner p-4 p-lg-5 mb-5 d-flex justify-content-between align-items-center flex-row flex-wrap gap-4">
                 <div>
-                    <div class="badge bg-primary font-anton mb-3 px-3 py-2 text-xs">PROMOCIÓN DESTACADA</div>
-                    <h2 class="font-anton text-light text-3xl leading-none">2 MESES<br>X EL PRECIO DE 1</h2>
-                    <p class="text-muted mt-3 mb-0 text-sm">Duplica tu energía este mes. Vigencia: 01-31 Ene 2025.</p>
+                    <div class="badge bg-primary text-dark font-anton mb-3 px-3 py-2 text-xs">🔥 PROMOCIÓN DESTACADA DEL MES</div>
+                    <h2 class="font-anton text-light text-3xl leading-none mb-2">2 MESES <span class="text-primary">X EL PRECIO DE 1</span></h2>
+                    <p class="text-light mt-2 mb-3 text-sm" style="max-width: 520px;">
+                        Inscríbete en el <strong>Plan Plus</strong> o <strong>Plan Premium</strong> y entrena 60 días pagando solo 1 mes, o compártelo con un compañero de entrenamiento.
+                    </p>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <span class="badge bg-dark border border-secondary text-primary px-3 py-2 font-anton tracking-wide">CÓDIGO: ENERGY2X1</span>
+                        <span class="text-muted text-xs"><i class="fa-regular fa-clock text-primary me-1"></i> Termina en: <strong class="text-light" id="promoCountdown">04d : 11h : 42m : 19s</strong></span>
+                    </div>
                 </div>
-                <button class="btn btn-primary d-flex align-items-center gap-2">VER DETALLE <i class="fa-solid fa-arrow-right"></i></button>
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-primary d-flex align-items-center gap-2 btn-promo-detail"
+                            data-promo-title="2 MESES X EL PRECIO DE 1"
+                            data-promo-code="ENERGY2X1"
+                            data-promo-desc="Válido para nuevos socios o renovaciones en Plan Plus (S/ 119) y Plan Premium (S/ 159). Presenta el código ENERGY2X1 en recepción para activar el segundo mes sin costo.">
+                        CANJEAR CUPÓN AHORA <i class="fa-solid fa-ticket"></i>
+                    </button>
+                </div>
             </div>
+
             <h5 class="font-anton text-light mb-4">TODAS LAS PROMOCIONES ACTIVAS</h5>
             <div class="grid-plans">
                 <div class="card p-4 d-flex flex-column position-relative">
-                    <span class="badge bg-primary position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
-                    <h4 class="font-anton mt-2 mb-3">SHAKER GRATIS</h4>
-                    <p class="text-muted text-sm mb-5">En planes Plus o Premium</p>
-                    <button class="btn btn-outline w-100 mt-auto text-start">VER DETALLE</button>
+                    <span class="badge bg-primary text-dark position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
+                    <div class="text-primary fs-3 mb-2"><i class="fa-solid fa-bottle-water"></i></div>
+                    <h4 class="font-anton mt-1 mb-2">SHAKER GRATIS</h4>
+                    <p class="text-muted text-sm mb-4">Recibe un Shaker Energy Pro de 700ml antiderrames al adquirir tu Plan Plus o Premium.</p>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded bg-elevated border border-secondary">
+                            <span class="text-2xs text-muted fw-bold">CUPÓN:</span>
+                            <span class="font-anton text-primary text-sm">SHAKERPRO</span>
+                        </div>
+                        <button type="button" class="btn btn-outline w-100 justify-content-between btn-promo-detail"
+                                data-promo-title="SHAKER ENERGY 700ML GRATIS"
+                                data-promo-code="SHAKERPRO"
+                                data-promo-desc="Presenta este código al activar tu Plan Plus o Plan Premium en recepción y llévate un Shaker oficial Energy Gym de 700ml completamente gratis.">
+                            <span>VER DETALLE Y COPIAR</span> <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
                 </div>
+
                 <div class="card p-4 d-flex flex-column position-relative">
-                    <span class="badge bg-primary position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
-                    <h4 class="font-anton mt-2 mb-3">20% DSCTO</h4>
-                    <p class="text-muted text-sm mb-5">En accesorios seleccionados</p>
-                    <button class="btn btn-outline w-100 mt-auto text-start">VER DETALLE</button>
+                    <span class="badge bg-primary text-dark position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
+                    <div class="text-primary fs-3 mb-2"><i class="fa-solid fa-hand-fist"></i></div>
+                    <h4 class="font-anton mt-1 mb-2">20% DSCTO EN ACCESORIOS</h4>
+                    <p class="text-muted text-sm mb-4">Descuento inmediato en correas de levante, guantes tácticos y cinturones lumbares.</p>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded bg-elevated border border-secondary">
+                            <span class="text-2xs text-muted fw-bold">CUPÓN:</span>
+                            <span class="font-anton text-primary text-sm">ACCESORIOS20</span>
+                        </div>
+                        <button type="button" class="btn btn-outline w-100 justify-content-between btn-promo-detail"
+                                data-promo-title="20% DSCTO EN ACCESORIOS"
+                                data-promo-code="ACCESORIOS20"
+                                data-promo-desc="Aplica un 20% de descuento directo al reservar guantes, straps de levante o shakers desde el catálogo de productos.">
+                            <span>VER DETALLE Y COPIAR</span> <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
                 </div>
+
                 <div class="card p-4 d-flex flex-column position-relative">
-                    <span class="badge bg-primary position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
-                    <h4 class="font-anton mt-2 mb-3">COMBO SUPLEMENTOS</h4>
-                    <p class="text-muted text-sm mb-5">Ahorra en packs seleccionados</p>
-                    <button class="btn btn-outline w-100 mt-auto text-start">VER DETALLE</button>
+                    <span class="badge bg-primary text-dark position-absolute top-0 end-0 m-3 font-anton">ACTIVA</span>
+                    <div class="text-primary fs-3 mb-2"><i class="fa-solid fa-jar"></i></div>
+                    <h4 class="font-anton mt-1 mb-2">COMBO SUPLEMENTOS</h4>
+                    <p class="text-muted text-sm mb-4">Ahorra S/ 38 llevando el pack Whey Protein 2 LB + Creatina Monohidratada 300 g.</p>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded bg-elevated border border-secondary">
+                            <span class="text-2xs text-muted fw-bold">CUPÓN:</span>
+                            <span class="font-anton text-primary text-sm">COMBOPRO15</span>
+                        </div>
+                        <button type="button" class="btn btn-outline w-100 justify-content-between btn-promo-detail"
+                                data-promo-title="PACK WHEY + CREATINA (-15%)"
+                                data-promo-code="COMBOPRO15"
+                                data-promo-desc="Lleva Whey Protein 2 LB (S/ 149) + Creatina 300g (S/ 89) por solo S/ 199 en recepción presentando este cupón.">
+                            <span>VER DETALLE Y COPIAR</span> <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
     </section>
 </body>
 </html>

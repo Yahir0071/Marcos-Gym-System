@@ -7,41 +7,48 @@
         <div>
             <small class="subtitle">GESTIONA EL INVENTARIO DE PRODUCTOS</small>
             <h1>PRODUCTOS</h1>
-            <p>SUPLEMENTOS, ACCESORIOS Y STOCK</p>
+            <p>SUPLEMENTOS, ACCESORIOS, INDUMENTARIA Y STOCK</p>
         </div>
         <div>
-            <button class="btn-primary">+ NUEVO PRODUCTO</button>
+            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">+ NUEVO PRODUCTO</button>
         </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show bg-dark text-danger border border-danger mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
     </div>
 
     <!-- Filters -->
     <div class="filters-bar">
-        <div class="filter-group">
+        <div class="filter-group filter-large">
             <label>BUSCAR PRODUCTO</label>
-            <input type="text" placeholder="Buscar producto...">
+            <input type="text" class="table-search-input" placeholder="Buscar por nombre o descripción...">
         </div>
         <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODAS LAS CATEGORÍAS</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODOS LOS ESTADOS</option>
+            <label>ESTADO DE STOCK</label>
+            <select class="table-filter-select" data-filter-col="5">
+                <option value="">TODOS LOS ESTADOS</option>
+                <option value="ACTIVO">ACTIVO</option>
+                <option value="STOCK BAJO">STOCK BAJO</option>
+                <option value="INACTIVO">INACTIVO</option>
             </select>
         </div>
     </div>
 
     <!-- Table -->
     <div class="table-container">
-        <table class="custom-table">
+        <table class="custom-table filterable-table" id="tablaProductos">
             <thead>
             <tr>
                 <th>IMAGEN</th>
                 <th>NOMBRE</th>
-                <th>CATEGORÍA</th>
+                <th>DESCRIPCIÓN</th>
                 <th>PRECIO</th>
                 <th>STOCK</th>
                 <th>ESTADO</th>
@@ -49,64 +56,101 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td><div class="image-placeholder">🖼️</div></td>
-                <td>Whey Protein 2 LB</td>
-                <td>Suplementos</td>
-                <td>S/ 149</td>
-                <td>12</td>
-                <td><span>ACTIVO</span></td>
-                <td><a href="#">EDITAR</a></td>
+            <tr th:each="prod : ${productos}">
+                <td>
+                    <div class="image-placeholder">
+                        <img th:src="${prod.imagenUrl != null and !#strings.isEmpty(prod.imagenUrl) ? prod.imagenUrl : '/img/whey.jpg'}" th:alt="${prod.nombre}">
+                    </div>
+                </td>
+                <td class="fw-bold" th:text="${prod.nombre}">Whey Protein 2 LB</td>
+                <td class="text-muted text-xs" th:text="${prod.descripcion != null ? prod.descripcion : 'Sin descripción'}">Proteína de suero de leche aislada</td>
+                <td class="text-primary fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(prod.precio, 1, 2)}">S/ 149.00</td>
+                <td>
+                    <span th:class="${prod.stock > 5 ? 'fw-bold' : (prod.stock > 0 ? 'text-warning fw-bold' : 'text-danger fw-bold')}"
+                          th:text="${prod.stock + ' un.'}">12 un.</span>
+                </td>
+                <td>
+                    <span th:if="${!prod.activo}" class="status-inactive">INACTIVO</span>
+                    <span th:if="${prod.activo and prod.stock <= 5 and prod.stock > 0}" class="status-warning">STOCK BAJO</span>
+                    <span th:if="${prod.activo and prod.stock == 0}" class="status-inactive">AGOTADO</span>
+                    <span th:if="${prod.activo and prod.stock > 5}">ACTIVO</span>
+                </td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-edit-row btn-edit-producto"
+                                th:data-id="${prod.id}"
+                                th:data-nombre="${prod.nombre}"
+                                th:data-precio="${prod.precio}"
+                                th:data-stock="${prod.stock}"
+                                th:data-imagen="${prod.imagenUrl}"
+                                th:data-descripcion="${prod.descripcion}"
+                                th:data-activo="${prod.activo}"
+                                data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">EDITAR</button>
+                        <form th:action="@{/admin/productos/cambiar-estado}" method="post" class="d-inline">
+                            <input type="hidden" name="id" th:value="${prod.id}">
+                            <input type="hidden" name="activo" th:value="${!prod.activo}">
+                            <button type="submit" class="btn-outline py-0 px-2 text-xs"
+                                    th:text="${prod.activo ? 'DESACTIVAR' : 'ACTIVAR'}">DESACTIVAR</button>
+                        </form>
+                    </div>
+                </td>
             </tr>
-            <tr>
-                <td><div class="image-placeholder">🖼️</div></td>
-                <td>Creatina 300 g</td>
-                <td>Suplementos</td>
-                <td>S/ 89</td>
-                <td>8</td>
-                <td><span class="stock-low">STOCK BAJO</span></td>
-                <td><a href="#">EDITAR</a></td>
-            </tr>
-            <tr>
-                <td><div class="image-placeholder">🖼️</div></td>
-                <td>Pre Entreno 300 g</td>
-                <td>Suplementos</td>
-                <td>S/ 99</td>
-                <td>25</td>
-                <td><span>ACTIVO</span></td>
-                <td><a href="#">EDITAR</a></td>
-            </tr>
-            <tr>
-                <td><div class="image-placeholder">🖼️</div></td>
-                <td>Shaker 700 ml</td>
-                <td>Accesorios</td>
-                <td>S/ 45</td>
-                <td>4</td>
-                <td><span class="stock-low">STOCK BAJO</span></td>
-                <td><a href="#">EDITAR</a></td>
-            </tr>
-            <tr>
-                <td><div class="image-placeholder">🖼️</div></td>
-                <td>Correas de Levante</td>
-                <td>Accesorios</td>
-                <td>S/ 65</td>
-                <td>15</td>
-                <td><span>ACTIVO</span></td>
-                <td><a href="#">EDITAR</a></td>
-            </tr>
-            <tr>
-                <td><div class="image-placeholder">🖼️</div></td>
-                <td>Guantes para Gym</td>
-                <td>Accesorios</td>
-                <td>S/ 59</td>
-                <td>3</td>
-                <td><span class="stock-low">STOCK BAJO</span></td>
-                <td><a href="#">EDITAR</a></td>
+            <tr th:if="${#lists.isEmpty(productos)}">
+                <td colspan="7" class="text-center text-muted py-4">No hay productos registrados en el inventario.</td>
             </tr>
             </tbody>
         </table>
     </div>
 
+    <!-- Modal Nuevo / Editar Producto -->
+    <div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content gym-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title font-anton text-primary tracking-wide" id="modalProdTitle">GESTIONAR PRODUCTO</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/productos/guardar}" method="post" id="formProducto">
+                    <input type="hidden" id="prodId" name="id">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label">NOMBRE DEL PRODUCTO</label>
+                            <input type="text" id="prodNombre" name="nombre" class="form-control" placeholder="Ej. Creatina Monohidratada 300g" required>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">PRECIO (S/)</label>
+                                <input type="number" id="prodPrecio" name="precio" step="0.01" min="0.01" class="form-control" placeholder="Ej. 89.00" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">STOCK DISPONIBLE</label>
+                                <input type="number" id="prodStock" name="stock" min="0" class="form-control" placeholder="Ej. 25" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">URL DE IMAGEN (O RUTA)</label>
+                            <input type="text" id="prodImagen" name="imagenUrl" class="form-control" placeholder="/img/creatina.jpg">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">DESCRIPCIÓN</label>
+                            <textarea id="prodDescripcion" name="descripcion" class="form-control" rows="3" placeholder="Detalles de marca, contenido y modo de uso..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ESTADO</label>
+                            <select id="prodActivo" name="activo" class="form-select">
+                                <option value="true">ACTIVO (En catálogo)</option>
+                                <option value="false">INACTIVO (Oculto)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-outline" data-bs-dismiss="modal">CANCELAR</button>
+                        <button type="submit" class="btn btn-primary">GUARDAR PRODUCTO</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

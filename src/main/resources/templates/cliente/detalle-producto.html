@@ -7,54 +7,106 @@
         <div class="client-main">
             <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
             <div class="client-content">
-                <nav aria-label="breadcrumb" class="mb-5">
+                <nav aria-label="breadcrumb" class="mb-4">
                     <ol class="breadcrumb m-0 font-anton text-sm tracking-wide">
-                        <li class="breadcrumb-item"><a href="#" class="text-muted text-decoration-none">PRODUCTOS</a></li>
-                        <li class="breadcrumb-item"><a href="#" class="text-muted text-decoration-none">SUPLEMENTOS</a></li>
-                        <li class="breadcrumb-item active text-light" aria-current="page">PROTEÍNA WHEY</li>
+                        <li class="breadcrumb-item"><a th:href="@{/cliente/productos}" class="text-muted text-decoration-none">PRODUCTOS</a></li>
+                        <li class="breadcrumb-item"><span class="text-muted" id="detailBreadcrumbCat" th:text="${producto != null ? producto.categoria : 'SUPLEMENTOS'}">SUPLEMENTOS</span></li>
+                        <li class="breadcrumb-item active text-primary" aria-current="page" id="detailBreadcrumbName" th:text="${producto != null ? producto.nombre : 'WHEY PROTEIN 2 LB'}">WHEY PROTEIN 2 LB</li>
                     </ol>
                 </nav>
-                
+
                 <div class="grid-2-col">
+                    <!-- Left: Interactive Media / Nutrition Viewer -->
                     <div>
-                        <div class="card product-detail-box border-secondary mb-4 p-0 overflow-hidden bg-deep-dark">
-                            <img th:src="@{/img/whey.jpg}" alt="Whey Protein" class="img-fluid w-100 h-100 obj-contain p-3">
+                        <div class="card product-detail-box border-secondary mb-3 p-4 overflow-hidden bg-deep-dark position-relative" id="detailMainView">
+                            <!-- View 1: Product Image -->
+                            <div id="detailTabImage" class="w-100 h-100 d-flex justify-content-center align-items-center">
+                                <img id="detailProductImg" th:src="@{${producto != null and producto.imagenUrl != null ? producto.imagenUrl : '/img/whey.jpg'}}" alt="Producto" class="img-fluid h-100 obj-contain">
+                            </div>
+                            <!-- View 2: Product Benefits -->
+                            <div id="detailTabInfo" class="w-100 d-none text-start p-3">
+                                <h4 class="font-anton text-primary mb-3">BENEFICIOS CLAVE Y MODO DE USO</h4>
+                                <ul class="list-unstyled d-flex flex-column gap-3 text-sm text-light">
+                                    <li><i class="fa-solid fa-bolt text-primary me-2"></i> <strong>Absorción ultra rápida:</strong> Ideal para tomar dentro de los 30 minutos posteriores al entrenamiento.</li>
+                                    <li><i class="fa-solid fa-dumbbell text-primary me-2"></i> <strong>Síntesis proteica:</strong> Rico en aminoácidos de cadena ramificada (BCAA) y glutamina natural.</li>
+                                    <li><i class="fa-solid fa-shield-halved text-primary me-2"></i> <strong>Sello de autenticidad:</strong> Registro sanitario vigente y lote verificado por Energy Gym.</li>
+                                </ul>
+                            </div>
+                            <!-- View 3: Nutrition Facts -->
+                            <div id="detailTabTable" class="w-100 d-none text-start p-3">
+                                <h4 class="font-anton text-primary mb-3">INFORMACIÓN NUTRICIONAL (POR SERVICIO 30G)</h4>
+                                <table class="table table-dark table-sm text-xs m-0">
+                                    <tbody>
+                                        <tr><td>Valor Energético</td><td class="text-end fw-bold text-primary">120 kcal</td></tr>
+                                        <tr><td>Proteína Aislada</td><td class="text-end fw-bold text-primary">24.0 g</td></tr>
+                                        <tr><td>BCAA Naturales</td><td class="text-end fw-bold text-light">5.5 g</td></tr>
+                                        <tr><td>Carbohidratos Totales</td><td class="text-end text-muted">2.0 g</td></tr>
+                                        <tr><td>Azúcares Añadidos</td><td class="text-end text-success">0.0 g</td></tr>
+                                        <tr><td>Sodio</td><td class="text-end text-muted">95 mg</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+
+                        <!-- Interactive View Switcher Thumbnails -->
                         <div class="d-flex gap-3">
-                            <div class="thumbnail-box active overflow-hidden"><img th:src="@{/img/whey.jpg}" class="img-fluid object-fit-cover w-100 h-100"></div>
-                            <div class="thumbnail-box"><span class="font-anton text-muted text-xs">INFO</span></div>
-                            <div class="thumbnail-box"><span class="font-anton text-muted text-xs">TABLA</span></div>
+                            <div class="thumbnail-box active detail-thumb-btn" data-target="detailTabImage">
+                                <span class="font-anton text-primary text-xs">FOTO</span>
+                            </div>
+                            <div class="thumbnail-box detail-thumb-btn" data-target="detailTabInfo">
+                                <span class="font-anton text-light text-xs">BENEFICIOS</span>
+                            </div>
+                            <div class="thumbnail-box detail-thumb-btn" data-target="detailTabTable">
+                                <span class="font-anton text-light text-xs">NUTRICIÓN</span>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Right: Product Details & Dynamic Reservation Form -->
                     <div class="d-flex flex-column">
-                        <span class="text-muted font-anton mb-2 text-sm tracking-wide">SUPLEMENTOS</span>
-                        <h1 class="display-4 font-anton text-light mb-3 leading-none">WHEY PROTEIN<br>2 LB</h1>
-                        <p class="text-muted text-sm mb-5 w-75">Proteína de suero de alta calidad. Ideal para apoyar el crecimiento y la recuperación muscular.</p>
-                        
-                        <div class="d-flex align-items-center gap-4 mb-5">
-                            <h1 class="font-anton text-primary m-0">S/ 149</h1>
-                            <span class="border border-secondary px-3 py-2 text-muted text-sm font-anton">12 unidades</span>
+                        <span class="text-primary font-anton mb-2 text-sm tracking-wide" id="detailCategory" th:text="${producto != null ? producto.categoria : 'SUPLEMENTOS'}">SUPLEMENTOS</span>
+                        <h1 class="display-4 font-anton text-light mb-3 leading-none" id="detailName" th:text="${producto != null ? producto.nombre : 'WHEY PROTEIN 2 LB'}">WHEY PROTEIN 2 LB</h1>
+                        <p class="text-muted text-sm mb-4" id="detailDesc" th:text="${producto != null ? producto.descripcion : 'Proteína de suero de alta calidad. Ideal para apoyar el crecimiento y la recuperación muscular.'}">
+                            Proteína de suero de alta calidad. Ideal para apoyar el crecimiento y la recuperación muscular.
+                        </p>
+
+                        <div class="d-flex align-items-center gap-4 mb-4">
+                            <h1 class="font-anton text-primary m-0" id="detailUnitPrice" th:attr="data-unit-price=${producto != null ? producto.precio : 149}" th:text="${producto != null ? 'S/ ' + producto.precio : 'S/ 149'}">S/ 149</h1>
+                            <span class="badge bg-elevated border border-secondary px-3 py-2 text-success text-xs font-anton">
+                                <i class="fa-solid fa-box-open me-1"></i> <span id="detailStockCount" th:text="${producto != null ? producto.stock : 12}">12</span> UNIDADES EN STOCK
+                            </span>
                         </div>
-                        
-                        <label class="form-label mb-2">CANTIDAD</label>
-                        <div class="d-flex gap-3 mb-5">
-                            <div class="d-flex align-items-center border border-secondary w-120px">
-                                <button class="btn btn-link text-light text-decoration-none px-3">-</button>
-                                <input type="text" class="form-control text-center border-0 bg-transparent text-light p-0" value="1">
-                                <button class="btn btn-link text-light text-decoration-none px-3">+</button>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <label class="form-label">CANTIDAD A RESERVAR</label>
+                                <div class="d-flex align-items-center border border-secondary rounded bg-card" style="width: 145px;">
+                                    <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2" id="btnQtyMinus">-</button>
+                                    <input type="number" id="detailQtyInput" class="form-control text-center border-0 bg-transparent text-light p-0 fw-bold" value="1" min="1" max="10" readonly>
+                                    <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2" id="btnQtyPlus">+</button>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label">SUBTOTAL ESTIMADO</label>
+                                <div class="p-2 rounded bg-elevated border border-secondary d-flex justify-content-between align-items-center">
+                                    <span class="text-xs text-muted">TOTAL A PAGAR:</span>
+                                    <span class="font-anton fs-4 text-primary" id="detailTotalPrice">S/ 149</span>
+                                </div>
                             </div>
                         </div>
-                        
-                        <button class="btn btn-primary w-100 d-flex justify-content-between align-items-center py-3 mb-4">
-                            CONFIRMAR RESERVA <i class="fa-solid fa-arrow-right"></i>
+
+                        <button type="button" class="btn btn-primary w-100 d-flex justify-content-between align-items-center py-3 mb-4" id="btnConfirmProductReserve"
+                                th:attr="data-id=${producto != null ? producto.id : 1}">
+                            <span>CONFIRMAR RESERVA DE PRODUCTO</span>
+                            <i class="fa-solid fa-arrow-right"></i>
                         </button>
-                        
+
                         <div class="card p-3 bg-transparent border-secondary">
-                            <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2 mb-1">
                                 <i class="fa-solid fa-circle-info text-primary"></i>
-                                <span class="text-primary font-anton text-sm tracking-wide">PAGO Y RECOJO PRESENCIAL</span>
+                                <span class="text-primary font-anton text-sm tracking-wide">PAGO Y RECOJO PRESENCIAL EN RECEPCIÓN</span>
                             </div>
-                            <p class="text-muted text-sm m-0 ps-4">No contamos con pagos en línea.</p>
+                            <p class="text-muted text-xs m-0 ps-4">Tu producto quedará separado por 48 horas con tu código de reserva.</p>
                         </div>
                     </div>
                 </div>

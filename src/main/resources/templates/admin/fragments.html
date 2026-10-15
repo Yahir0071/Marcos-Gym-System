@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="layout(title, activeItem, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:replace="${title}">Panel Admin - Energy Gym</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css?v=5}" href="../../static/css/style.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Spring Security CSRF Meta Tags -->
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+</head>
+<body>
+
+<div class="admin-wrapper">
+    <!-- ADMIN SIDEBAR -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="p-4 border-bottom border-secondary d-flex align-items-center justify-content-between">
+            <a class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/admin/dashboard}">
+                <span class="text-primary fs-4">⚡</span>
+                <div>
+                    <div class="font-anton text-lg tracking-wide leading-none">ENERGY GYM</div>
+                    <small class="text-primary text-2xs fw-bold tracking-wider">ADMIN CONSOLE</small>
+                </div>
+            </a>
+            <button class="btn btn-sm btn-outline d-lg-none px-2 py-1" id="closeSidebarBtn">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="flex-grow-1 d-flex flex-column gap-1 px-3 py-3">
+            <div class="text-muted text-2xs fw-bold px-3 py-1 tracking-wider">PRINCIPAL</div>
+            <a th:href="@{/admin/dashboard}" th:class="'sidebar-link ' + (${activeItem == 'dashboard'} ? 'active' : '')">
+                <i class="fa-solid fa-chart-pie"></i> <span>DASHBOARD</span>
+            </a>
+            <a th:href="@{/admin/socios}" th:class="'sidebar-link ' + (${activeItem == 'socios'} ? 'active' : '')">
+                <i class="fa-solid fa-users"></i> <span>SOCIOS</span>
+            </a>
+            <a th:href="@{/admin/planes}" th:class="'sidebar-link ' + (${activeItem == 'planes'} ? 'active' : '')">
+                <i class="fa-solid fa-layer-group"></i> <span>PLANES</span>
+            </a>
+            <a th:href="@{/admin/membresias}" th:class="'sidebar-link ' + (${activeItem == 'membresias'} ? 'active' : '')">
+                <i class="fa-solid fa-id-card"></i> <span>MEMBRESÍAS</span>
+            </a>
+            <a th:href="@{/admin/pagos}" th:class="'sidebar-link ' + (${activeItem == 'pagos'} ? 'active' : '')">
+                <i class="fa-solid fa-money-bill-wave"></i> <span>PAGOS</span>
+            </a>
+
+            <div class="text-muted text-2xs fw-bold px-3 pt-3 pb-1 tracking-wider">COMERCIAL</div>
+            <a th:href="@{/admin/productos}" th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')">
+                <i class="fa-solid fa-jar"></i> <span>PRODUCTOS</span>
+            </a>
+            <a th:href="@{/admin/reservas}" th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')">
+                <i class="fa-solid fa-bag-shopping"></i> <span>RESERVAS</span>
+            </a>
+            <a th:href="@{/admin/promociones}" th:class="'sidebar-link ' + (${activeItem == 'promociones'} ? 'active' : '')">
+                <i class="fa-solid fa-bolt"></i> <span>PROMOCIONES</span>
+            </a>
+
+            <div class="text-muted text-2xs fw-bold px-3 pt-3 pb-1 tracking-wider">OPERACIONES</div>
+            <a th:href="@{/admin/afluencia}" th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')">
+                <i class="fa-solid fa-people-group"></i> <span>AFLUENCIA</span>
+            </a>
+            <a th:href="@{/admin/equipos}" th:class="'sidebar-link ' + (${activeItem == 'equipos'} ? 'active' : '')">
+                <i class="fa-solid fa-dumbbell"></i> <span>EQUIPOS</span>
+            </a>
+            <a th:href="@{/admin/mantenimientos}" th:class="'sidebar-link ' + (${activeItem == 'mantenimientos'} ? 'active' : '')">
+                <i class="fa-solid fa-screwdriver-wrench"></i> <span>MANTENIMIENTO</span>
+            </a>
+            <a th:href="@{/admin/reporte-mantenimiento}" th:class="'sidebar-link ' + (${activeItem == 'reporte'} ? 'active' : '')">
+                <i class="fa-solid fa-clipboard-check"></i> <span>REPORTE TÉCNICO</span>
+            </a>
+        </div>
+
+        <div class="p-3 mt-auto border-top border-secondary">
+            <a th:href="@{/cliente/mi-membresia}" class="sidebar-link mb-1">
+                <i class="fa-solid fa-user-check text-primary"></i> <span>VISTA CLIENTE</span>
+            </a>
+            <form th:action="@{/logout}" method="post" class="m-0 p-0">
+                <button type="submit" class="sidebar-link text-danger border-0 bg-transparent w-100 text-start" style="cursor: pointer;">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>CERRAR SESIÓN</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ADMIN MAIN AREA -->
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-outline d-lg-none px-3 py-2" id="openSidebarBtn">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="d-none d-md-flex align-items-center gap-2 text-xs text-muted">
+                    <span class="pulse-dot"></span>
+                    <span>SISTEMA OPERATIVO EN LÍNEA</span>
+                    <span class="text-secondary">|</span>
+                    <span id="liveClock" class="text-light fw-bold"></span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <a th:href="@{/inicio}" class="btn btn-outline py-2 px-3 text-xs d-none d-sm-inline-flex">
+                    <i class="fa-solid fa-globe"></i> WEB PÚBLICA
+                </a>
+                <div class="d-flex align-items-center gap-2 ps-2 border-start border-secondary">
+                    <div class="rounded-circle bg-primary text-dark fw-bold d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 0.8rem;">
+                        AD
+                    </div>
+                    <div class="d-none d-sm-block text-start">
+                        <div class="font-anton text-light text-xs tracking-wide leading-none" th:text="${#authentication != null ? #authentication.name : 'ADMINISTRADOR'}">ADMIN</div>
+                        <small class="text-primary text-2xs fw-bold">ADMINISTRADOR</small>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Admin Page Content -->
+        <div th:replace="${content}"></div>
+    </div>
+</div>
+
+<!-- Universal Dynamic Modal for Admin CRUD & Details -->
+<div class="modal fade" id="dynamicGymModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content gym-modal">
+            <div class="modal-header">
+                <h5 class="modal-title font-anton text-primary tracking-wide" id="dynamicGymModalTitle">GESTIÓN ENERGY GYM</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="dynamicGymModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="gym-toast-container" id="gymToastContainer"></div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS (ES6 Modules) -->
+<script type="module" th:src="@{/js/main.js}" src="../../static/js/main.js"></script>
+</body>
+</html>

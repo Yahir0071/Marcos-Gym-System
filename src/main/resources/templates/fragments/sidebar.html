@@ -1,19 +1,24 @@
-<div th:fragment="sidebar" class="sidebar">
-    <div class="px-3 pb-3 mb-3 border-bottom border-secondary text-center">
-        <h5 class="text-primary"><i class="fa-solid fa-dumbbell"></i> ENERGY GYM</h5>
-        <small class="text-muted">Panel Admin</small>
+<div th:fragment="sidebar" class="admin-sidebar">
+    <div class="p-4 border-bottom border-secondary">
+        <a class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/admin/dashboard}">
+            <span class="text-primary fs-4">⚡</span>
+            <div>
+                <div class="font-anton text-lg tracking-wide leading-none">ENERGY GYM</div>
+                <small class="text-primary text-2xs fw-bold tracking-wider">PANEL ADMIN</small>
+            </div>
+        </a>
     </div>
-    <ul class="nav flex-column">
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/socios}"><i class="fa-solid fa-users me-2"></i> Socios</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/planes}"><i class="fa-solid fa-tags me-2"></i> Planes</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/membresias}"><i class="fa-solid fa-id-card me-2"></i> Membresías</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/pagos}"><i class="fa-solid fa-money-bill me-2"></i> Pagos</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/promociones}"><i class="fa-solid fa-bullhorn me-2"></i> Promociones</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/productos}"><i class="fa-solid fa-box-open me-2"></i> Productos</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/reservas}"><i class="fa-solid fa-calendar-check me-2"></i> Reservas</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/afluencia}"><i class="fa-solid fa-people-group me-2"></i> Afluencia</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/equipos}"><i class="fa-solid fa-dumbbell me-2"></i> Equipos</a></li>
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/mantenimientos}"><i class="fa-solid fa-wrench me-2"></i> Mantenimiento</a></li>
-    </ul>
+    <div class="flex-grow-1 d-flex flex-column gap-1 px-3 py-3">
+        <a class="sidebar-link" th:href="@{/admin/dashboard}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a class="sidebar-link" th:href="@{/admin/socios}"><i class="fa-solid fa-users"></i> Socios</a>
+        <a class="sidebar-link" th:href="@{/admin/planes}"><i class="fa-solid fa-tags"></i> Planes</a>
+        <a class="sidebar-link" th:href="@{/admin/membresias}"><i class="fa-solid fa-id-card"></i> Membresías</a>
+        <a class="sidebar-link" th:href="@{/admin/pagos}"><i class="fa-solid fa-money-bill"></i> Pagos</a>
+        <a class="sidebar-link" th:href="@{/admin/promociones}"><i class="fa-solid fa-bullhorn"></i> Promociones</a>
+        <a class="sidebar-link" th:href="@{/admin/productos}"><i class="fa-solid fa-box-open"></i> Productos</a>
+        <a class="sidebar-link" th:href="@{/admin/reservas}"><i class="fa-solid fa-calendar-check"></i> Reservas</a>
+        <a class="sidebar-link" th:href="@{/admin/afluencia}"><i class="fa-solid fa-people-group"></i> Afluencia</a>
+        <a class="sidebar-link" th:href="@{/admin/equipos}"><i class="fa-solid fa-dumbbell"></i> Equipos</a>
+        <a class="sidebar-link" th:href="@{/admin/mantenimientos}"><i class="fa-solid fa-wrench"></i> Mantenimiento</a>
+    </div>
 </div>

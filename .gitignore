@@ -28,3 +28,11 @@ build/
 .vscode/
 ### Mac ###
 .DS_Store
+
+### Backups locales y documentación auxiliar ###
+_backups/
+graphify-out/
+_docs/
+*.docx
+*.txt
+HELP.md

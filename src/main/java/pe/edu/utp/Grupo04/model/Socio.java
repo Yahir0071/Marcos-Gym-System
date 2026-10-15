@@ -32,4 +32,12 @@ public class Socio {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private Usuario usuario;
+
+    public String getNombre() {
+        return nombres;
+    }
+
+    public String getApellido() {
+        return apellidos;
+    }
 }

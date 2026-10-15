@@ -4,16 +4,22 @@
 <body>
 <main class="admin-page">
     <div class="page-header">
-        <small class="subtitle">RESUMEN DEL ESTADO DE LOS EQUIPOS</small>
-        <h1>REPORTE DE MANTENIMIENTO</h1>
-        <p>VISUALIZA EL ESTADO GENERAL Y PRÓXIMAS REVISIONES</p>
+        <div>
+            <small class="subtitle">RESUMEN DEL ESTADO DE LOS EQUIPOS</small>
+            <h1>REPORTE DE MANTENIMIENTO</h1>
+            <p>VISUALIZA EL ESTADO GENERAL Y PRÓXIMAS REVISIONES PROGRAMADAS</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print text-primary"></i> IMPRIMIR REPORTE</button>
+            <a th:href="@{/admin/mantenimientos}" class="btn-primary">+ REGISTRAR INTERVENCIÓN</a>
+        </div>
     </div>
 
     <!-- Status Cards Grid -->
-    <div class="status-cards-grid">
+    <div class="status-cards-grid mb-4">
         <div class="card-metric operational">
             <div>
-                <h2>18</h2>
+                <h2 class="counter-value" th:text="${#lists.size(equipos) - #lists.size(equiposEnMantenimiento) - #lists.size(equiposFueraDeServicio)}">18</h2>
             </div>
             <div>
                 <span>OPERATIVOS</span>
@@ -21,7 +27,7 @@
         </div>
         <div class="card-metric maintenance">
             <div>
-                <h2>6</h2>
+                <h2 class="counter-value" th:text="${#lists.size(equiposEnMantenimiento)}">6</h2>
             </div>
             <div>
                 <span>EN MANTENIMIENTO</span>
@@ -29,7 +35,7 @@
         </div>
         <div class="card-metric out-of-service">
             <div>
-                <h2>4</h2>
+                <h2 class="counter-value" th:text="${#lists.size(equiposFueraDeServicio)}">4</h2>
             </div>
             <div>
                 <span>FUERA DE SERVICIO</span>
@@ -37,89 +43,61 @@
         </div>
         <div class="card-metric pending">
             <div>
-                <h2>2</h2>
+                <h2 class="counter-value" th:text="${#lists.size(mantenimientos)}">2</h2>
             </div>
             <div>
-                <span>PENDIENTES DE ATENCIÓN</span>
+                <span>TOTAL INTERVENCIONES</span>
             </div>
         </div>
     </div>
 
     <!-- Filters -->
     <div class="filters-bar">
-        <div class="filter-group">
-            <label>BUSCAR REPORTE</label>
-            <input type="text" placeholder="Buscar por equipo...">
+        <div class="filter-group filter-large">
+            <label>BUSCAR EQUIPO EN REPORTE</label>
+            <input type="text" class="table-search-input" placeholder="Buscar por código o nombre...">
         </div>
         <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODOS LOS ESTADOS</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODAS LAS UBICACIONES</option>
+            <label>ESTADO</label>
+            <select class="table-filter-select" data-filter-col="2">
+                <option value="">TODOS LOS ESTADOS</option>
+                <option value="OPERATIVO">OPERATIVO</option>
+                <option value="EN MANTENIMIENTO">EN MANTENIMIENTO</option>
+                <option value="FUERA DE SERVICIO">FUERA DE SERVICIO</option>
             </select>
         </div>
     </div>
 
     <!-- Table -->
     <div class="table-container">
-        <table class="custom-table">
+        <table class="custom-table filterable-table" id="tablaReporteMantenimiento">
             <thead>
             <tr>
                 <th>CÓDIGO</th>
                 <th>EQUIPO</th>
-                <th>TIPO</th>
-                <th>ZONA</th>
-                <th>ESTADO</th>
-                <th>ÚLT. MANTENIMIENTO</th>
-                <th>PRÓX. REVISIÓN</th>
+                <th>ESTADO ACTUAL</th>
+                <th>ACCIONES</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td class="code-cell">EQP-001</td>
-                <td>Cinta de Correr</td>
-                <td>Cardio</td>
-                <td>Zona Cardio</td>
-                <td><span>OPERATIVO</span></td>
-                <td>20 Ene 2025</td>
-                <td>20 Abr 2025</td>
+            <tr th:each="eq : ${equipos}">
+                <td class="code-cell" th:text="${eq.codigo}">EQP-001</td>
+                <td class="fw-bold" th:text="${eq.nombre}">Cinta de Correr</td>
+                <td>
+                    <span th:if="${eq.estado.name() == 'OPERATIVO'}">OPERATIVO</span>
+                    <span th:if="${eq.estado.name() == 'EN_MANTENIMIENTO'}" class="status-warning">EN MANTENIMIENTO</span>
+                    <span th:if="${eq.estado.name() == 'FUERA_DE_SERVICIO'}" class="status-inactive">FUERA DE SERVICIO</span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/mantenimientos}" class="btn-edit-row">VER HISTORIAL</a>
+                </td>
             </tr>
-            <tr>
-                <td class="code-cell">EQP-003</td>
-                <td>Prensa de Piernas</td>
-                <td>Fuerza</td>
-                <td>Zona Fuerza</td>
-                <td><span class="in-maintenance">EN MANTENIMIENTO</span></td>
-                <td>15 Ene 2025</td>
-                <td>15 Abr 2025</td>
-            </tr>
-            <tr>
-                <td class="code-cell">EQP-006</td>
-                <td>Elíptica</td>
-                <td>Cardio</td>
-                <td>Zona Cardio</td>
-                <td><span class="out-service">FUERA DE SERVICIO</span></td>
-                <td>02 Ene 2025</td>
-                <td>—</td>
-            </tr>
-            <tr>
-                <td class="code-cell">EQP-008</td>
-                <td>Remadora</td>
-                <td>Cardio</td>
-                <td>Zona Cardio</td>
-                <td><span>OPERATIVO</span></td>
-                <td>06 Ene 2025</td>
-                <td>06 Abr 2025</td>
+            <tr th:if="${#lists.isEmpty(equipos)}">
+                <td colspan="4" class="text-center text-muted py-4">No hay datos de equipos en el inventario para generar el reporte.</td>
             </tr>
             </tbody>
         </table>
     </div>
-
 </main>
 </body>
 </html>

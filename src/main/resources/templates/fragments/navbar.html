@@ -1,19 +1,57 @@
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-main fixed-top">
-    <div class="container-fluid px-5">
+    <div class="container-fluid px-4 px-lg-5">
         <a class="navbar-brand text-light d-flex align-items-center font-anton" th:href="@{/inicio}">
-            <span class="text-primary me-2">⚡</span> ENERGY GYM
+            <span class="text-primary me-2">⚡</span> ENERGY <span class="text-primary ms-1">GYM</span>
         </a>
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
+        <button class="navbar-toggler border-0 text-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <i class="fa-solid fa-bars fs-4 text-primary"></i>
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul class="navbar-nav gap-3">
-                <li class="nav-item"><a class="nav-link active" th:href="@{/inicio}">INICIO</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/planes}">PLANES</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/promociones}">PROMOCIONES</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/productos}">PRODUCTOS</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/afluencia}">AFLUENCIA</a></li>
-                <li class="nav-item ms-4"><a class="nav-link text-light" th:href="@{/login}">INICIAR SESIÓN</a></li>
+            <ul class="navbar-nav align-items-lg-center gap-2 gap-lg-3 mt-3 mt-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'inicio' ? 'active' : ''}" th:href="@{/inicio}">INICIO</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'planes' ? 'active' : ''}" th:href="@{/planes}">PLANES</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'promociones' ? 'active' : ''}" th:href="@{/promociones}">PROMOCIONES</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'productos' ? 'active' : ''}" th:href="@{/productos}">PRODUCTOS</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activePage == 'afluencia' ? 'active' : ''}" th:href="@{/afluencia}">
+                        <span class="pulse-dot me-1" style="width:7px;height:7px;"></span> AFLUENCIA
+                    </a>
+                </li>
+                <!-- Si no está autenticado -->
+                <li class="nav-item ms-lg-3" sec:authorize="isAnonymous()">
+                    <a class="nav-link nav-btn-login" th:href="@{/login}">
+                        <i class="fa-solid fa-bolt me-1"></i> INICIAR SESIÓN
+                    </a>
+                </li>
+
+                <!-- Si es Socio / Cliente autenticado -->
+                <li class="nav-item ms-lg-3" sec:authorize="hasRole('CLIENTE')">
+                    <a class="nav-link nav-btn-login" th:href="@{/cliente/mi-membresia}">
+                        <i class="fa-solid fa-id-card me-1"></i> MI PORTAL
+                    </a>
+                </li>
+
+                <!-- Si es Administrador autenticado -->
+                <li class="nav-item ms-lg-3" sec:authorize="hasRole('ADMINISTRADOR')">
+                    <a class="nav-link nav-btn-login" th:href="@{/admin/dashboard}">
+                        <i class="fa-solid fa-chart-pie me-1"></i> PANEL ADMIN
+                    </a>
+                </li>
+
+                <!-- Botón de Cerrar Sesión si está autenticado -->
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link text-danger d-flex align-items-center gap-1" th:href="@{/logout}" title="Cerrar Sesión">
+                        <i class="fa-solid fa-right-from-bracket"></i> <span class="d-lg-none">SALIR</span>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>

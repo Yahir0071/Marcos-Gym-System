@@ -1,17 +1,56 @@
-<div th:fragment="sidebar(activeItem)" class="client-sidebar">
-    <div class="p-4 mb-3">
-        <a class="text-light text-decoration-none d-flex align-items-center" th:href="@{/inicio}">
-            <span class="text-primary me-2">⚡</span> <span class="font-anton text-lg tracking-wide">ENERGY GYM</span>
+<div th:fragment="sidebar(activeItem)" class="client-sidebar" id="clientSidebar">
+    <div class="p-4 border-bottom border-secondary d-flex align-items-center justify-content-between">
+        <a class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/inicio}">
+            <span class="text-primary fs-4">⚡</span>
+            <div>
+                <div class="font-anton text-lg tracking-wide leading-none">ENERGY GYM</div>
+                <small class="text-primary text-2xs fw-bold tracking-wider">PORTAL DEL SOCIO</small>
+            </div>
+        </a>
+        <button class="btn btn-sm btn-outline d-lg-none px-2 py-1" id="closeClientSidebarBtn">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="flex-grow-1 d-flex flex-column gap-2 px-3 mt-4">
+        <a th:href="@{/cliente/mi-membresia}" th:class="'sidebar-link ' + (${activeItem == 'membresia'} ? 'active' : '')">
+            <i class="fa-solid fa-id-card"></i> <span>MI MEMBRESÍA</span>
+        </a>
+        <a th:href="@{/cliente/productos}" th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')">
+            <i class="fa-solid fa-jar"></i> <span>CATÁLOGO PRODUCTOS</span>
+        </a>
+        <a th:href="@{/cliente/mis-reservas}" th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')">
+            <i class="fa-solid fa-bag-shopping"></i> <span>MIS RESERVAS</span>
+            <span class="badge bg-dark text-primary border border-secondary ms-auto" id="sidebarReservaCount">4</span>
+        </a>
+        <a th:href="@{/cliente/afluencia}" th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')">
+            <i class="fa-solid fa-people-group"></i> <span>AFLUENCIA EN VIVO</span>
+        </a>
+        <a th:href="@{/cliente/notificaciones}" th:class="'sidebar-link ' + (${activeItem == 'notificaciones'} ? 'active' : '')">
+            <i class="fa-solid fa-bell"></i> <span>NOTIFICACIONES</span>
+            <span class="badge bg-danger text-light ms-auto" id="sidebarNotifCount">3</span>
         </a>
     </div>
-    <div class="flex-grow-1 d-flex flex-column gap-2 px-3 mt-4">
-        <a th:href="@{/cliente/mi-membresia}" th:class="'sidebar-link ' + (${activeItem == 'membresia'} ? 'active' : '')">MI MEMBRESÍA</a>
-        <a th:href="@{/cliente/productos}" th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')">PRODUCTOS</a>
-        <a th:href="@{/cliente/mis-reservas}" th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')">MIS RESERVAS</a>
-        <a th:href="@{/cliente/afluencia}" th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')">AFLUENCIA</a>
-        <a th:href="@{/cliente/notificaciones}" th:class="'sidebar-link ' + (${activeItem == 'notificaciones'} ? 'active' : '')">NOTIFICACIONES</a>
+
+    <div class="p-3 mx-3 mb-3 rounded border border-secondary bg-elevated">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="fa-solid fa-qrcode text-primary"></i>
+            <span class="font-anton text-xs tracking-wide text-light">PASE DIGITAL ACTIVO</span>
+        </div>
+        <p class="text-muted text-2xs mb-2">Muestra tu código QR en recepción para ingresar rápidamente.</p>
+        <button type="button" class="btn btn-primary w-100 py-2 text-2xs" id="btnOpenQrPass">
+            VER MI QR DE ACCESO
+        </button>
     </div>
-    <div class="p-4 mt-auto">
-        <a th:href="@{/logout}" class="sidebar-link">CERRAR SESIÓN</a>
+
+    <div class="p-3 border-top border-secondary">
+        <a sec:authorize="hasRole('ADMINISTRADOR')" th:href="@{/admin/dashboard}" class="sidebar-link mb-1">
+            <i class="fa-solid fa-user-shield text-primary"></i> <span>CAMBIAR A ADMIN</span>
+        </a>
+        <form th:action="@{/logout}" method="post" class="m-0 p-0">
+            <button type="submit" class="sidebar-link text-danger border-0 bg-transparent w-100 text-start" style="cursor: pointer;">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>CERRAR SESIÓN</span>
+            </button>
+        </form>
     </div>
 </div>

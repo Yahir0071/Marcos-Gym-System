@@ -4,63 +4,79 @@
 <body>
     <section>
         <div th:replace="~{fragments/navbar :: navbar}"></div>
-        <div class="container-fluid px-5 page-container pt-5 mt-4">
-            <div class="section-subtitle has-line mb-3">ELIGE TU PLAN</div>
-            <h1 class="display-3 font-anton leading-none mb-1 text-light">PLANES DE<br><span class="text-primary">MEMBRESÍA</span></h1>
-            <p class="font-anton text-muted mb-5 tracking-wide text-lg">ENTRENA A TU MANERA</p>
+        <div class="container-fluid px-4 px-lg-5 page-container">
+            <div class="d-flex justify-content-between align-items-end flex-wrap gap-4 mb-5">
+                <div>
+                    <div class="section-subtitle has-line mb-3">ELIGE TU PLAN</div>
+                    <h1 class="display-3 font-anton leading-none mb-1 text-light">PLANES DE<br><span class="text-primary">MEMBRESÍA</span></h1>
+                    <p class="font-anton text-muted m-0 tracking-wide text-lg">ENTRENA A TU MANERA SIN CONTRATOS OCULTOS</p>
+                </div>
+
+                <!-- Interactive Billing Period Switcher -->
+                <div class="d-flex align-items-center gap-2 bg-card p-2 rounded border border-secondary" id="billingSwitcher">
+                    <button type="button" class="btn btn-primary py-2 px-3 text-xs billing-period-btn active" data-multiplier="1" data-discount="1" data-label="AL MES">
+                        MENSUAL
+                    </button>
+                    <button type="button" class="btn btn-outline py-2 px-3 text-xs billing-period-btn" data-multiplier="3" data-discount="0.9" data-label="POR 3 MESES (-10%)">
+                        TRIMESTRAL <span class="badge bg-dark text-primary ms-1">-10%</span>
+                    </button>
+                    <button type="button" class="btn btn-outline py-2 px-3 text-xs billing-period-btn" data-multiplier="12" data-discount="0.8" data-label="AL AÑO (-20%)">
+                        ANUAL <span class="badge bg-dark text-primary ms-1">-20%</span>
+                    </button>
+                </div>
+            </div>
 
             <div class="grid-plans mb-5">
-                <div class="card p-4 d-flex flex-column">
-                    <h3 class="font-anton mb-2">BÁSICO</h3>
-                    <p class="text-muted text-sm mb-4">Ideal para empezar</p>
-                    <div class="d-flex align-items-baseline gap-2 mb-4">
-                        <h2 class="font-anton m-0 text-light text-3xl">S/ 79</h2>
-                        <span class="text-muted text-xs font-anton">AL MES</span>
+                <!-- Tarjeta Dinámica de Plan desde Supabase -->
+                <div th:each="plan : ${planes}"
+                     th:class="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'card card-active p-4 p-lg-5 d-flex flex-column position-relative' : 'card p-4 p-lg-5 d-flex flex-column'"
+                     th:style="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'border-top: 4px solid var(--primary);' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h3 class="font-anton m-0" 
+                            th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'text-primary' : ''"
+                            th:text="${plan.nombre != null ? plan.nombre.toUpperCase() : 'PLAN'}">PLUS</h3>
+                        <span th:if="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')}" class="badge bg-primary text-dark font-anton px-3 py-1">EL MÁS ELEGIDO ⚡</span>
+                        <span th:if="${plan.nombre != null and plan.nombre.toUpperCase().contains('PREMIUM')}" class="badge bg-elevated text-primary border border-secondary">MÁXIMO NIVEL</span>
+                        <span th:if="${plan.nombre == null or (!plan.nombre.toUpperCase().contains('PLUS') and !plan.nombre.toUpperCase().contains('PREMIUM'))}" class="badge bg-elevated text-muted border border-secondary">ESTÁNDAR</span>
                     </div>
-                    <ul class="list-unstyled mb-5">
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a todas las áreas</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Equipos de última generación</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Horario completo</li>
-                    </ul>
-                    <button class="btn btn-outline mt-auto w-100 text-start">ELEGIR PLAN</button>
-                </div>
-                <div class="card p-4 d-flex flex-column" style="border-top: 3px solid var(--primary); box-shadow: 0 -10px 20px rgba(240,255,0,0.1); border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
-                    <h3 class="font-anton mb-2">PLUS</h3>
-                    <p class="text-muted text-sm mb-4">El más elegido</p>
+                    <p class="text-muted text-sm mb-4" th:text="${plan.descripcion}">Ideal para empezar tu rutina de fuerza y cardio</p>
                     <div class="d-flex align-items-baseline gap-2 mb-4">
-                        <h2 class="font-anton m-0 text-light text-3xl">S/ 119</h2>
-                        <span class="text-muted text-xs font-anton">AL MES</span>
+                        <h2 class="font-anton m-0 text-3xl plan-price"
+                            th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'text-primary' : 'text-light'"
+                            th:attr="data-base-price=${#numbers.formatDecimal(plan.precio, 1, 0)}"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(plan.precio, 1, 'POINT', 0, 'POINT')}">S/ 119</h2>
+                        <span class="text-muted text-xs font-anton plan-period-label">AL MES</span>
                     </div>
-                    <ul class="list-unstyled mb-5">
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a todas las áreas</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Equipos de última generación</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Horario completo</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a zona premium</li>
+                    <ul class="list-unstyled mb-5 flex-grow-1">
+                        <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Acceso completo en horario de <span th:text="${plan.duracionDias}">30</span> días</li>
+                        <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Equipos biomecánicos de última generación</li>
+                        <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Horario completo sin restricciones (06:00 a 23:00)</li>
+                        <li th:if="${plan.nombre != null and (plan.nombre.toUpperCase().contains('PLUS') or plan.nombre.toUpperCase().contains('PREMIUM'))}" class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Acceso a Zona Premium y evaluación física mensual</li>
+                        <li th:if="${plan.nombre != null and plan.nombre.toUpperCase().contains('PREMIUM')}" class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> 4 pases de invitado + 10% descuento en Suplementos</li>
+                        <li th:if="${plan.nombre == null or (!plan.nombre.toUpperCase().contains('PLUS') and !plan.nombre.toUpperCase().contains('PREMIUM'))}" class="mb-3 text-muted text-sm"><i class="fa-solid fa-xmark text-secondary me-2"></i> Acceso a zona VIP y pases de invitado</li>
                     </ul>
-                    <button class="btn btn-primary mt-auto w-100 text-start text-dark">ELEGIR PLAN</button>
-                </div>
-                <div class="card p-4 d-flex flex-column">
-                    <h3 class="font-anton mb-2">PREMIUM</h3>
-                    <p class="text-muted text-sm mb-4">Máximo rendimiento</p>
-                    <div class="d-flex align-items-baseline gap-2 mb-4">
-                        <h2 class="font-anton m-0 text-light text-3xl">S/ 159</h2>
-                        <span class="text-muted text-xs font-anton">AL MES</span>
-                    </div>
-                    <ul class="list-unstyled mb-5">
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a todas las áreas</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Equipos de última generación</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Horario completo</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a zona premium</li>
-                        <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Beneficios exclusivos</li>
-                    </ul>
-                    <button class="btn btn-outline mt-auto w-100 text-start">ELEGIR PLAN</button>
+                    <button type="button" 
+                            th:class="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'btn btn-primary mt-auto w-100 justify-content-between text-dark btn-choose-plan' : 'btn btn-outline mt-auto w-100 justify-content-between btn-choose-plan'"
+                            th:attr="data-plan-name=${plan.nombre}, data-plan-price=${plan.precio}">
+                        <span th:text="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'ELEGIR PLAN PLUS' : 'PRE-INSCRIBIRME EN ' + (${plan.nombre != null ? plan.nombre.toUpperCase() : 'PLAN'})">ELEGIR PLAN</span> 
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
-            <div class="card p-3 d-flex flex-row align-items-center gap-3">
-                <i class="fa-solid fa-circle-info text-muted"></i>
-                <span class="text-muted font-anton text-xs tracking-wide">LA ACTIVACIÓN DEL PLAN ES PRESENCIAL EN NUESTRO LOCAL.</span>
+
+            <div class="card p-4 d-flex flex-row justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-circle-info text-primary fs-4"></i>
+                    <div>
+                        <div class="text-light font-anton text-sm tracking-wide">ACTIVACIÓN PRESENCIAL INMEDIATA EN RECEPCIÓN</div>
+                        <small class="text-muted text-xs">Genera tu código de pre-inscripción aquí para congelar tu tarifa promocional y paga en el local.</small>
+                    </div>
+                </div>
+                <a th:href="@{/promociones}" class="btn btn-outline py-2 px-3 text-xs">VER PROMOCIONES 2×1 →</a>
             </div>
         </div>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
     </section>
 </body>
 </html>

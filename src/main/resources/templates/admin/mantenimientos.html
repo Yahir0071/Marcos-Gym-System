@@ -7,101 +7,128 @@
         <div>
             <small class="subtitle">REGISTRA INTERVENCIONES Y DA SEGUIMIENTO</small>
             <h1>HISTORIAL DE MANTENIMIENTO</h1>
-            <p>CONSULTA EL ESTADO DE LOS EQUIPOS</p>
+            <p>CONSULTA EL ESTADO Y LAS INTERVENCIONES TÉCNICAS DE LOS EQUIPOS</p>
         </div>
-        <div>
-            <button class="btn-primary">+ REGISTRAR INTERVENCIÓN</button>
+        <div class="d-flex gap-2">
+            <a th:href="@{/admin/reporte-mantenimiento}" class="btn btn-outline">VER REPORTE</a>
+            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarMantenimiento">+ REGISTRAR INTERVENCIÓN</button>
         </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show bg-dark text-danger border border-danger mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
     </div>
 
     <!-- Filters -->
     <div class="filters-bar">
-        <div class="filter-group">
+        <div class="filter-group filter-large">
             <label>BUSCAR MANTENIMIENTO</label>
-            <input type="text" placeholder="Buscar por equipo o descripción...">
+            <input type="text" class="table-search-input" placeholder="Buscar por equipo o descripción...">
         </div>
         <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODOS LOS ESTADOS</option>
+            <label>TIPO DE INTERVENCIÓN</label>
+            <select class="table-filter-select" data-filter-col="2">
+                <option value="">TODOS LOS TIPOS</option>
+                <option value="PREVENTIVO">PREVENTIVO</option>
+                <option value="CORRECTIVO">CORRECTIVO</option>
             </select>
-        </div>
-        <div class="filter-group">
-            <label>DESDE</label>
-            <input type="text" value="01 Ene 2025">
         </div>
     </div>
 
     <!-- Table -->
     <div class="table-container">
-        <table class="custom-table">
+        <table class="custom-table filterable-table" id="tablaMantenimientos">
             <thead>
             <tr>
                 <th>FECHA</th>
                 <th>EQUIPO</th>
-                <th>DESCRIPCIÓN</th>
-                <th>RESPONSABLE</th>
-                <th>ESTADO</th>
-                <th>PRÓX. REVISIÓN</th>
-                <th>ACCIÓN</th>
+                <th>TIPO</th>
+                <th>DESCRIPCIÓN DE INTERVENCIÓN</th>
+                <th>OBSERVACIONES</th>
+                <th>ESTADO EQUIPO</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>20 Ene 2025</td>
-                <td>Cinta de Correr</td>
-                <td>Cambio de banda</td>
-                <td>José Torres</td>
-                <td><span>FINALIZADO</span></td>
-                <td>20 Abr 2025</td>
-                <td><a href="#">VER</a></td>
+            <tr th:each="m : ${mantenimientos}">
+                <td th:text="${m.fechaMantenimiento != null ? #temporals.format(m.fechaMantenimiento, 'dd MMM yyyy') : '—'}">20 Ene 2025</td>
+                <td>
+                    <div class="fw-bold" th:text="${m.equipo.nombre}">Cinta de Correr</div>
+                    <small class="code-cell" th:text="${m.equipo.codigo}">EQP-001</small>
+                </td>
+                <td class="fw-bold text-primary" th:text="${m.tipo}">Preventivo</td>
+                <td th:text="${m.descripcion}">Cambio de banda y calibración</td>
+                <td class="text-muted text-xs" th:text="${m.observaciones != null and !#strings.isEmpty(m.observaciones) ? m.observaciones : 'Ninguna'}">Completado por técnico certificado</td>
+                <td>
+                    <span th:if="${m.equipo.estado.name() == 'OPERATIVO'}">OPERATIVO</span>
+                    <span th:if="${m.equipo.estado.name() == 'EN_MANTENIMIENTO'}" class="status-warning">EN MANTENIMIENTO</span>
+                    <span th:if="${m.equipo.estado.name() == 'FUERA_DE_SERVICIO'}" class="status-inactive">FUERA DE SERVICIO</span>
+                </td>
             </tr>
-            <tr>
-                <td>18 Ene 2025</td>
-                <td>Elíptica</td>
-                <td>Ajuste general</td>
-                <td>Luis Pérez</td>
-                <td><span>FINALIZADO</span></td>
-                <td>18 Abr 2025</td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td>15 Ene 2025</td>
-                <td>Prensa de Piernas</td>
-                <td>Lubricación</td>
-                <td>Técnico Externo</td>
-                <td><span>FINALIZADO</span></td>
-                <td>15 Abr 2025</td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td>10 Ene 2025</td>
-                <td>Remadora</td>
-                <td>Revisión de frenos</td>
-                <td>José Torres</td>
-                <td><span class="in-process">EN PROCESO</span></td>
-                <td>—</td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td>05 Ene 2025</td>
-                <td>Bicicleta Estática</td>
-                <td>Cambio de pedal</td>
-                <td>Luis Pérez</td>
-                <td><span>FINALIZADO</span></td>
-                <td>05 Abr 2025</td>
-                <td><a href="#">VER</a></td>
+            <tr th:if="${#lists.isEmpty(mantenimientos)}">
+                <td colspan="6" class="text-center text-muted py-4">No se han registrado intervenciones de mantenimiento en la base de datos.</td>
             </tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Footer Alert Banner -->
-    <div class="alert-banner">
-        <span>🕒</span>
-        <span>ÚLTIMA INTERVENCIÓN REGISTRADA: CINTA DE CORRIER · 20 ENE 2025 · FINALIZADO</span>
+    <!-- Modal Registrar Mantenimiento -->
+    <div class="modal fade" id="modalRegistrarMantenimiento" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content gym-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title font-anton text-primary tracking-wide">REGISTRAR INTERVENCIÓN TÉCNICA</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/mantenimientos/registrar}" method="post">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label">EQUIPO A INTERVENIR</label>
+                            <select name="equipoId" class="form-select" required>
+                                <option value="" disabled selected>-- Elija el equipo del inventario --</option>
+                                <option th:each="eq : ${equipos}" th:value="${eq.id}"
+                                        th:text="${eq.codigo + ' - ' + eq.nombre + ' (' + eq.estado.name() + ')'}">
+                                    EQP-001 - Cinta de Correr (OPERATIVO)
+                                </option>
+                            </select>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">FECHA DE INTERVENCIÓN</label>
+                                <input type="date" name="fechaMantenimiento" class="form-control"
+                                       th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">TIPO DE MANTENIMIENTO</label>
+                                <select name="tipo" class="form-select" required>
+                                    <option value="Preventivo" selected>Preventivo</option>
+                                    <option value="Correctivo">Correctivo</option>
+                                    <option value="Calibración">Calibración</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">DESCRIPCIÓN DEL TRABAJO</label>
+                            <input type="text" name="descripcion" class="form-control" placeholder="Ej. Cambio de faja motora y lubricación de poleas" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">OBSERVACIONES / TÉCNICO RESPONSABLE</label>
+                            <textarea name="observaciones" class="form-control" rows="2" placeholder="Técnico a cargo, repuestos utilizados, etc..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-outline" data-bs-dismiss="modal">CANCELAR</button>
+                        <button type="submit" class="btn btn-primary">REGISTRAR INTERVENCIÓN</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
 </main>
 </body>
 </html>

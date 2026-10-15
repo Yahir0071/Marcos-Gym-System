@@ -7,106 +7,127 @@
         <div>
             <small class="subtitle">ADMINISTRA LOS EQUIPOS DEL GIMNASIO</small>
             <h1>EQUIPOS</h1>
-            <p>INVENTARIO DE MÁQUINAS Y EQUIPOS</p>
+            <p>INVENTARIO DE MÁQUINAS, PESAS Y EQUIPOS BIOMECÁNICOS</p>
         </div>
-        <div>
-            <button class="btn-primary">+ REGISTRAR EQUIPO</button>
+        <div class="d-flex gap-2">
+            <a th:href="@{/admin/reporte-mantenimiento}" class="btn btn-outline">VER REPORTE TÉCNICO</a>
+            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoEquipo">+ REGISTRAR EQUIPO</button>
         </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show bg-dark text-danger border border-danger mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
     </div>
 
     <!-- Filters -->
     <div class="filters-bar">
-        <div class="filter-group">
+        <div class="filter-group filter-large">
             <label>BUSCAR EQUIPO</label>
-            <input type="text" placeholder="Buscar por código, nombre o ubicación...">
+            <input type="text" class="table-search-input" placeholder="Buscar por código o nombre...">
         </div>
         <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODOS LOS TIPOS</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODOS LOS ESTADOS</option>
+            <label>ESTADO</label>
+            <select class="table-filter-select" data-filter-col="2">
+                <option value="">TODOS LOS ESTADOS</option>
+                <option value="OPERATIVO">OPERATIVO</option>
+                <option value="EN MANTENIMIENTO">EN MANTENIMIENTO</option>
+                <option value="FUERA DE SERVICIO">FUERA DE SERVICIO</option>
             </select>
         </div>
     </div>
 
     <!-- Table -->
     <div class="table-container">
-        <table class="custom-table">
+        <table class="custom-table filterable-table" id="tablaEquipos">
             <thead>
             <tr>
                 <th>CÓDIGO</th>
                 <th>NOMBRE</th>
-                <th>TIPO</th>
-                <th>UBICACIÓN</th>
-                <th>ÚLT. MANTENIMIENTO</th>
-                <th>ESTADO</th>
-                <th>ACCIÓN</th>
+                <th>ESTADO ACTUAL</th>
+                <th>CAMBIAR ESTADO</th>
+                <th>ACCIONES</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td class="code-cell">EQP-001</td>
-                <td>Cinta de Correr</td>
-                <td>Cardio</td>
-                <td>Zona Cardio</td>
-                <td>10 Ene 2025</td>
-                <td><span>OPERATIVO</span></td>
-                <td><a href="#">VER</a></td>
+            <tr th:each="eq : ${equipos}">
+                <td class="code-cell" th:text="${eq.codigo}">EQP-001</td>
+                <td class="fw-bold" th:text="${eq.nombre}">Cinta de Correr</td>
+                <td>
+                    <span th:if="${eq.estado.name() == 'OPERATIVO'}">OPERATIVO</span>
+                    <span th:if="${eq.estado.name() == 'EN_MANTENIMIENTO'}" class="status-warning">EN MANTENIMIENTO</span>
+                    <span th:if="${eq.estado.name() == 'FUERA_DE_SERVICIO'}" class="status-inactive">FUERA DE SERVICIO</span>
+                </td>
+                <td>
+                    <form th:action="@{/admin/equipos/cambiar-estado}" method="post" class="d-flex gap-1 align-items-center">
+                        <input type="hidden" name="id" th:value="${eq.id}">
+                        <select name="estado" class="form-select form-select-sm py-1 bg-dark text-light border-secondary">
+                            <option value="OPERATIVO" th:selected="${eq.estado.name() == 'OPERATIVO'}">OPERATIVO</option>
+                            <option value="EN_MANTENIMIENTO" th:selected="${eq.estado.name() == 'EN_MANTENIMIENTO'}">EN MANTENIMIENTO</option>
+                            <option value="FUERA_DE_SERVICIO" th:selected="${eq.estado.name() == 'FUERA_DE_SERVICIO'}">FUERA DE SERVICIO</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline btn-sm px-2 py-1 text-xs">ACTUALIZAR</button>
+                    </form>
+                </td>
+                <td>
+                    <button type="button" class="btn-edit-row btn-edit-equipo"
+                            th:data-id="${eq.id}"
+                            th:data-codigo="${eq.codigo}"
+                            th:data-nombre="${eq.nombre}"
+                            th:data-estado="${eq.estado.name()}"
+                            data-bs-toggle="modal" data-bs-target="#modalNuevoEquipo">EDITAR</button>
+                </td>
             </tr>
-            <tr>
-                <td class="code-cell">EQP-002</td>
-                <td>Bicicleta Estática</td>
-                <td>Cardio</td>
-                <td>Zona Cardio</td>
-                <td>05 Ene 2025</td>
-                <td><span>OPERATIVO</span></td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td class="code-cell">EQP-003</td>
-                <td>Prensa de Piernas</td>
-                <td>Fuerza</td>
-                <td>Zona Fuerza</td>
-                <td>12 Dic 2024</td>
-                <td><span class="in-maintenance">EN MANTENIMIENTO</span></td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td class="code-cell">EQP-004</td>
-                <td>Mancuernas</td>
-                <td>Pesas</td>
-                <td>Sala Principal</td>
-                <td>20 Ene 2025</td>
-                <td><span>OPERATIVO</span></td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td class="code-cell">EQP-005</td>
-                <td>Banco Plano</td>
-                <td>Fuerza</td>
-                <td>Zona Fuerza</td>
-                <td>08 Ene 2025</td>
-                <td><span>OPERATIVO</span></td>
-                <td><a href="#">VER</a></td>
-            </tr>
-            <tr>
-                <td class="code-cell">EQP-006</td>
-                <td>Elíptica</td>
-                <td>Cardio</td>
-                <td>Zona Cardio</td>
-                <td>02 Ene 2025</td>
-                <td><span class="out-service">FUERA DE SERVICIO</span></td>
-                <td><a href="#">VER</a></td>
+            <tr th:if="${#lists.isEmpty(equipos)}">
+                <td colspan="5" class="text-center text-muted py-4">No hay equipos registrados en el inventario.</td>
             </tr>
             </tbody>
         </table>
     </div>
 
+    <!-- Modal Nuevo / Editar Equipo -->
+    <div class="modal fade" id="modalNuevoEquipo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content gym-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title font-anton text-primary tracking-wide" id="modalEquipoTitle">GESTIONAR EQUIPO</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/equipos/guardar}" method="post" id="formEquipo">
+                    <input type="hidden" id="equipoId" name="id">
+                    <div class="modal-body p-4">
+                        <div class="row g-3 mb-3">
+                            <div class="col-5">
+                                <label class="form-label">CÓDIGO INTERNO</label>
+                                <input type="text" id="equipoCodigo" name="codigo" class="form-control" placeholder="EQP-001" required>
+                            </div>
+                            <div class="col-7">
+                                <label class="form-label">ESTADO INICIAL</label>
+                                <select id="equipoEstado" name="estado" class="form-select" required>
+                                    <option value="OPERATIVO">OPERATIVO</option>
+                                    <option value="EN_MANTENIMIENTO">EN MANTENIMIENTO</option>
+                                    <option value="FUERA_DE_SERVICIO">FUERA DE SERVICIO</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">NOMBRE DE LA MÁQUINA O EQUIPO</label>
+                            <input type="text" id="equipoNombre" name="nombre" class="form-control" placeholder="Ej. Cinta de Correr Pro Runner" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-outline" data-bs-dismiss="modal">CANCELAR</button>
+                        <button type="submit" class="btn btn-primary">GUARDAR EQUIPO</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

@@ -1,21 +1,52 @@
-<footer th:fragment="footer" class="mt-5 text-center">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <h5>ENERGY GYM</h5>
-                <p>Tu mejor versión empieza aquí.</p>
+<footer th:fragment="footer" class="border-top border-secondary pt-5 pb-4 mt-5" style="background-color: #06080b;">
+    <div class="container-fluid px-5">
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <a class="text-light text-decoration-none d-flex align-items-center font-anton fs-4 mb-3" th:href="@{/inicio}">
+                    <span class="text-primary me-2">⚡</span> ENERGY <span class="text-primary ms-1">GYM</span>
+                </a>
+                <p class="text-muted text-sm mb-3" style="max-width: 340px;">
+                    Entrenamiento de alto rendimiento, maquinaria biomecánica de última generación y suplementación certificada para transformar tu disciplina en resultados.
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-outline px-3 py-2" data-toast="Síguenos en Instagram @EnergyGymPeru"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="btn btn-outline px-3 py-2" data-toast="Síguenos en Facebook /EnergyGymPeru"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="btn btn-outline px-3 py-2" data-toast="Síguenos en TikTok @EnergyGym"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" class="btn btn-outline px-3 py-2" data-toast="Contacto WhatsApp: +51 987 654 321"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
             </div>
-            <div class="col-md-4 mb-3">
-                <h5>Horarios</h5>
-                <p>Lunes - Viernes: 6am - 10pm<br>Sábados: 8am - 2pm</p>
+            <div class="col-6 col-lg-2">
+                <h6 class="font-anton text-primary tracking-wide mb-3">NAVEGACIÓN</h6>
+                <ul class="list-unstyled d-flex flex-column gap-2 text-sm">
+                    <li><a th:href="@{/inicio}" class="btn-link-white text-muted">Inicio</a></li>
+                    <li><a th:href="@{/planes}" class="btn-link-white text-muted">Planes y Tarifas</a></li>
+                    <li><a th:href="@{/promociones}" class="btn-link-white text-muted">Promociones</a></li>
+                    <li><a th:href="@{/productos}" class="btn-link-white text-muted">Suplementos</a></li>
+                    <li><a th:href="@{/afluencia}" class="btn-link-white text-muted">Afluencia en Vivo</a></li>
+                </ul>
             </div>
-            <div class="col-md-4 mb-3">
-                <h5>Contacto</h5>
-                <p><i class="fa-solid fa-location-dot"></i> Calle Principal #123<br>
-                <i class="fa-solid fa-phone"></i> +1 234 567 890</p>
+            <div class="col-6 col-lg-3">
+                <h6 class="font-anton text-primary tracking-wide mb-3">HORARIOS DE ATENCIÓN</h6>
+                <ul class="list-unstyled text-muted text-sm d-flex flex-column gap-2">
+                    <li><i class="fa-regular fa-clock text-primary me-2"></i> <strong>Lun - Vie:</strong> 06:00 AM – 11:00 PM</li>
+                    <li><i class="fa-regular fa-clock text-primary me-2"></i> <strong>Sábados:</strong> 07:00 AM – 08:00 PM</li>
+                    <li><i class="fa-regular fa-clock text-primary me-2"></i> <strong>Domingos y Feriados:</strong> 08:00 AM – 02:00 PM</li>
+                </ul>
+            </div>
+            <div class="col-lg-3">
+                <h6 class="font-anton text-primary tracking-wide mb-3">SEDE PRINCIPAL</h6>
+                <p class="text-muted text-sm mb-2"><i class="fa-solid fa-location-dot text-primary me-2"></i> Av. Arequipa 2450, Lince — Lima</p>
+                <p class="text-muted text-sm mb-3"><i class="fa-solid fa-phone text-primary me-2"></i> (01) 480-9921 / +51 987 654 321</p>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/login}" class="btn btn-primary py-2 px-3 text-xs">PORTAL SOCIOS</a>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline py-2 px-3 text-xs">PANEL ADMIN</a>
+                </div>
             </div>
         </div>
         <hr class="border-secondary">
-        <p class="mb-0">&copy; 2026 Energy Gym. Todos los derechos reservados.</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-center text-muted text-xs pt-2">
+            <span>&copy; 2026 ENERGY GYM SYSTEM — Grupo 04 UTP. Todos los derechos reservados.</span>
+            <span>Diseñado para el máximo rendimiento físico.</span>
+        </div>
     </div>
 </footer>

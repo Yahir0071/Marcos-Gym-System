@@ -7,47 +7,75 @@
         <div class="client-main">
             <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
             <div class="client-content">
-                <div class="section-subtitle mb-3 text-primary text-2xs">NUTRE TU ESFUERZO</div>
-                <h1 class="display-3 font-anton leading-none mb-1 text-light">PRODUCTOS</h1>
-                <p class="font-anton text-muted mb-5 tracking-wide text-lg">CALIDAD PARA TU MEJOR VERSIÓN</p>
-                
-                <label class="form-label mb-2">BUSCAR PRODUCTOS</label>
-                <div class="d-flex gap-3 mb-4">
-                    <input type="text" class="form-control w-50 bg-transparent text-light border-secondary" placeholder="Buscar productos, marcas o categorías...">
-                </div>
-                <div class="d-flex gap-2 flex-wrap mb-5">
-                    <button class="btn btn-primary px-4">TODOS</button>
-                    <button class="btn btn-outline px-4">SUPLEMENTOS</button>
-                    <button class="btn btn-outline px-4">ACCESORIOS</button>
-                    <button class="btn btn-outline px-4">ROPA</button>
-                </div>
-                
-                <div class="grid-products">
-                    <div class="card d-flex flex-column border-secondary overflow-hidden bg-card"  >
-                        <img th:src="@{/img/whey.jpg}" alt="Whey Protein" class="card-img-top h-250px obj-contain bg-deep-dark">
-                        <div class="p-4 d-flex flex-column flex-grow-1">
-                            <span class="badge text-success mb-3 align-self-start border border-success bg-transparent tracking-wide text-xs">DISPONIBLE</span>
-                            <h6 class="font-anton mb-1 text-light">WHEY PROTEIN 2 LB</h6>
-                            <h4 class="font-anton text-primary mb-4">S/ 149</h4>
-                            <a th:href="@{/detalle-producto}" class="btn btn-outline w-100 text-start mt-auto">VER DETALLE</a>
-                        </div>
+                <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+                    <div>
+                        <div class="section-subtitle has-line mb-2">NUTRE TU ESFUERZO</div>
+                        <h1 class="display-3 font-anton leading-none mb-1 text-light">CATÁLOGO DE <span class="text-primary">PRODUCTOS</span></h1>
+                        <p class="font-anton text-muted m-0 tracking-wide text-lg">RESERVA EN LÍNEA Y RECOGE EN RECEPCIÓN SIN COLAS</p>
                     </div>
-                    <div class="card d-flex flex-column border-secondary overflow-hidden bg-card"  >
-                        <img th:src="@{/img/creatina.jpg}" alt="Creatina" class="card-img-top h-250px obj-contain bg-deep-dark">
-                        <div class="p-4 d-flex flex-column flex-grow-1">
-                            <span class="badge text-success mb-3 align-self-start border border-success bg-transparent tracking-wide text-xs">DISPONIBLE</span>
-                            <h6 class="font-anton mb-1 text-light">CREATINA 300 G</h6>
-                            <h4 class="font-anton text-primary mb-4">S/ 89</h4>
-                            <a th:href="@{/detalle-producto}" class="btn btn-outline w-100 text-start mt-auto">VER DETALLE</a>
-                        </div>
+                    <a th:href="@{/cliente/mis-reservas}" class="btn btn-outline">
+                        <i class="fa-solid fa-bag-shopping text-primary"></i> VER MIS RESERVAS
+                    </a>
+                </div>
+
+                <!-- Search & Sort Controls -->
+                <div class="row g-3 align-items-end mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label">BUSCAR PRODUCTOS</label>
+                        <input type="text" id="publicProductSearch" class="form-control" placeholder="Buscar suplementos, accesorios o indumentaria...">
                     </div>
-                    <div class="card d-flex flex-column border-secondary overflow-hidden bg-card"  >
-                        <img th:src="@{/img/shaker.jpg}" alt="Shaker" class="card-img-top h-250px obj-contain bg-deep-dark">
+                    <div class="col-md-4">
+                        <label class="form-label">ORDENAR POR</label>
+                        <select id="publicProductSort" class="form-select">
+                            <option value="default">DESTACADOS</option>
+                            <option value="price-asc">PRECIO: MENOR A MAYOR</option>
+                            <option value="price-desc">PRECIO: MAYOR A MENOR</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Category Buttons -->
+                <div class="d-flex gap-2 flex-wrap mb-5" id="publicCategoryFilters">
+                    <button type="button" class="btn btn-primary px-4 cat-filter-btn active" data-category="ALL">TODOS (6)</button>
+                    <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="SUPLEMENTOS">SUPLEMENTOS</button>
+                    <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="ACCESORIOS">ACCESORIOS</button>
+                    <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="ROPA">ROPA</button>
+                </div>
+
+                <div class="grid-products" id="publicProductGrid">
+                    <!-- Producto Dinámico -->
+                    <div th:each="prod : ${productos}"
+                         class="card d-flex flex-column border-secondary overflow-hidden bg-card product-item-card"
+                         th:attr="data-category=${prod.nombre != null and (prod.nombre.toUpperCase().contains('SHAKER') or prod.nombre.toUpperCase().contains('BOTELLA')) ? 'BOTELLAS ACCESORIOS' : (prod.nombre != null and (prod.nombre.toUpperCase().contains('CORREA') or prod.nombre.toUpperCase().contains('GUANTE') or prod.nombre.toUpperCase().contains('STRAP')) ? 'ACCESORIOS' : (prod.nombre != null and (prod.nombre.toUpperCase().contains('CAMISETA') or prod.nombre.toUpperCase().contains('ROPA')) ? 'ROPA' : 'SUPLEMENTOS'))}, data-name=${prod.nombre}, data-price=${prod.precio}">
+                        
+                        <div class="bg-deep-dark p-3 text-center position-relative">
+                            <span th:if="${prod.stock != null and prod.stock > 10}" class="badge bg-primary text-dark position-absolute top-0 end-0 m-3 font-anton">DESTACADO</span>
+                            <img th:if="${prod.imagenUrl != null and !#strings.isEmpty(prod.imagenUrl)}" 
+                                 th:src="@{${prod.imagenUrl}}" th:alt="${prod.nombre}" class="card-img-top h-250px obj-contain bg-deep-dark p-3">
+                            <div th:if="${prod.imagenUrl == null or #strings.isEmpty(prod.imagenUrl)}" 
+                                 class="product-image-box h-250px bg-deep-dark flex-column gap-2 d-flex align-items-center justify-content-center">
+                                <i class="fa-solid fa-jar text-primary" style="font-size: 4rem;"></i>
+                                <span class="font-anton text-muted text-xs tracking-wider" th:text="${prod.nombre}">PRODUCTO</span>
+                            </div>
+                        </div>
+
                         <div class="p-4 d-flex flex-column flex-grow-1">
-                            <span class="badge text-success mb-3 align-self-start border border-success bg-transparent tracking-wide text-xs">DISPONIBLE</span>
-                            <h6 class="font-anton mb-1 text-light">SHAKER 700 ML</h6>
-                            <h4 class="font-anton text-primary mb-4">S/ 39</h4>
-                            <a th:href="@{/detalle-producto}" class="btn btn-outline w-100 text-start mt-auto">VER DETALLE</a>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span th:if="${prod.stock != null and prod.stock > 5}" class="badge text-success border border-success bg-transparent tracking-wide text-2xs" th:text="'DISPONIBLE · ' + ${prod.stock} + ' UDS'">DISPONIBLE · 12 UDS</span>
+                                <span th:if="${prod.stock != null and prod.stock > 0 and prod.stock <= 5}" class="badge text-warning border border-warning bg-transparent tracking-wide text-2xs" th:text="'ÚLTIMAS ' + ${prod.stock} + ' UDS'">ÚLTIMAS 4 UDS</span>
+                                <span th:if="${prod.stock == null or prod.stock <= 0}" class="badge text-danger border border-danger bg-transparent tracking-wide text-2xs">AGOTADO</span>
+                            </div>
+                            <h5 class="font-anton mb-1 text-light" th:text="${prod.nombre != null ? prod.nombre.toUpperCase() : 'PRODUCTO'}">WHEY PROTEIN 2 LB</h5>
+                            <p class="text-muted text-xs mb-3" th:text="${prod.descripcion}">24g proteína aislada por porción.</p>
+                            <h4 class="font-anton text-primary mb-4 mt-auto" th:text="'S/ ' + ${#numbers.formatDecimal(prod.precio, 1, 'POINT', 0, 'POINT')}">S/ 149</h4>
+                            <div class="d-flex gap-2">
+                                <a th:href="@{/cliente/detalle-producto(id=${prod.id})}" class="btn btn-outline flex-grow-1">VER DETALLE</a>
+                                <button type="button" class="btn btn-primary px-3 btn-quick-reserve"
+                                        th:disabled="${prod.stock == null or prod.stock <= 0}"
+                                        th:attr="data-product=${prod.nombre}, data-price=${prod.precio}, data-id=${prod.id}">
+                                    <i class="fa-solid fa-plus"></i> RESERVAR
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

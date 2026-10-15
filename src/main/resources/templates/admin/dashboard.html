@@ -1,116 +1,240 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
-<html lang="es" xmlns:th="http://thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Gestión de Socios - Energy Gym</title>
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'dashboard', ~{::main})}">
+<head><title>Dashboard Ejecutivo - Energy Gym</title></head>
 <body>
 <main class="admin-page">
     <div class="page-header">
         <div>
-            <small class="subtitle">GESTIÓN DE USUARIOS DEL GIMNASIO</small>
-            <h1>SOCIOS</h1>
-            <p>ADMINISTRA TUS SOCIOS, REVISA SU ESTADO Y MEMBRESÍAS</p>
+            <small class="subtitle">CENTRO DE CONTROL OPERATIVO Y COMERCIAL</small>
+            <h1>DASHBOARD GENERAL</h1>
+            <p>MÉTRICAS EN TIEMPO REAL, FINANZAS Y ESTADO DEL GIMNASIO</p>
         </div>
-        <div>
-            <button class="btn-primary">+ REGISTRAR SOCIO</button>
-        </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="filters-bar">
-        <div class="filter-group">
-            <label>BUSCAR SOCIO</label>
-            <input type="text" placeholder="Buscar por nombre, documento o email...">
-        </div>
-        <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODOS LOS ESTADOS</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>&nbsp;</label>
-            <select>
-                <option selected>TODAS LAS MEMBRESÍAS</option>
-            </select>
+        <div class="d-flex flex-wrap gap-2">
+            <a th:href="@{/admin/pagos}" class="btn btn-outline"><i class="fa-solid fa-money-bill-wave text-primary"></i> REGISTRAR PAGO</a>
+            <a th:href="@{/admin/socios}" class="btn-primary"><i class="fa-solid fa-user-plus"></i> + NUEVO SOCIO</a>
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="table-container">
-        <table class="custom-table">
-            <thead>
-            <tr>
-                <th>N°</th>
-                <th>NOMBRE</th>
-                <th>DOCUMENTO</th>
-                <th>TELÉFONO</th>
-                <th>MEMBRESÍA</th>
-                <th>ESTADO</th>
-                <th>ACCIÓN</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td class="fw-bold">01</td>
-                <td>Carlos Mendoza</td>
-                <td>72563123</td>
-                <td>987 654 321</td>
-                <td>Plan Plus</td>
-                <td><span>ACTIVO</span></td>
-                <td><a href="#">VER / EDITAR</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">02</td>
-                <td>Ana Torres</td>
-                <td>40215876</td>
-                <td>912 345 678</td>
-                <td>Plan Básico</td>
-                <td><span>ACTIVO</span></td>
-                <td><a href="#">VER / EDITAR</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">03</td>
-                <td>Luis Ramírez</td>
-                <td>71553049</td>
-                <td>923 456 789</td>
-                <td>Plan Premium</td>
-                <td><span>ACTIVO</span></td>
-                <td><a href="#">VER / EDITAR</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">04</td>
-                <td>María López</td>
-                <td>46789211</td>
-                <td>934 567 890</td>
-                <td>Plan Plus</td>
-                <td><span class="status-inactive">INACTIVO</span></td>
-                <td><a href="#">VER / EDITAR</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">05</td>
-                <td>Diego Flores</td>
-                <td>73801234</td>
-                <td>987 321 654</td>
-                <td>Plan Básico</td>
-                <td><span>ACTIVO</span></td>
-                <td><a href="#">VER / EDITAR</a></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">06</td>
-                <td>Sofía Vega</td>
-                <td>70554321</td>
-                <td>914 876 123</td>
-                <td>Plan Premium</td>
-                <td><span>ACTIVO</span></td>
-                <td><a href="#">VER / EDITAR</a></td>
-            </tr>
-            </tbody>
-        </table>
+    <!-- KPI Metric Cards -->
+    <div class="status-cards-grid">
+        <div class="card-metric pending">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h2 class="counter-value" th:text="${metricas != null ? metricas.totalSocios : 0}">148</h2>
+                <span class="badge bg-primary text-dark" th:text="${(metricas != null ? metricas.membresiasActivas : 0) + ' ACTIVOS'}">+12% MES</span>
+            </div>
+            <span>TOTAL DE SOCIOS</span>
+            <small class="text-muted text-2xs mt-2" th:text="${(metricas != null ? metricas.membresiasActivas : 0) + ' con membresía vigente'}">6 nuevos inscritos esta semana</small>
+        </div>
+
+        <div class="card-metric operational">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h2>S/ <span class="counter-value" th:text="${metricas != null and metricas.ingresosMes != null ? #numbers.formatDecimal(metricas.ingresosMes, 1, 'COMMA', 2, 'POINT') : '16,450.00'}">16,450</span></h2>
+                <span class="badge bg-dark text-success border border-success">ESTABLE</span>
+            </div>
+            <span>INGRESOS DEL MES</span>
+            <small class="text-muted text-2xs mt-2">Pagos de cuotas y suplementos</small>
+        </div>
+
+        <div class="card-metric maintenance">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h2 class="counter-value" th:text="${metricas != null ? metricas.reservasPendientes : 0}">9</h2>
+                <span class="badge bg-dark text-warning border border-warning">POR ENTREGAR</span>
+            </div>
+            <span>RESERVAS PENDIENTES</span>
+            <small class="text-muted text-2xs mt-2">En counter de suplementos</small>
+        </div>
+
+        <div class="card-metric operational">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h2><span th:text="${metricas != null ? metricas.equiposOperativos : 0}">18</span> <small class="text-muted fs-6" th:text="${'/ ' + (metricas != null ? (metricas.equiposOperativos + metricas.equiposEnMantenimiento) : 0)}">/ 20</small></h2>
+                <span class="badge bg-dark text-info border border-info" th:text="${metricas != null and (metricas.equiposOperativos + metricas.equiposEnMantenimiento) > 0 ? #numbers.formatInteger((metricas.equiposOperativos * 100) / (metricas.equiposOperativos + metricas.equiposEnMantenimiento), 1) + '% OP.' : '100% OP.'}">90% OP.</span>
+            </div>
+            <span>EQUIPOS OPERATIVOS</span>
+            <small class="text-muted text-2xs mt-2" th:text="${(metricas != null ? metricas.equiposEnMantenimiento : 0) + ' en mantenimiento activo'}">1 en mantenimiento · 1 fuera de servicio</small>
+        </div>
     </div>
 
+    <!-- Charts & Distribution Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                    <div>
+                        <small class="text-primary fw-bold text-2xs tracking-wider"> FLUJO SEMANAL</small>
+                        <h5 class="font-anton m-0 text-light">AFLUENCIA Y VISITAS POR DÍA</h5>
+                    </div>
+                    <div class="d-flex gap-2" id="chartPeriodButtons">
+                        <button type="button" class="btn btn-primary py-1 px-3 text-2xs chart-period-btn active" data-period="semana">ESTA SEMANA</button>
+                        <button type="button" class="btn btn-outline py-1 px-3 text-2xs chart-period-btn" data-period="mes">ÚLTIMO MES</button>
+                    </div>
+                </div>
+
+                <!-- Interactive Bar Chart -->
+                <div class="d-flex align-items-end justify-content-between gap-2 pt-3 pb-2 px-2" style="height: 210px; border-bottom: 1px solid var(--border-color);" id="dashboardBarChart">
+                    <div class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end">
+                        <span class="text-xs fw-bold text-primary mb-1 bar-val">115</span>
+                        <div class="w-100 rounded-top bg-primary bar-fill" style="max-width: 44px; height: 72%; transition: height 0.5s ease;"></div>
+                        <small class="text-muted text-2xs mt-2 fw-bold">LUN</small>
+                    </div>
+                    <div class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end">
+                        <span class="text-xs fw-bold text-primary mb-1 bar-val">132</span>
+                        <div class="w-100 rounded-top bg-primary bar-fill" style="max-width: 44px; height: 84%; transition: height 0.5s ease;"></div>
+                        <small class="text-muted text-2xs mt-2 fw-bold">MAR</small>
+                    </div>
+                    <div class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end">
+                        <span class="text-xs fw-bold text-primary mb-1 bar-val">128</span>
+                        <div class="w-100 rounded-top bg-primary bar-fill" style="max-width: 44px; height: 80%; transition: height 0.5s ease;"></div>
+                        <small class="text-muted text-2xs mt-2 fw-bold">MIÉ</small>
+                    </div>
+                    <div class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end">
+                        <span class="text-xs fw-bold text-primary mb-1 bar-val">145</span>
+                        <div class="w-100 rounded-top bg-primary bar-fill" style="max-width: 44px; height: 92%; transition: height 0.5s ease;"></div>
+                        <small class="text-muted text-2xs mt-2 fw-bold">JUE</small>
+                    </div>
+                    <div class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end">
+                        <span class="text-xs fw-bold text-primary mb-1 bar-val">138</span>
+                        <div class="w-100 rounded-top bg-primary bar-fill" style="max-width: 44px; height: 87%; transition: height 0.5s ease;"></div>
+                        <small class="text-muted text-2xs mt-2 fw-bold">VIE</small>
+                    </div>
+                    <div class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end">
+                        <span class="text-xs fw-bold text-primary mb-1 bar-val">96</span>
+                        <div class="w-100 rounded-top bg-primary bar-fill" style="max-width: 44px; height: 60%; transition: height 0.5s ease;"></div>
+                        <small class="text-muted text-2xs mt-2 fw-bold">SÁB</small>
+                    </div>
+                    <div class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end">
+                        <span class="text-xs fw-bold text-muted mb-1 bar-val">54</span>
+                        <div class="w-100 rounded-top bar-fill" style="max-width: 44px; height: 35%; background-color: #2c3548; transition: height 0.5s ease;"></div>
+                        <small class="text-muted text-2xs mt-2 fw-bold">DOM</small>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3 text-xs text-muted">
+                    <span>Horario punta registrado: <strong class="text-light">18:00 – 21:00 hrs</strong></span>
+                    <a th:href="@{/admin/afluencia}" class="text-primary text-decoration-none fw-bold">VER HISTORIAL COMPLETO →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <small class="text-primary fw-bold text-2xs tracking-wider">DISTRIBUCIÓN COMERCIAL</small>
+                    <h5 class="font-anton m-0 text-light mb-4">MEMBRESÍAS POR PLAN</h5>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between text-xs fw-bold mb-1">
+                            <span>PLAN PLUS (S/ 119)</span>
+                            <span class="text-primary">48% (71 socios)</span>
+                        </div>
+                        <div class="progress progress-custom">
+                            <div class="progress-bar progress-bar-custom" style="width: 48%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between text-xs fw-bold mb-1">
+                            <span>PLAN PREMIUM (S/ 159)</span>
+                            <span class="text-success">32% (47 socios)</span>
+                        </div>
+                        <div class="progress progress-custom">
+                            <div class="progress-bar bg-success" style="width: 32%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between text-xs fw-bold mb-1">
+                            <span>PLAN BÁSICO (S/ 79)</span>
+                            <span class="text-info">20% (30 socios)</span>
+                        </div>
+                        <div class="progress progress-custom">
+                            <div class="progress-bar bg-info" style="width: 20%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded bg-elevated border border-secondary mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-2xs text-muted fw-bold">RETENCIÓN MENSUAL</div>
+                            <div class="font-anton fs-4 text-light">94.2%</div>
+                        </div>
+                        <a th:href="@{/admin/membresias}" class="btn btn-outline py-2 px-3 text-2xs">GESTIONAR</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Tables: Recent Reservations & Operational Alerts -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="font-anton m-0 text-light">ÚLTIMAS RESERVAS DE PRODUCTOS</h5>
+                    <a th:href="@{/admin/reservas}" class="text-primary text-xs fw-bold text-decoration-none">VER TODAS →</a>
+                </div>
+                <div class="table-container m-0 border-0 shadow-none">
+                    <table class="custom-table">
+                        <thead>
+                        <tr>
+                            <th>CÓDIGO</th>
+                            <th>SOCIO</th>
+                            <th>PRODUCTO</th>
+                            <th>ESTADO</th>
+                            <th>ACCIÓN</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="res, iterStat : ${reservas}" th:if="${iterStat.index < 5}">
+                            <td class="code-cell" th:text="'#RES-' + ${#numbers.formatInteger(res.id, 5)}">#RES-0051</td>
+                            <td th:text="${res.socio != null ? res.socio.nombres + ' ' + res.socio.apellidos : 'Socio'}">Carlos Mendoza</td>
+                            <td th:text="${res.producto != null ? res.producto.nombre : 'Producto'}">Whey Protein 2 LB</td>
+                            <td>
+                                <span th:class="${res.estado != null and res.estado.name() == 'PENDIENTE' ? 'status-warning' : (res.estado != null and res.estado.name() == 'CANCELADA' ? 'status-inactive' : '')}"
+                                      th:text="${res.estado}">PENDIENTE</span>
+                            </td>
+                            <td><a th:href="@{/admin/reservas}">GESTIONAR</a></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(reservas)}">
+                            <td colspan="5" class="text-center text-muted py-3">No hay reservas registradas en el sistema.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="font-anton m-0 text-light">ALERTAS OPERATIVAS</h5>
+                    <span class="badge bg-danger" th:text="${(proximasAVencer != null ? #lists.size(proximasAVencer) : 0) + (metricas != null ? metricas.equiposEnMantenimiento : 0) + ' ACTIVAS'}">3 ACTIVAS</span>
+                </div>
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 rounded bg-elevated border-start border-4 border-warning d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-xs text-warning">RESERVAS EN ESPERA</div>
+                            <small class="text-muted text-xs" th:text="${(metricas != null ? metricas.reservasPendientes : 0) + ' reserva(s) pendientes en counter'}">3 pendientes</small>
+                        </div>
+                        <a th:href="@{/admin/reservas}" class="btn btn-outline py-1 px-2 text-2xs">DESPACHAR</a>
+                    </div>
+                    <div class="p-3 rounded bg-elevated border-start border-4 border-danger d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-xs text-danger">EQUIPOS EN MANTENIMIENTO</div>
+                            <small class="text-muted text-xs" th:text="${(metricas != null ? metricas.equiposEnMantenimiento : 0) + ' equipo(s) con orden técnica activa'}">1 en mantenimiento</small>
+                        </div>
+                        <a th:href="@{/admin/mantenimientos}" class="btn btn-outline py-1 px-2 text-2xs">REVISAR</a>
+                    </div>
+                    <div class="p-3 rounded bg-elevated border-start border-4 border-info d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-xs text-info">MEMBRESÍAS POR VENCER (7 DÍAS)</div>
+                            <small class="text-muted text-xs" th:text="${(proximasAVencer != null ? #lists.size(proximasAVencer) : 0) + ' socio(s) próximos a caducar'}">Socios por vencer</small>
+                        </div>
+                        <a th:href="@{/admin/membresias}" class="btn btn-outline py-1 px-2 text-2xs">NOTIFICAR</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

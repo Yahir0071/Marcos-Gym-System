@@ -7,52 +7,134 @@
         <div class="client-main">
             <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
             <div class="client-content">
-                <div class="font-anton text-muted tracking-wide text-md mb-3">TU PROGRESO CONTINÚA</div>
-                <h1 class="display-3 font-anton leading-none mb-1 text-light">PLAN <span class="text-primary">PLUS</span></h1>
-                <p class="font-anton text-light mb-3 tracking-wide text-md">ENTRENA MÁS, CONSIGUE MÁS.</p>
-                <span class="d-inline-block font-anton px-4 py-2 mb-5 rounded-0 text-xs tracking-wide" style="background-color: #00e676 !important; color: #000 !important; border-radius: 12px !important;">VIGENTE</span>
-                
-                <div class="grid-dashboard mb-5">
+                <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+                    <div>
+                        <div class="section-subtitle has-line mb-2">TU PROGRESO CONTINÚA</div>
+                        <h1 class="display-3 font-anton leading-none mb-1 text-light">PLAN <span class="text-primary" id="memberPlanTitle" th:text="${membresia != null and membresia.plan != null ? membresia.plan.nombre.toUpperCase() : 'SIN PLAN ACTIVO'}">PLUS</span></h1>
+                        <p class="font-anton text-muted m-0 tracking-wide text-md">ENTRENA MÁS, CONSIGUE MÁS.</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge font-anton px-4 py-2 text-xs tracking-wide" 
+                              th:style="${membresia != null and membresia.estado != null and membresia.estado.name() == 'ACTIVA'} ? 'background-color: var(--accent-success); color: #000;' : 'background-color: #ff3366; color: #fff;'"
+                              th:text="${membresia != null and membresia.estado != null ? membresia.estado.name() : 'INACTIVA'}">VIGENTE</span>
+                        <button type="button" class="btn btn-primary py-2 px-3 text-xs" id="btnCheckinToday">
+                            <i class="fa-solid fa-fire-flame-curved"></i> REGISTRAR ENTRENO DE HOY
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Grid -->
+                <div class="grid-dashboard mb-4">
                     <div class="card p-4">
                         <span class="text-muted font-anton mb-2 text-xs tracking-wide">FECHA DE INICIO</span>
-                        <h4 class="font-anton m-0">01 Ene 2025</h4>
+                        <h4 class="font-anton m-0 text-light" id="memberStartDate" th:text="${membresia != null and membresia.fechaInicio != null ? #temporals.format(membresia.fechaInicio, 'dd MMM yyyy') : '—'}">01 Ene 2025</h4>
+                        <small class="text-muted text-2xs mt-1">Activado en Sede Lince</small>
                     </div>
                     <div class="card p-4">
                         <span class="text-muted font-anton mb-2 text-xs tracking-wide">FECHA DE VENCIMIENTO</span>
-                        <h4 class="font-anton m-0">31 Ene 2025</h4>
+                        <h4 class="font-anton m-0 text-light" id="memberEndDate" th:text="${membresia != null and membresia.fechaFin != null ? #temporals.format(membresia.fechaFin, 'dd MMM yyyy') : '—'}">31 Ene 2025</h4>
+                        <small class="text-muted text-2xs mt-1">Ciclo oficial registrado en sistema</small>
                     </div>
                     <div class="card p-4">
                         <span class="text-muted font-anton mb-2 text-xs tracking-wide">DÍAS RESTANTES</span>
-                        <h4 class="font-anton m-0">4 días</h4>
+                        <h4 class="font-anton m-0 text-primary" id="memberDaysLeft" th:text="${diasRestantes != null ? diasRestantes + ' días' : '0 días'}">4 días</h4>
+                        <div class="progress progress-custom mt-2" style="height: 6px;">
+                            <div class="progress-bar progress-bar-custom" id="memberDaysProgress" 
+                                 th:style="'width: ' + ${diasRestantes != null and diasRestantes > 0 ? (diasRestantes > 30 ? 100 : (diasRestantes * 100 / 30)) : 0} + '%;'"></div>
+                        </div>
+                    </div>
+                    <div class="card p-4">
+                        <span class="text-muted font-anton mb-2 text-xs tracking-wide">ASISTENCIAS DEL MES</span>
+                        <h4 class="font-anton m-0 text-success" id="memberAttendanceCount">18 visitas</h4>
+                        <small class="text-muted text-2xs mt-1">Meta mensual: 20 entrenamientos</small>
                     </div>
                 </div>
-                
+
+                <!-- Weekly Workout Tracker -->
+                <div class="card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <h6 class="font-anton m-0 text-light">MI REGISTRO SEMANAL DE DISCIPLINA</h6>
+                            <small class="text-muted text-xs">Haz clic en un día para marcar o desmarcar tu asistencia a entrenamiento</small>
+                        </div>
+                        <span class="badge bg-elevated border border-secondary text-primary font-anton px-3 py-2" id="weeklyTrackerSummary">5 / 6 DÍAS COMPLETADOS</span>
+                    </div>
+                    <div class="grid-features" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
+                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="LUN">
+                            <span class="text-2xs text-muted">LUNES</span>
+                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
+                            <span class="text-2xs">PECHO / TRÍCEPS</span>
+                        </button>
+                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="MAR">
+                            <span class="text-2xs text-muted">MARTES</span>
+                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
+                            <span class="text-2xs">ESPALDA / BÍCEPS</span>
+                        </button>
+                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="MIE">
+                            <span class="text-2xs text-muted">MIÉRCOLES</span>
+                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
+                            <span class="text-2xs">PIERNA COMPLETA</span>
+                        </button>
+                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="JUE">
+                            <span class="text-2xs text-muted">JUEVES</span>
+                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
+                            <span class="text-2xs">HOMBROS / ABS</span>
+                        </button>
+                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="VIE">
+                            <span class="text-2xs text-muted">VIERNES</span>
+                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
+                            <span class="text-2xs">TREN SUPERIOR</span>
+                        </button>
+                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn" id="todayWorkoutBtn" data-day="SAB">
+                            <span class="text-2xs text-muted">HOY · SÁBADO</span>
+                            <i class="fa-regular fa-circle fs-4 text-muted"></i>
+                            <span class="text-2xs">CARDIO HIIT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Benefits & Renewal Alert -->
                 <div class="grid-2-col">
-                    <div class="card p-4" style="border-top: 3px solid var(--primary); box-shadow: 0 -10px 20px rgba(240,255,0,0.1);">
-                        <h6 class="font-anton mb-4">BENEFICIOS DE TU PLAN</h6>
+                    <div class="card p-4" style="border-top: 3px solid var(--primary);">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="font-anton m-0">BENEFICIOS DE TU PLAN <span th:text="${membresia != null ? membresia.plan.nombre : 'ENERGY'}">PLUS</span></h6>
+                            <button type="button" class="btn btn-outline py-1 px-3 text-2xs" id="btnFreezePlan">
+                                <i class="fa-regular fa-snowflake text-info"></i> SOLICITAR CONGELAMIENTO
+                            </button>
+                        </div>
                         <ul class="list-unstyled m-0">
-                            <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a todas las áreas</li>
-                            <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Equipos de última generación</li>
-                            <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Horario completo</li>
-                            <li class="mb-3 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Acceso a zona premium</li>
-                            <li class="mb-0 text-muted text-sm"><i class="fa-solid fa-check text-light me-2"></i> Beneficios exclusivos</li>
+                            <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Acceso ilimitado a todas las áreas del gimnasio</li>
+                            <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Uso de máquinas biomecánicas y peso olímpico</li>
+                            <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Horario completo de apertura a cierre</li>
+                            <li class="mb-3 text-light text-sm" th:if="${membresia != null and (membresia.plan.nombre.contains('PLUS') or membresia.plan.nombre.contains('PREMIUM'))}"><i class="fa-solid fa-check text-primary me-2"></i> Acceso preferencial a Zona Premium</li>
+                            <li class="mb-0 text-light text-sm" th:if="${membresia != null and membresia.plan.nombre.contains('PREMIUM')}"><i class="fa-solid fa-check text-primary me-2"></i> 1 Evaluación antropométrica mensual incluida</li>
+                            <li class="mb-0 text-light text-sm" th:if="${membresia == null or (!membresia.plan.nombre.contains('PLUS') and !membresia.plan.nombre.contains('PREMIUM'))}"><i class="fa-solid fa-check text-primary me-2"></i> Lockers de uso diario y duchas con agua caliente</li>
                         </ul>
                     </div>
-                    <div class="card p-4 d-flex flex-column" style="border-top: 3px solid #ff3366; box-shadow: 0 -10px 20px rgba(255,51,102,0.15);">
+
+                    <div class="card p-4 d-flex flex-column" id="renewalAlertCard" 
+                         th:style="${estaPorVencer} ? 'border-top: 3px solid #ff3366; box-shadow: 0 -10px 20px rgba(255,51,102,0.12);' : 'border-top: 3px solid #00f0ff; box-shadow: 0 -10px 20px rgba(0,240,255,0.08);'">
                         <div class="d-flex align-items-center gap-2 mb-3">
-                            <i class="fa-solid fa-triangle-exclamation text-danger fs-5"></i>
-                            <h6 class="font-anton text-danger m-0">TU PLAN ESTÁ POR VENCER</h6>
+                            <i th:class="${estaPorVencer} ? 'fa-solid fa-triangle-exclamation text-danger fs-5' : 'fa-solid fa-circle-check text-primary fs-5'" id="renewalAlertIcon"></i>
+                            <h6 class="font-anton m-0" th:classappend="${estaPorVencer} ? 'text-danger' : 'text-primary'" id="renewalAlertTitle"
+                                th:text="${estaPorVencer} ? 'TU PLAN ESTÁ POR VENCER' : 'MEMBRESÍA ACTIVA Y AL DÍA'">TU PLAN ESTÁ POR VENCER</h6>
                         </div>
-                        <p class="text-muted text-sm mb-4">Te quedan <strong class="text-danger">4</strong> días de membresía. Renueva tu plan para que tu progreso no se detenga.</p>
-                        <button class="btn btn-danger mt-auto text-start d-flex justify-content-between align-items-center w-100 fw-bold">RENOVAR PLAN <i class="fa-solid fa-arrow-right"></i></button>
+                        <p class="text-muted text-sm mb-4" id="renewalAlertDesc" th:if="${membresia != null}">
+                            Te quedan <strong th:class="${estaPorVencer} ? 'text-danger' : 'text-primary'" th:text="${diasRestantes + ' días'}">4 días</strong> de membresía. 
+                            <span th:text="${estaPorVencer} ? 'Solicita tu renovación o cambia al Plan Premium para que tu progreso no se detenga.' : 'Continúa entrenando al máximo y aprovechando todos tus beneficios exclusivos.'"></span>
+                        </p>
+                        <p class="text-muted text-sm mb-4" id="renewalAlertDesc" th:if="${membresia == null}">
+                            Actualmente no cuentas con una membresía activa. Revisa nuestros planes para comenzar tu entrenamiento.
+                        </p>
+                        <div class="d-flex gap-2 mt-auto">
+                            <a href="/public/planes" class="btn btn-primary flex-grow-1 justify-content-between" id="btnRenewPlan">
+                                <span th:text="${estaPorVencer} ? 'RENOVAR / MEJORAR PLAN' : 'VER PLANES DISPONIBLES'">RENOVAR / MEJORAR PLAN</span> <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-
-    
-    
 </body>
-
 </html>

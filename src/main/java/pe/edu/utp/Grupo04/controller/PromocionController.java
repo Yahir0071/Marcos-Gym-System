@@ -7,6 +7,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.PromocionDTO;
 import pe.edu.utp.Grupo04.model.Promocion;
@@ -60,6 +61,19 @@ public class PromocionController {
             flash.addFlashAttribute("mensajeExito", "Promoción guardada exitosamente.");
         } catch (Exception e) {
             flash.addFlashAttribute("mensajeError", e.getMessage());
+        }
+        return "redirect:/admin/promociones";
+    }
+
+    @PostMapping("/admin/promociones/cambiar-estado")
+    public String cambiarEstadoPromocionAdmin(@RequestParam Long id,
+                                             @RequestParam boolean activa,
+                                             RedirectAttributes flash) {
+        try {
+            promocionService.cambiarEstado(id, activa);
+            flash.addFlashAttribute("mensajeExito", "Estado de la promoción actualizado con éxito.");
+        } catch (Exception e) {
+            flash.addFlashAttribute("mensajeError", "Error al actualizar estado: " + e.getMessage());
         }
         return "redirect:/admin/promociones";
     }

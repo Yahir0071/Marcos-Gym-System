@@ -29,8 +29,18 @@ public class ProductoController {
         return "public/productos";
     }
 
-    @GetMapping("/detalle-producto")
-    public String detalleProducto(@RequestParam(required = false) Long id, Model model) {
+    // --- DETALLE DE PRODUCTO PÚBLICO ---
+    @GetMapping({"/detalle-producto", "/public/detalle-producto"})
+    public String detalleProductoPublico(@RequestParam(required = false) Long id, Model model) {
+        if (id != null) {
+            productoService.buscarPorId(id).ifPresent(p -> model.addAttribute("producto", p));
+        }
+        return "public/detalle-producto";
+    }
+
+    // --- DETALLE DE PRODUCTO CLIENTE ---
+    @GetMapping("/cliente/detalle-producto")
+    public String detalleProductoCliente(@RequestParam(required = false) Long id, Model model) {
         if (id != null) {
             productoService.buscarPorId(id).ifPresent(p -> model.addAttribute("producto", p));
         }
@@ -73,6 +83,19 @@ public class ProductoController {
 
         productoService.guardar(producto);
         flash.addFlashAttribute("mensajeExito", "Producto actualizado en el inventario.");
+        return "redirect:/admin/productos";
+    }
+
+    @PostMapping("/admin/productos/cambiar-estado")
+    public String cambiarEstadoProductoAdmin(@RequestParam Long id,
+                                             @RequestParam boolean activo,
+                                             RedirectAttributes flash) {
+        try {
+            productoService.cambiarEstado(id, activo);
+            flash.addFlashAttribute("mensajeExito", "Estado del producto actualizado exitosamente.");
+        } catch (Exception e) {
+            flash.addFlashAttribute("mensajeError", "Error al cambiar estado: " + e.getMessage());
+        }
         return "redirect:/admin/productos";
     }
 }

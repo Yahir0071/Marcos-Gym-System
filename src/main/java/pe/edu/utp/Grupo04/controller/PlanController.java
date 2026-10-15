@@ -7,6 +7,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.PlanDTO;
 import pe.edu.utp.Grupo04.model.Plan;
@@ -56,6 +57,19 @@ public class PlanController {
 
         planService.guardar(plan);
         flash.addFlashAttribute("mensajeExito", "Plan guardado exitosamente.");
+        return "redirect:/admin/planes";
+    }
+
+    @PostMapping("/admin/planes/cambiar-estado")
+    public String cambiarEstadoPlanAdmin(@RequestParam("id") Long id,
+                                         @RequestParam("activo") boolean activo,
+                                         RedirectAttributes flash) {
+        try {
+            planService.cambiarEstado(id, activo);
+            flash.addFlashAttribute("mensajeExito", "Estado del plan actualizado exitosamente.");
+        } catch (Exception e) {
+            flash.addFlashAttribute("mensajeError", "Error al actualizar estado del plan: " + e.getMessage());
+        }
         return "redirect:/admin/planes";
     }
 }
