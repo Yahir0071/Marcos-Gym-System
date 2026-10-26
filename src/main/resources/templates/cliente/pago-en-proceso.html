@@ -18,7 +18,7 @@
 
                 <div class="section-subtitle mb-2 text-primary text-2xs">PRODUCTOS &bull; PASARELA DE PAGO</div>
                 <h1 class="display-3 font-anton leading-none mb-1 text-light">PAGO EN PROCESO</h1>
-                <p class="text-muted text-xs mb-4">Validación bancaria asíncrona en curso &bull; Pedido <span th:text="${codigoPedido}">#PED-00521</span></p>
+                <p class="text-muted text-xs mb-4">Validación bancaria asíncrona en curso &bull; Pedido <span th:text="${ordenActual['codigo']}">#PED-00521</span></p>
 
                 <div class="card p-4 p-lg-5 border-secondary mb-3" style="max-width: 920px;">
                     <div class="d-flex align-items-start gap-3 pb-4 mb-4 border-bottom border-secondary">
@@ -39,24 +39,21 @@
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-4 pb-4 mb-4 border-bottom border-secondary">
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-2">
-                                <h5 class="font-anton text-light m-0" th:text="${codigoPedido}">#PED-00521</h5>
-                                <span class="text-muted text-2xs" id="step3CardSummary">&bull; 20 Ene 2025 10:45 &bull; <i class="fa-brands fa-cc-visa text-primary"></i> VISA &bull;&bull;&bull;&bull; 4242</span>
+                                <h5 class="font-anton text-light m-0" th:text="${ordenActual['codigo']}">#PED-00521</h5>
+                                <span class="text-muted text-2xs">
+                                    &bull; <span th:text="${ordenActual['fecha']}">20 Ene 2025 · 10:45</span> &bull;
+                                    <i class="fa-brands fa-cc-visa text-primary"></i>
+                                    <span th:text="${ordenActual['cardBrand'] + ' •••• ' + ordenActual['cardLast4']}">VISA •••• 4242</span>
+                                </span>
                             </div>
 
-                            <!-- Productos dinámicos sincronizados con el Carrito -->
-                            <div class="d-flex flex-column gap-2 mt-3" id="step3OrderItems" data-status-note="En validación">
-                                <div class="d-flex align-items-center gap-3">
-                                    <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 44px; height: 44px;">
+                            <!-- Productos almacenados en memoria -->
+                            <div class="d-flex flex-column gap-2 mt-3">
+                                <div th:each="it : ${ordenActual['items']}" class="d-flex align-items-center gap-3">
+                                    <img th:src="@{${it['img']}}" th:alt="${it['name']}" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 44px; height: 44px;">
                                     <div>
-                                        <div class="text-light text-xs fw-bold">1 &times; Whey Protein 2 LB</div>
-                                        <div class="text-muted text-2xs">Suplementos &bull; S/ 149.00</div>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-3">
-                                    <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 44px; height: 44px;">
-                                    <div>
-                                        <div class="text-light text-xs fw-bold">1 &times; Shaker 700ml</div>
-                                        <div class="text-muted text-2xs">Botellas &bull; S/ 45.00</div>
+                                        <div class="text-light text-xs fw-bold" th:text="${it['qty'] + ' × ' + it['name']}">1 × Whey Protein 2 LB</div>
+                                        <div class="text-muted text-2xs" th:text="${'En validación • S/ ' + it['subFormatted']}">En validación • S/ 149.00</div>
                                     </div>
                                 </div>
                             </div>
@@ -64,32 +61,31 @@
 
                         <div class="text-lg-end p-3 rounded bg-deep-dark border border-secondary" style="min-width: 220px;">
                             <div class="text-muted font-anton text-2xs tracking-wide mb-1">IMPORTE EN RETENCIÓN</div>
-                            <h2 class="font-anton text-primary m-0" id="step3OrderTotal">S/ 194.00</h2>
+                            <h2 class="font-anton text-primary m-0" th:text="${'S/ ' + ordenActual['totalFormatted']}">S/ 194.00</h2>
                             <div class="text-muted text-2xs mt-1"><i class="fa-solid fa-hourglass-half text-primary me-1"></i>Aún sin cargo definitivo</div>
                         </div>
                     </div>
 
                     <p class="text-muted text-2xs mb-3">
-                        <i class="fa-solid fa-circle-info text-primary me-1"></i> La orden de recojo en recepción y la boleta electrónica se emiten únicamente cuando el banco aprueba la operación.
+                        <i class="fa-solid fa-circle-info text-primary me-1"></i> La orden de recojo en recepción y la boleta electrónica quedan habilitadas cuando el banco confirma la operación.
                     </p>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <a th:href="@{/cliente/compra-exitosa}" class="btn btn-primary w-100 py-3 text-center">
+                            <a th:href="@{/cliente/compra-exitosa(codigo=${ordenActual['codigo']})}"
+                               th:attr="data-codigo=${ordenActual['codigo']}"
+                               id="btnApprovePendingOrder"
+                               class="btn btn-primary w-100 py-3 text-center">
                                 <i class="fa-solid fa-rotate me-2"></i> CONSULTAR ESTADO (APROBAR)
                             </a>
                         </div>
                         <div class="col-md-6">
-                            <a th:href="@{/cliente/pago-en-linea}" class="btn btn-outline w-100 py-3 text-center">
-                                <i class="fa-solid fa-arrow-left me-2"></i> VOLVER A LA PASARELA
+                            <a th:href="@{/cliente/mis-compras}" class="btn btn-outline w-100 py-3 text-center">
+                                <i class="fa-solid fa-bag-shopping me-2"></i> VER EN MIS COMPRAS
                             </a>
                         </div>
                     </div>
                 </div>
-
-                <p class="text-muted text-2xs mb-4">
-                    Los estados en proceso, rechazado y cancelado son escenarios alternativos del mismo intento; no representan pagos simultáneos ni nuevos ingresos.
-                </p>
 
                 <!-- Footer Disclaimer -->
                 <div class="mt-4 pt-3 border-top border-secondary text-muted text-2xs">

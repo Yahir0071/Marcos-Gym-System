@@ -16,17 +16,19 @@
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
                     <div>
                         <div class="section-subtitle mb-2 text-primary text-2xs">MIS COMPRAS &bull; DETALLE DEL PEDIDO</div>
-                        <h1 class="display-3 font-anton leading-none mb-1 text-light" id="detallePedidoHeaderCode" th:text="${codigoPedido}">#PED-00521</h1>
+                        <h1 class="display-3 font-anton leading-none mb-1 text-light" th:text="${ordenActual['codigo']}">#PED-00521</h1>
                         <p class="font-anton text-muted m-0 tracking-wide text-sm">
-                            EMITIDO:
-                            <span th:text="${codigoPedido == '#PED-00498' ? '12 ENE 2025 · 17:18' : (codigoPedido == '#PED-00462' ? '18 DIC 2024 · 09:05' : (codigoPedido == '#PED-00419' ? '04 DIC 2024 · 11:20' : '20 ENE 2025 · 10:45'))}">20 ENE 2025 &bull; 10:45</span>
-                            &bull; CANAL: COMPRA EN LÍNEA
+                            EMITIDO: <span th:text="${ordenActual['fecha']}">20 ENE 2025 · 10:45</span> &bull; CANAL: COMPRA EN LÍNEA
                         </p>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <span th:if="${codigoPedido == '#PED-00521'}" class="badge bg-dark text-primary border border-primary font-anton px-3 py-2 text-2xs">POR RECOGER EN GIMNASIO</span>
-                        <span th:if="${codigoPedido != '#PED-00521'}" class="badge bg-dark text-muted border border-secondary font-anton px-3 py-2 text-2xs">ENTREGADO EN RECEPCIÓN</span>
-                        <span class="badge bg-dark text-success border border-success font-anton px-3 py-2 text-2xs">PAGO APROBADO</span>
+                        <span th:if="${ordenActual['estadoEntrega'] == 'POR RECOGER EN GIMNASIO'}"
+                              class="badge bg-dark text-primary border border-primary font-anton px-3 py-2 text-2xs">POR RECOGER EN GIMNASIO</span>
+                        <span th:if="${ordenActual['estadoEntrega'] != 'POR RECOGER EN GIMNASIO'}"
+                              class="badge bg-dark text-muted border border-secondary font-anton px-3 py-2 text-2xs"
+                              th:text="${ordenActual['estadoEntrega']}">ENTREGADO EN RECEPCIÓN</span>
+                        <span class="badge bg-dark text-success border border-success font-anton px-3 py-2 text-2xs"
+                              th:text="${ordenActual['estadoPago'] == 'PAGADO' ? 'PAGO APROBADO' : ordenActual['estadoPago']}">PAGO APROBADO</span>
                     </div>
                 </div>
 
@@ -34,85 +36,24 @@
                     <!-- Columna Izquierda: Productos del Pedido + Comprador y Recojo -->
                     <div class="col-lg-8">
                         <div class="card p-4 border-secondary mb-4">
-                            <h5 class="font-anton text-light mb-3" id="detallePedidoCountTitle"
-                                th:text="${codigoPedido == '#PED-00498' or codigoPedido == '#PED-00419' ? 'PRODUCTOS DEL PEDIDO (1)' : (codigoPedido == '#PED-00462' ? 'PRODUCTOS DEL PEDIDO (3)' : 'PRODUCTOS DEL PEDIDO (2)')}">
+                            <h5 class="font-anton text-light mb-3"
+                                th:text="${'PRODUCTOS DEL PEDIDO (' + ordenActual['totalUnidades'] + ')'}">
                                 PRODUCTOS DEL PEDIDO (2)
                             </h5>
 
-                            <!-- Caso #PED-00521 (sincronizado dinámicamente con el Carrito activo) -->
-                            <div th:if="${codigoPedido != '#PED-00498' and codigoPedido != '#PED-00462' and codigoPedido != '#PED-00419'}" id="detallePedidoActiveItems">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 mb-3 border-bottom border-secondary">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
-                                        <div>
-                                            <h6 class="font-anton text-light mb-1">Whey Protein 2 LB</h6>
-                                            <div class="text-muted text-2xs">Suplementos &bull; Cantidad: 1 &bull; Precio unitario: S/ 149.00</div>
+                            <div th:each="it, iterStat : ${ordenActual['items']}"
+                                 th:class="${!iterStat.last ? 'd-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 mb-3 border-bottom border-secondary' : 'd-flex justify-content-between align-items-center flex-wrap gap-3'}">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="@{${it['img']}}" th:alt="${it['name']}" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
+                                    <div>
+                                        <h6 class="font-anton text-light mb-1" th:text="${it['name']}">Whey Protein 2 LB</h6>
+                                        <div class="text-muted text-2xs"
+                                             th:text="${it['category'] + ' • Cantidad: ' + it['qty'] + ' • Precio unitario: S/ ' + it['priceFormatted']}">
+                                            Suplementos &bull; Cantidad: 1 &bull; Precio unitario: S/ 149.00
                                         </div>
                                     </div>
-                                    <div class="font-anton text-primary fs-5">S/ 149.00</div>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
-                                        <div>
-                                            <h6 class="font-anton text-light mb-1">Shaker 700ml</h6>
-                                            <div class="text-muted text-2xs">Botellas &bull; Cantidad: 1 &bull; Precio unitario: S/ 45.00</div>
-                                        </div>
-                                    </div>
-                                    <div class="font-anton text-primary fs-5">S/ 45.00</div>
-                                </div>
-                            </div>
-
-                            <!-- Caso #PED-00498: 1 Creatina Monohidratada 300g -->
-                            <div th:if="${codigoPedido == '#PED-00498'}">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img th:src="@{/img/creatina.jpg}" alt="Creatina Monohidratada 300g" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
-                                        <div>
-                                            <h6 class="font-anton text-light mb-1">Creatina Monohidratada 300g</h6>
-                                            <div class="text-muted text-2xs">Suplementos &bull; Cantidad: 1 &bull; Precio unitario: S/ 95.00</div>
-                                        </div>
-                                    </div>
-                                    <div class="font-anton text-primary fs-5">S/ 95.00</div>
-                                </div>
-                            </div>
-
-                            <!-- Caso #PED-00462: 2 Shaker 700ml + 1 Correas -->
-                            <div th:if="${codigoPedido == '#PED-00462'}">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 mb-3 border-bottom border-secondary">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
-                                        <div>
-                                            <h6 class="font-anton text-light mb-1">Shaker 700ml</h6>
-                                            <div class="text-muted text-2xs">Botellas &bull; Cantidad: 2 &bull; Precio unitario: S/ 45.00</div>
-                                        </div>
-                                    </div>
-                                    <div class="font-anton text-primary fs-5">S/ 90.00</div>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img th:src="@{/img/shaker.jpg}" alt="Correas de Levantamiento Par" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
-                                        <div>
-                                            <h6 class="font-anton text-light mb-1">Correas de Levantamiento Par</h6>
-                                            <div class="text-muted text-2xs">Accesorios &bull; Cantidad: 1 &bull; Precio unitario: S/ 39.00</div>
-                                        </div>
-                                    </div>
-                                    <div class="font-anton text-primary fs-5">S/ 39.00</div>
-                                </div>
-                            </div>
-
-                            <!-- Caso #PED-00419: 1 Whey Protein 2 LB -->
-                            <div th:if="${codigoPedido == '#PED-00419'}">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
-                                        <div>
-                                            <h6 class="font-anton text-light mb-1">Whey Protein 2 LB</h6>
-                                            <div class="text-muted text-2xs">Suplementos &bull; Cantidad: 1 &bull; Precio unitario: S/ 149.00</div>
-                                        </div>
-                                    </div>
-                                    <div class="font-anton text-primary fs-5">S/ 149.00</div>
-                                </div>
+                                <div class="font-anton text-primary fs-5" th:text="${'S/ ' + it['subFormatted']}">S/ 149.00</div>
                             </div>
                         </div>
 
@@ -122,16 +63,16 @@
                             <div class="row g-3 text-xs">
                                 <div class="col-md-6">
                                     <div class="text-muted font-anton text-2xs mb-1">DATOS DEL COMPRADOR</div>
-                                    <div class="text-light fw-bold" id="detallePedidoBuyerName" th:text="${socio != null ? socio.nombres + ' ' + socio.apellidos : 'Carlos Mendoza Rojas'}">Carlos Mendoza Rojas</div>
-                                    <div class="text-muted text-2xs" id="detallePedidoBuyerDoc">
-                                        DNI <span th:text="${socio != null ? socio.dni : '72563123'}">72563123</span> &bull;
-                                        <span th:text="${socio != null and socio.usuario != null ? socio.usuario.username : 'carlos.mendoza@ejemplo.com'}">carlos.mendoza@ejemplo.com</span>
+                                    <div class="text-light fw-bold" th:text="${ordenActual['buyerName']}">Carlos Mendoza Rojas</div>
+                                    <div class="text-muted text-2xs"
+                                         th:text="${ordenActual['buyerDocType'] + ' ' + ordenActual['buyerDocNum'] + ' • ' + ordenActual['buyerEmail']}">
+                                        DNI 72563123 &bull; carlos.mendoza@ejemplo.com
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="text-muted font-anton text-2xs mb-1">PUNTO DE RECOJO</div>
                                     <div class="text-light fw-bold">Counter de Recepción &bull; Energy Gym</div>
-                                    <div class="text-muted text-2xs">Presentando DNI físico y código <span class="text-light" th:text="${codigoPedido}">#PED-00521</span></div>
+                                    <div class="text-muted text-2xs">Presentando DNI físico y código <span class="text-light" th:text="${ordenActual['codigo']}">#PED-00521</span></div>
                                 </div>
                             </div>
                         </div>
@@ -145,34 +86,30 @@
                             <div class="d-flex justify-content-between text-xs mb-2">
                                 <span class="text-muted">Método de pago</span>
                                 <span class="text-light fw-bold">
-                                    <i class="fa-brands fa-cc-visa text-primary me-1"></i>Tarjeta &bull;&bull;&bull;&bull; 4242
+                                    <i class="fa-brands fa-cc-visa text-primary me-1"></i>
+                                    <span th:text="${ordenActual['cardBrand'] + ' •••• ' + ordenActual['cardLast4']}">VISA •••• 4242</span>
                                 </span>
                             </div>
                             <div class="d-flex justify-content-between text-xs mb-2">
                                 <span class="text-muted">Referencia de op.</span>
-                                <span class="text-light fw-bold"
-                                      th:text="${codigoPedido == '#PED-00498' ? 'OP-EJ-00498' : (codigoPedido == '#PED-00462' ? 'OP-EJ-00462' : (codigoPedido == '#PED-00419' ? 'OP-EJ-00419' : 'OP-EJ-00521'))}">OP-EJ-00521</span>
+                                <span class="text-light fw-bold" th:text="${ordenActual['operacion']}">OP-EJ-00521</span>
                             </div>
                             <div class="d-flex justify-content-between text-xs mb-2">
                                 <span class="text-muted">Fecha de pago</span>
-                                <span class="text-light fw-bold"
-                                      th:text="${codigoPedido == '#PED-00498' ? '12 Ene 2025 17:18' : (codigoPedido == '#PED-00462' ? '18 Dic 2024 09:05' : (codigoPedido == '#PED-00419' ? '04 Dic 2024 11:20' : '20 Ene 2025 10:45'))}">20 Ene 2025 10:45</span>
+                                <span class="text-light fw-bold" th:text="${ordenActual['fecha']}">20 Ene 2025 · 10:45</span>
                             </div>
                             <div class="d-flex justify-content-between text-xs pb-3 mb-3 border-bottom border-secondary">
                                 <span class="text-muted">Boleta electrónica</span>
-                                <span class="text-primary font-anton"
-                                      th:text="${codigoPedido == '#PED-00498' ? 'B001-00000498' : (codigoPedido == '#PED-00462' ? 'B001-00000462' : (codigoPedido == '#PED-00419' ? 'B001-00000419' : 'B001-00000521'))}">B001-00000521</span>
+                                <span class="text-primary font-anton" th:text="${ordenActual['boleta']}">B001-00000521</span>
                             </div>
 
                             <div class="d-flex justify-content-between text-xs mb-2">
                                 <span class="text-muted">Op. gravada (base)</span>
-                                <span class="text-light fw-bold" id="detallePedidoBase"
-                                      th:text="${codigoPedido == '#PED-00498' ? 'S/ 80.51' : (codigoPedido == '#PED-00462' ? 'S/ 109.32' : (codigoPedido == '#PED-00419' ? 'S/ 126.27' : 'S/ 164.41'))}">S/ 164.41</span>
+                                <span class="text-light fw-bold" th:text="${'S/ ' + ordenActual['baseFormatted']}">S/ 164.41</span>
                             </div>
                             <div class="d-flex justify-content-between text-xs mb-2">
                                 <span class="text-muted">IGV (18%)</span>
-                                <span class="text-light fw-bold" id="detallePedidoIgv"
-                                      th:text="${codigoPedido == '#PED-00498' ? 'S/ 14.49' : (codigoPedido == '#PED-00462' ? 'S/ 19.68' : (codigoPedido == '#PED-00419' ? 'S/ 22.73' : 'S/ 29.59'))}">S/ 29.59</span>
+                                <span class="text-light fw-bold" th:text="${'S/ ' + ordenActual['igvFormatted']}">S/ 29.59</span>
                             </div>
                             <div class="d-flex justify-content-between text-xs pb-3 mb-3 border-bottom border-secondary">
                                 <span class="text-muted">Descuento</span>
@@ -181,11 +118,10 @@
 
                             <div class="d-flex justify-content-between align-items-baseline mb-4">
                                 <span class="text-muted font-anton text-xs tracking-wide">TOTAL PAGADO</span>
-                                <h3 class="font-anton text-primary m-0" id="detallePedidoTotal"
-                                    th:text="${codigoPedido == '#PED-00498' ? 'S/ 95.00' : (codigoPedido == '#PED-00462' ? 'S/ 129.00' : (codigoPedido == '#PED-00419' ? 'S/ 149.00' : 'S/ 194.00'))}">S/ 194.00</h3>
+                                <h3 class="font-anton text-primary m-0" th:text="${'S/ ' + ordenActual['totalFormatted']}">S/ 194.00</h3>
                             </div>
 
-                            <a th:href="@{/cliente/boleta-venta(codigo=${codigoPedido})}" class="btn btn-primary w-100 py-3 text-center mb-2">
+                            <a th:href="@{/cliente/boleta-venta(codigo=${ordenActual['codigo']})}" class="btn btn-primary w-100 py-3 text-center mb-2">
                                 <i class="fa-solid fa-file-invoice me-2"></i> VER BOLETA DE VENTA
                             </a>
                             <button type="button" class="btn btn-outline w-100 py-2 text-center btn-download-boleta">

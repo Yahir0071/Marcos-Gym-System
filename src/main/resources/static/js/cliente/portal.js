@@ -3,6 +3,7 @@
  * Responsabilidad: Seguimiento de entrenamientos, renovación, congelamiento, vouchers y gestión de avisos.
  */
 
+import { postJson } from "../core/api-client.js";
 import { openGymModal } from "../core/modal.js";
 import { showGymToast } from "../core/toast.js";
 
@@ -432,6 +433,56 @@ export function initCartAndCompras() {
         headerCartBadge.textContent = String(totalQty);
     }
 
+    // Helper para agregar un producto al carrito (inicia carrito limpio si la compra previa ya fue pagada)
+    const addItemToCartStorage = ({ id, name, category, img, price, addQty }) => {
+        let items = [];
+        if (sessionStorage.getItem("energyGymCartPaid") === "true") {
+            sessionStorage.removeItem("energyGymCartPaid");
+            items = [];
+        } else {
+            items = getStoredCartItems();
+        }
+        const found = items.find((i) => String(i.id) === String(id) || i.name === name);
+        if (found) {
+            found.qty = (Number(found.qty) || 1) + addQty;
+            found.sub = found.qty * found.price;
+        } else {
+            items.push({
+                id: String(id),
+                name,
+                category,
+                img,
+                price: Number(price),
+                qty: addQty,
+                sub: Number(price) * addQty
+            });
+        }
+        const newTotal = items.reduce((acc, it) => acc + Number(it.sub), 0);
+        try {
+            sessionStorage.setItem("energyGymCartItems", JSON.stringify(items));
+            sessionStorage.setItem("energyGymCartTotal", newTotal.toFixed(2));
+        } catch (err) {
+            // ignore
+        }
+        if (headerCartBadge) {
+            const totalQty = items.reduce((acc, it) => acc + (Number(it.qty) || 0), 0);
+            headerCartBadge.textContent = String(totalQty);
+        }
+    };
+
+    // Agregar al carrito desde /cliente/productos (.btn-quick-add-cart)
+    document.querySelectorAll(".btn-quick-add-cart").forEach((btn) => {
+        btn.addEventListener("click", function () {
+            const id = String(this.getAttribute("data-id") || "1");
+            const name = this.getAttribute("data-name") || "Whey Protein 2 LB";
+            const price = parseFloat(this.getAttribute("data-price") || "149.00");
+            const img = this.getAttribute("data-img") || "/img/whey.jpg";
+            const category = this.getAttribute("data-category") || "Suplementos";
+            addItemToCartStorage({ id, name, category, img, price, addQty: 1 });
+            showGymToast(`${name} agregado al carrito`, "fa-cart-plus");
+        });
+    });
+
     // Agregar al carrito desde /cliente/detalle-producto (#btnAddToCartDetail)
     const btnAddToCartDetail = document.getElementById("btnAddToCartDetail");
     if (btnAddToCartDetail) {
@@ -445,29 +496,7 @@ export function initCartAndCompras() {
             const qtyInput = document.getElementById("detailQtyInput");
             const addQty = parseInt(qtyInput ? qtyInput.value : "1", 10) || 1;
 
-            const items = getStoredCartItems();
-            const found = items.find((i) => String(i.id) === id || i.name === name);
-            if (found) {
-                found.qty = (Number(found.qty) || 1) + addQty;
-                found.sub = found.qty * found.price;
-            } else {
-                items.push({
-                    id,
-                    name,
-                    category,
-                    img,
-                    price,
-                    qty: addQty,
-                    sub: price * addQty
-                });
-            }
-            const newTotal = items.reduce((acc, it) => acc + Number(it.sub), 0);
-            try {
-                sessionStorage.setItem("energyGymCartItems", JSON.stringify(items));
-                sessionStorage.setItem("energyGymCartTotal", newTotal.toFixed(2));
-            } catch (err) {
-                // ignore
-            }
+            addItemToCartStorage({ id, name, category, img, price, addQty });
             window.location.href = this.getAttribute("href") || "/cliente/carrito";
         });
     }
@@ -749,6 +778,67 @@ export function initCartAndCompras() {
     if (docTypeInput) docTypeInput.addEventListener("change", saveBuyerInfo);
     if (docNumInput) docNumInput.addEventListener("input", saveBuyerInfo);
     if (emailInput) emailInput.addEventListener("input", saveBuyerInfo);
+
+    // 4. Procesar compra en memoria y descontar stock real al pulsar los botones de la pasarela
+    document.querySelectorAll(".btn-process-gateway").forEach((btn) => {
+        btn.addEventListener("click", async function (e) {
+            e.preventDefault();
+            const targetHref = this.getAttribute("href") || "/cliente/compra-exitosa";
+            const scenario = this.getAttribute("data-gateway-scenario") || "PAGADO";
+            const items = getStoredCartItems();
+            const digits = (cardNumberInput?.value || "").replace(/\D/g, "");
+            const cardLast4 = digits.length >= 4 ? digits.slice(-4) : "4242";
+            const cardBrand = digits.startsWith("5") ? "MASTERCARD" : digits.startsWith("3") ? "AMEX" : "VISA";
+            const buyerName = `${firstNameInput?.value || "Carlos"} ${lastNameInput?.value || "Mendoza Rojas"}`.trim();
+            const buyerDocType = docTypeInput?.value || "DNI";
+            const buyerDocNum = docNumInput?.value || "72563123";
+            const buyerEmail = emailInput?.value || "carlos.mendoza@ejemplo.com";
+
+            saveBuyerInfo();
+
+            try {
+                const resp = await postJson("/cliente/api/compras", {
+                    estado: scenario,
+                    buyerName,
+                    buyerDocType,
+                    buyerDocNum,
+                    buyerEmail,
+                    cardBrand,
+                    cardLast4,
+                    items
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (scenario === "PAGADO" || scenario === "EN_PROCESO") {
+                        sessionStorage.setItem("energyGymCartPaid", "true");
+                    }
+                    if (data.codigo) {
+                        window.location.href = `${targetHref}?codigo=${encodeURIComponent(data.codigo)}`;
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Error registrando compra en memoria:", err);
+            }
+            window.location.href = targetHref;
+        });
+    });
+
+    // 5. Aprobar una orden que estaba en proceso (#btnApprovePendingOrder)
+    const btnApprovePendingOrder = document.getElementById("btnApprovePendingOrder");
+    if (btnApprovePendingOrder) {
+        btnApprovePendingOrder.addEventListener("click", async function (e) {
+            e.preventDefault();
+            const targetHref = this.getAttribute("href") || "/cliente/compra-exitosa";
+            const codigo = this.getAttribute("data-codigo") || "#PED-00521";
+            try {
+                await postJson(`/cliente/api/compras/aprobar?codigo=${encodeURIComponent(codigo)}`, {});
+            } catch (err) {
+                // ignore
+            }
+            window.location.href = targetHref;
+        });
+    }
 
     document.querySelectorAll(".btn-download-boleta").forEach((btn) => {
         btn.addEventListener("click", function () {

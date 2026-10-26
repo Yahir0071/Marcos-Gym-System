@@ -9,9 +9,9 @@
             <div class="client-content">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
                     <div>
-                        <div class="section-subtitle mb-2 text-primary text-2xs">HISTORIAL DE PEDIDOS</div>
+                        <div class="section-subtitle mb-2 text-primary text-2xs">HISTORIAL DE PEDIDOS EN MEMORIA</div>
                         <h1 class="display-3 font-anton leading-none mb-1 text-light">MIS COMPRAS</h1>
-                        <p class="font-anton text-muted m-0 tracking-wide text-md">PEDIDOS DE PRODUCTOS Y SUS COMPROBANTES ELECTRÓNICOS ASOCIADOS</p>
+                        <p class="font-anton text-muted m-0 tracking-wide text-md">PEDIDOS DE PRODUCTOS Y SUS COMPROBANTES ELECTRÓNICOS ASOCIADOS (<span th:text="${#lists.size(ordenesMemoria)}">4</span> REGISTRADOS)</p>
                     </div>
                     <div class="d-flex gap-2">
                         <a th:href="@{/cliente/carrito}" class="btn btn-primary py-2 px-3">
@@ -23,140 +23,52 @@
                     </div>
                 </div>
 
-                <!-- Lista de Compras con Fotos Reales -->
+                <!-- Lista Dinámica de Compras y Boletas Creadas en Memoria -->
                 <div class="d-flex flex-column gap-3">
-                    <!-- Compra 1: #PED-00521 (Sincronizada con el pedido activo del carrito) -->
-                    <div class="card p-4 border-secondary">
+                    <div th:each="ord : ${ordenesMemoria}" class="card p-4 border-secondary">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="d-flex align-items-center gap-1" id="misComprasActiveThumbs">
-                                    <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 56px; height: 56px;">
-                                    <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 56px; height: 56px;">
+                                <div class="d-flex align-items-center gap-1">
+                                    <img th:each="it : ${ord['items']}"
+                                         th:src="@{${it['img']}}"
+                                         th:alt="${it['name']}"
+                                         class="rounded border border-secondary bg-deep-dark p-1 obj-contain"
+                                         style="width: 56px; height: 56px;">
                                 </div>
                                 <div>
                                     <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                        <h5 class="font-anton text-light m-0 me-1">#PED-00521</h5>
-                                        <span class="badge bg-dark text-primary border border-primary font-anton px-2 py-1 text-2xs">POR RECOGER EN GIMNASIO</span>
-                                        <span class="badge bg-dark text-success border border-success font-anton px-2 py-1 text-2xs">PAGO APROBADO</span>
-                                    </div>
-                                    <div class="text-muted text-2xs mb-1">
-                                        20 Ene 2025 10:45 &bull; <i class="fa-brands fa-cc-visa text-primary"></i> VISA &bull;&bull;&bull;&bull; 4242 &bull; Boleta B001-00000521
-                                    </div>
-                                    <div class="text-light text-xs fw-bold" id="misComprasActiveSummary">1 &times; Whey Protein 2 LB &bull; 1 &times; Shaker 700ml</div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-4 ms-auto">
-                                <div class="text-end">
-                                    <div class="text-muted font-anton text-2xs">TOTAL PAGADO</div>
-                                    <h4 class="font-anton text-primary m-0" id="misComprasActiveTotal">S/ 194.00</h4>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <a th:href="@{/cliente/detalle-pedido(codigo='#PED-00521')}" class="btn btn-outline py-2 px-3 text-xs">
-                                        VER DETALLE
-                                    </a>
-                                    <a th:href="@{/cliente/boleta-venta(codigo='#PED-00521')}" class="btn btn-primary py-2 px-3 text-xs">
-                                        VER BOLETA
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                        <h5 class="font-anton text-light m-0 me-1" th:text="${ord['codigo']}">#PED-00521</h5>
+                                        <span th:if="${ord['estadoEntrega'] == 'POR RECOGER EN GIMNASIO'}"
+                                              class="badge bg-dark text-primary border border-primary font-anton px-2 py-1 text-2xs">POR RECOGER EN GIMNASIO</span>
+                                        <span th:if="${ord['estadoEntrega'] == 'ENTREGADO'}"
+                                              class="badge bg-dark text-muted border border-secondary font-anton px-2 py-1 text-2xs">ENTREGADO</span>
+                                        <span th:if="${ord['estadoEntrega'] == 'EN VALIDACIÓN BANCARIA'}"
+                                              class="badge bg-dark text-warning border border-warning font-anton px-2 py-1 text-2xs">EN VALIDACIÓN BANCARIA</span>
 
-                    <!-- Compra 2: #PED-00498 -->
-                    <div class="card p-4 border-secondary">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <img th:src="@{/img/creatina.jpg}" alt="Creatina Monohidratada 300g" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 56px; height: 56px;">
-                                <div>
-                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                        <h5 class="font-anton text-light m-0 me-1">#PED-00498</h5>
-                                        <span class="badge bg-dark text-muted border border-secondary font-anton px-2 py-1 text-2xs">ENTREGADO</span>
-                                        <span class="badge bg-dark text-success border border-success font-anton px-2 py-1 text-2xs">PAGO APROBADO</span>
+                                        <span th:if="${ord['estadoPago'] == 'PAGADO'}"
+                                              class="badge bg-dark text-success border border-success font-anton px-2 py-1 text-2xs">PAGO APROBADO</span>
+                                        <span th:if="${ord['estadoPago'] == 'EN_PROCESO'}"
+                                              class="badge bg-dark text-primary border border-primary font-anton px-2 py-1 text-2xs">PAGO EN PROCESO</span>
                                     </div>
                                     <div class="text-muted text-2xs mb-1">
-                                        12 Ene 2025 17:18 &bull; <i class="fa-brands fa-cc-visa text-primary"></i> VISA &bull;&bull;&bull;&bull; 4242 &bull; Boleta B001-00000498
+                                        <span th:text="${ord['fecha']}">20 Ene 2025 · 10:45</span> &bull;
+                                        <i class="fa-brands fa-cc-visa text-primary"></i>
+                                        <span th:text="${ord['cardBrand'] + ' •••• ' + ord['cardLast4']}">VISA •••• 4242</span> &bull;
+                                        Boleta <span class="text-light" th:text="${ord['boleta']}">B001-00000521</span>
                                     </div>
-                                    <div class="text-light text-xs fw-bold">1 &times; Creatina Monohidratada 300g</div>
+                                    <div class="text-light text-xs fw-bold" th:text="${ord['resumenItems']}">1 × Whey Protein 2 LB • 1 × Shaker 700ml</div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center gap-4 ms-auto">
                                 <div class="text-end">
                                     <div class="text-muted font-anton text-2xs">TOTAL PAGADO</div>
-                                    <h4 class="font-anton text-primary m-0">S/ 95.00</h4>
+                                    <h4 class="font-anton text-primary m-0" th:text="${'S/ ' + ord['totalFormatted']}">S/ 194.00</h4>
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <a th:href="@{/cliente/detalle-pedido(codigo='#PED-00498')}" class="btn btn-outline py-2 px-3 text-xs">
+                                    <a th:href="@{/cliente/detalle-pedido(codigo=${ord['codigo']})}" class="btn btn-outline py-2 px-3 text-xs">
                                         VER DETALLE
                                     </a>
-                                    <a th:href="@{/cliente/boleta-venta(codigo='#PED-00498')}" class="btn btn-primary py-2 px-3 text-xs">
-                                        VER BOLETA
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Compra 3: #PED-00462 -->
-                    <div class="card p-4 border-secondary">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 56px; height: 56px;">
-                                <div>
-                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                        <h5 class="font-anton text-light m-0 me-1">#PED-00462</h5>
-                                        <span class="badge bg-dark text-muted border border-secondary font-anton px-2 py-1 text-2xs">ENTREGADO</span>
-                                        <span class="badge bg-dark text-success border border-success font-anton px-2 py-1 text-2xs">PAGO APROBADO</span>
-                                    </div>
-                                    <div class="text-muted text-2xs mb-1">
-                                        18 Dic 2024 09:05 &bull; <i class="fa-brands fa-cc-mastercard text-warning"></i> MASTERCARD &bull;&bull;&bull;&bull; 8821 &bull; Boleta B001-00000462
-                                    </div>
-                                    <div class="text-light text-xs fw-bold">2 &times; Shaker 700ml &bull; 1 &times; Correas de Levantamiento Par</div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-4 ms-auto">
-                                <div class="text-end">
-                                    <div class="text-muted font-anton text-2xs">TOTAL PAGADO</div>
-                                    <h4 class="font-anton text-primary m-0">S/ 129.00</h4>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <a th:href="@{/cliente/detalle-pedido(codigo='#PED-00462')}" class="btn btn-outline py-2 px-3 text-xs">
-                                        VER DETALLE
-                                    </a>
-                                    <a th:href="@{/cliente/boleta-venta(codigo='#PED-00462')}" class="btn btn-primary py-2 px-3 text-xs">
-                                        VER BOLETA
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Compra 4: #PED-00419 -->
-                    <div class="card p-4 border-secondary">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 56px; height: 56px;">
-                                <div>
-                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                        <h5 class="font-anton text-light m-0 me-1">#PED-00419</h5>
-                                        <span class="badge bg-dark text-muted border border-secondary font-anton px-2 py-1 text-2xs">ENTREGADO</span>
-                                        <span class="badge bg-dark text-success border border-success font-anton px-2 py-1 text-2xs">PAGO APROBADO</span>
-                                    </div>
-                                    <div class="text-muted text-2xs mb-1">
-                                        04 Dic 2024 11:20 &bull; <i class="fa-brands fa-cc-visa text-primary"></i> VISA &bull;&bull;&bull;&bull; 4242 &bull; Boleta B001-00000419
-                                    </div>
-                                    <div class="text-light text-xs fw-bold">1 &times; Whey Protein 2 LB</div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-4 ms-auto">
-                                <div class="text-end">
-                                    <div class="text-muted font-anton text-2xs">TOTAL PAGADO</div>
-                                    <h4 class="font-anton text-primary m-0">S/ 149.00</h4>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <a th:href="@{/cliente/detalle-pedido(codigo='#PED-00419')}" class="btn btn-outline py-2 px-3 text-xs">
-                                        VER DETALLE
-                                    </a>
-                                    <a th:href="@{/cliente/boleta-venta(codigo='#PED-00419')}" class="btn btn-primary py-2 px-3 text-xs">
+                                    <a th:href="@{/cliente/boleta-venta(codigo=${ord['codigo']})}" class="btn btn-primary py-2 px-3 text-xs">
                                         VER BOLETA
                                     </a>
                                 </div>

@@ -46,6 +46,34 @@ export async function saveProductReservation(productName, price, qty, productId 
         sidebarCount.textContent = current + 1;
     }
 
+    // Actualizar visualmente el stock en la tarjeta o detalle sin esperar recarga
+    const detailStockEl = document.getElementById("detailStockCount");
+    if (detailStockEl) {
+        const currentStock = parseInt(detailStockEl.textContent, 10) || 0;
+        detailStockEl.textContent = String(Math.max(0, currentStock - qty));
+    }
+    const cardBtn = document.querySelector(`.btn-quick-reserve[data-id="${productId}"]`);
+    if (cardBtn) {
+        const card = cardBtn.closest(".product-item-card");
+        const badge = card?.querySelector(".product-stock-badge");
+        if (badge) {
+            const currentStock = parseInt(badge.getAttribute("data-stock") || "0", 10);
+            const nextStock = Math.max(0, currentStock - qty);
+            badge.setAttribute("data-stock", String(nextStock));
+            if (nextStock > 5) {
+                badge.className = "badge text-success border border-success bg-transparent tracking-wide text-2xs product-stock-badge";
+                badge.textContent = `DISPONIBLE · ${nextStock} UDS`;
+            } else if (nextStock > 0) {
+                badge.className = "badge text-warning border border-warning bg-transparent tracking-wide text-2xs product-stock-badge";
+                badge.textContent = `ÚLTIMAS ${nextStock} UDS`;
+            } else {
+                badge.className = "badge text-danger border border-danger bg-transparent tracking-wide text-2xs product-stock-badge";
+                badge.textContent = "AGOTADO";
+                cardBtn.disabled = true;
+            }
+        }
+    }
+
     openGymModal(
         `<i class="fa-solid fa-bag-shopping me-2"></i> ¡RESERVA CONFIRMADA!`,
         `<div class="text-center py-2">

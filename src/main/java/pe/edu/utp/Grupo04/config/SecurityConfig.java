@@ -40,8 +40,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf
-                // Eximir /login del token CSRF para evitar 403 por desincronización de sesiones demo en navegadores
-                .ignoringRequestMatchers("/login")
+                // Eximir /login y endpoints JSON internos del token CSRF para evitar 403 en sesiones demo
+                .ignoringRequestMatchers("/login", "/api/**", "/cliente/api/**")
             )
             .authorizeHttpRequests(auth -> auth
                 // Recursos estáticos públicos y ruta de error

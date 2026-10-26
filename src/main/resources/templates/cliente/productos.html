@@ -66,15 +66,20 @@
 
                         <div class="p-4 d-flex flex-column flex-grow-1">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span th:if="${prod.stock != null and prod.stock > 5}" class="badge text-success border border-success bg-transparent tracking-wide text-2xs" th:text="'DISPONIBLE · ' + ${prod.stock} + ' UDS'">DISPONIBLE · 12 UDS</span>
-                                <span th:if="${prod.stock != null and prod.stock > 0 and prod.stock <= 5}" class="badge text-warning border border-warning bg-transparent tracking-wide text-2xs" th:text="'ÚLTIMAS ' + ${prod.stock} + ' UDS'">ÚLTIMAS 4 UDS</span>
-                                <span th:if="${prod.stock == null or prod.stock <= 0}" class="badge text-danger border border-danger bg-transparent tracking-wide text-2xs">AGOTADO</span>
+                                <span th:if="${prod.stock != null and prod.stock > 5}" class="badge text-success border border-success bg-transparent tracking-wide text-2xs product-stock-badge" th:attr="data-stock=${prod.stock}" th:text="'DISPONIBLE · ' + ${prod.stock} + ' UDS'">DISPONIBLE · 12 UDS</span>
+                                <span th:if="${prod.stock != null and prod.stock > 0 and prod.stock <= 5}" class="badge text-warning border border-warning bg-transparent tracking-wide text-2xs product-stock-badge" th:attr="data-stock=${prod.stock}" th:text="'ÚLTIMAS ' + ${prod.stock} + ' UDS'">ÚLTIMAS 4 UDS</span>
+                                <span th:if="${prod.stock == null or prod.stock <= 0}" class="badge text-danger border border-danger bg-transparent tracking-wide text-2xs product-stock-badge" data-stock="0">AGOTADO</span>
                             </div>
                             <h5 class="font-anton mb-1 text-light" th:text="${prod.nombre != null ? prod.nombre.toUpperCase() : 'PRODUCTO'}">WHEY PROTEIN 2 LB</h5>
                             <p class="text-muted text-xs mb-3" th:text="${prod.descripcion}">24g proteína aislada por porción.</p>
                             <h4 class="font-anton text-primary mb-4 mt-auto" th:text="'S/ ' + ${#numbers.formatDecimal(prod.precio, 1, 'POINT', 0, 'POINT')}">S/ 149</h4>
                             <div class="d-flex gap-2">
                                 <a th:href="@{/cliente/detalle-producto(id=${prod.id})}" class="btn btn-outline flex-grow-1">VER DETALLE</a>
+                                <button type="button" class="btn btn-outline px-3 btn-quick-add-cart" title="Agregar al carrito"
+                                        th:disabled="${prod.stock == null or prod.stock <= 0}"
+                                        th:attr="data-id=${prod.id}, data-name=${prod.nombre}, data-price=${prod.precio}, data-img=${prod.imagenUrl != null ? prod.imagenUrl : '/img/whey.jpg'}, data-category=${prod.nombre != null and (prod.nombre.toUpperCase().contains('SHAKER') or prod.nombre.toUpperCase().contains('BOTELLA')) ? 'Botellas' : 'Suplementos'}">
+                                    <i class="fa-solid fa-cart-plus text-primary"></i>
+                                </button>
                                 <button type="button" class="btn btn-primary px-3 btn-quick-reserve"
                                         th:disabled="${prod.stock == null or prod.stock <= 0}"
                                         th:attr="data-product=${prod.nombre}, data-price=${prod.precio}, data-id=${prod.id}">
