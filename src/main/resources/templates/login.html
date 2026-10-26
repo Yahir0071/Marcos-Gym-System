@@ -14,15 +14,15 @@
                     <h1 class="display-3 font-anton leading-none mb-4 text-light text-6xl">
                         TU DISCIPLINA<br><span class="text-primary">CONTINÚA AQUÍ</span>
                     </h1>
-                    <p class="font-anton text-muted tracking-wide text-sm mb-4">ACCEDE A TU PORTAL DE SOCIO O PANEL ADMINISTRATIVO</p>
+                    <p class="font-anton text-muted tracking-wide text-sm mb-4">INGRESA A TU CUENTA DE ENERGY GYM</p>
                 </div>
             </div>
 
-            <!-- LADO DERECHO: Formulario y Accesos Rápidos -->
+            <!-- LADO DERECHO: Formulario de acceso -->
             <div class="col-lg-5 d-flex flex-column justify-content-center p-4 p-lg-5 bg-login-right">
                 <div class="w-100 mx-auto ps-lg-4 mw-420px mt-5">
                     <h2 class="font-anton mb-2 text-light text-3xl">INICIAR SESIÓN</h2>
-                    <p class="text-muted text-xs mb-4">Ingresa tus credenciales o utiliza el acceso directo de demostración:</p>
+                    <p class="text-muted text-xs mb-4">Ingresa tu correo electrónico y contraseña para continuar.</p>
 
                     <!-- Alertas de Spring Security -->
                     <div th:if="${param.error}" class="alert alert-danger py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;">
@@ -34,32 +34,15 @@
                         <span>Has cerrado sesión correctamente. ¡Vuelve pronto a entrenar!</span>
                     </div>
 
-                    <!-- Botones de Acceso Rápido (1 Clic) -->
-                    <div class="d-grid gap-2 mb-4">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline w-100 py-2 text-2xs" id="btnQuickClientLogin">
-                                    <i class="fa-solid fa-user text-primary"></i> DEMO SOCIO
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline w-100 py-2 text-2xs" id="btnQuickAdminLogin">
-                                    <i class="fa-solid fa-user-shield text-primary"></i> DEMO ADMIN
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
                     <form th:action="@{/login}" method="post" id="loginForm">
-                        <input type="hidden" name="role" id="loginRoleInput" value="cliente">
                         <div class="mb-3">
                             <label for="username" class="form-label text-xs">CORREO ELECTRÓNICO</label>
-                            <input type="email" class="form-control" id="username" name="username" value="cliente@energygym.pe" placeholder="tucorreo@ejemplo.com" required>
+                            <input type="email" class="form-control" id="username" name="username" placeholder="tucorreo@ejemplo.com" autocomplete="username" required>
                         </div>
                         <div class="mb-4">
                             <label for="password" class="form-label text-xs">CONTRASEÑA</label>
                             <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" value="cliente123" placeholder="••••••••••" required>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required>
                                 <button class="btn btn-outline px-3" type="button" id="togglePasswordBtn" title="Mostrar/Ocultar contraseña">
                                     <i class="fa-regular fa-eye"></i>
                                 </button>

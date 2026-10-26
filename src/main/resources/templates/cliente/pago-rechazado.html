@@ -30,8 +30,9 @@
                                 <h4 class="font-anton text-light mb-1">LA PASARELA NO APROBÓ EL PAGO</h4>
                                 <span class="badge bg-dark text-danger border border-danger font-anton px-3 py-1 text-2xs">PAGO RECHAZADO &bull; SIN CARGO</span>
                             </div>
-                            <p class="text-muted text-xs mb-0">
-                                La entidad emisora de tu tarjeta rechazó la autorización (posible límite diario, compras online deshabilitadas o saldo insuficiente). No se realizó ningún cobro ni descuento de stock.
+                            <p class="text-muted text-xs mb-0"
+                               th:text="${ordenActual['reservaId'] != null ? 'La entidad emisora rechazó la autorización. No se realizó ningún cobro; tu reserva continúa pendiente para que puedas intentarlo de nuevo.' : 'La entidad emisora de tu tarjeta rechazó la autorización (posible límite diario, compras online deshabilitadas o saldo insuficiente). No se realizó ningún cobro ni descuento de stock.'}">
+                                La entidad emisora de tu tarjeta rechazó la autorización. No se realizó ningún cobro.
                             </p>
                         </div>
                     </div>
@@ -66,13 +67,15 @@
                         </div>
                     </div>
 
-                    <p class="text-muted text-2xs mb-3">
-                        <i class="fa-solid fa-shield-halved text-primary me-1"></i> No se generó compra activa, orden de recojo ni boleta electrónica. Tus productos siguen guardados en tu carrito.
+                    <p class="text-muted text-2xs mb-3"
+                       th:text="${ordenActual['reservaId'] != null ? 'No se generó un pago ni una boleta. Tu reserva se mantiene pendiente.' : 'No se generó compra activa, orden de recojo ni boleta electrónica. Tus productos siguen guardados en tu carrito.'}">
+                        No se generó un pago ni una boleta.
                     </p>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <a th:href="@{/cliente/pago-en-linea}" class="btn btn-primary w-100 py-3 text-center">
+                            <a th:href="${ordenActual['reservaId'] != null} ? @{/cliente/pago-en-linea(reservaId=${ordenActual['reservaId']})} : @{/cliente/pago-en-linea}"
+                               class="btn btn-primary w-100 py-3 text-center">
                                 <i class="fa-regular fa-credit-card me-2"></i> INTENTAR CON OTRA TARJETA
                             </a>
                         </div>

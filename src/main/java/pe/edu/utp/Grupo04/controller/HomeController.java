@@ -39,6 +39,11 @@ public class HomeController {
         return "login";
     }
 
+    @GetMapping("/register")
+    public String register() {
+        return "register";
+    }
+
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         if (authentication != null) {

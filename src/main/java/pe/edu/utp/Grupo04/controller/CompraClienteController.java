@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import pe.edu.utp.Grupo04.model.Producto;
+import pe.edu.utp.Grupo04.model.Reserva;
 import pe.edu.utp.Grupo04.model.Socio;
+import pe.edu.utp.Grupo04.model.enums.EstadoReserva;
 import pe.edu.utp.Grupo04.service.ProductoService;
+import pe.edu.utp.Grupo04.service.ReservaService;
 import pe.edu.utp.Grupo04.service.SocioService;
 
 import java.time.LocalDateTime;
@@ -34,6 +37,7 @@ public class CompraClienteController {
 
     private final SocioService socioService;
     private final ProductoService productoService;
+    private final ReservaService reservaService;
 
     // Memoria en ejecución de pedidos y boletas creadas mientras la aplicación esté activa
     private final List<Map<String, Object>> ordenesMemoria = new CopyOnWriteArrayList<>();
@@ -41,9 +45,12 @@ public class CompraClienteController {
     private final AtomicInteger secuenciaPedido = new AtomicInteger(521);
     private final AtomicBoolean primeraCompraDemoReemplazada = new AtomicBoolean(false);
 
-    public CompraClienteController(SocioService socioService, ProductoService productoService) {
+    public CompraClienteController(SocioService socioService,
+                                   ProductoService productoService,
+                                   ReservaService reservaService) {
         this.socioService = socioService;
         this.productoService = productoService;
+        this.reservaService = reservaService;
         inicializarHistorialEnMemoria();
     }
 
@@ -210,6 +217,7 @@ public class CompraClienteController {
             if (qty <= 0) {
                 continue;
             }
+
             Long idBuscado = it.get("id") != null ? ((Number) it.get("id")).longValue() : null;
             String nombreBuscado = it.get("name") != null ? it.get("name").toString().trim() : "";
 
@@ -237,11 +245,17 @@ public class CompraClienteController {
         }
     }
 
+    private String categoriaProducto(Producto producto) {
+        String nombre = producto.getNombre() == null ? "" : producto.getNombre().toUpperCase(Locale.ROOT);
+        return nombre.contains("SHAKER") || nombre.contains("BOTELLA") ? "Botellas" : "Suplementos";
+    }
+
     // --- API REST EN MEMORIA PARA CREAR COMPRAS / BOLETAS Y DESCONTAR STOCK ---
     @PostMapping("/api/compras")
     @ResponseBody
     @SuppressWarnings("unchecked")
-    public ResponseEntity<?> registrarCompraApi(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> registrarCompraApi(@RequestBody Map<String, Object> payload,
+                                                Authentication auth) {
         String estadoPago = payload.getOrDefault("estado", "PAGADO").toString().toUpperCase();
         String buyerName = payload.getOrDefault("buyerName", "Carlos Mendoza Rojas").toString();
         String buyerDocType = payload.getOrDefault("buyerDocType", "DNI").toString();
@@ -250,32 +264,59 @@ public class CompraClienteController {
         String cardBrand = payload.getOrDefault("cardBrand", "VISA").toString();
         String cardLast4 = payload.getOrDefault("cardLast4", "4242").toString();
 
-        List<Map<String, Object>> rawItems = (List<Map<String, Object>>) payload.get("items");
-        List<Map<String, Object>> itemsProcesados = new ArrayList<>();
-        if (rawItems != null) {
-            for (Map<String, Object> raw : rawItems) {
-                Long id = 1L;
-                try {
-                    if (raw.get("id") != null) {
-                        id = Long.parseLong(raw.get("id").toString());
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-                String name = raw.getOrDefault("name", "Producto").toString();
-                String category = raw.getOrDefault("category", "Suplementos").toString();
-                String img = raw.getOrDefault("img", "/img/whey.jpg").toString();
-                double price = 0.0;
-                int qty = 1;
-                try {
-                    price = Double.parseDouble(raw.getOrDefault("price", "0").toString());
-                    qty = Integer.parseInt(raw.getOrDefault("qty", "1").toString());
-                } catch (NumberFormatException ignored) {
-                }
-                itemsProcesados.add(crearItemMapa(id, name, category, img, price, qty));
+        Reserva reservaPago = null;
+        Long reservaId = null;
+        if (payload.get("reservaId") != null) {
+            try {
+                reservaId = Long.parseLong(payload.get("reservaId").toString());
+            } catch (NumberFormatException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "La reserva indicada no es válida."));
+            }
+            reservaPago = reservaService.buscarPorId(reservaId).orElse(null);
+            if (reservaPago == null || auth == null
+                    || !auth.getName().equals(reservaPago.getSocio().getUsuario().getUsername())) {
+                return ResponseEntity.notFound().build();
+            }
+            if (reservaPago.getEstado() != EstadoReserva.PENDIENTE) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Esta reserva ya no está pendiente de pago."));
             }
         }
-        if (itemsProcesados.isEmpty()) {
-            itemsProcesados.add(crearItemMapa(1L, "Whey Protein 2 LB", "Suplementos", "/img/whey.jpg", 149.00, 1));
+
+        List<Map<String, Object>> itemsProcesados = new ArrayList<>();
+        if (reservaPago != null) {
+            Producto producto = reservaPago.getProducto();
+            String imagen = producto.getImagenUrl() == null || producto.getImagenUrl().isBlank()
+                    ? "/img/whey.jpg"
+                    : producto.getImagenUrl();
+            itemsProcesados.add(crearItemMapa(producto.getId(), producto.getNombre(),
+                    categoriaProducto(producto), imagen, producto.getPrecio(), reservaPago.getCantidad()));
+        } else {
+            List<Map<String, Object>> rawItems = (List<Map<String, Object>>) payload.get("items");
+            if (rawItems != null) {
+                for (Map<String, Object> raw : rawItems) {
+                    Long id = 1L;
+                    try {
+                        if (raw.get("id") != null) {
+                            id = Long.parseLong(raw.get("id").toString());
+                        }
+                    } catch (NumberFormatException ignored) {
+                    }
+                    String name = raw.getOrDefault("name", "Producto").toString();
+                    String category = raw.getOrDefault("category", "Suplementos").toString();
+                    String img = raw.getOrDefault("img", "/img/whey.jpg").toString();
+                    double price = 0.0;
+                    int qty = 1;
+                    try {
+                        price = Double.parseDouble(raw.getOrDefault("price", "0").toString());
+                        qty = Integer.parseInt(raw.getOrDefault("qty", "1").toString());
+                    } catch (NumberFormatException ignored) {
+                    }
+                    itemsProcesados.add(crearItemMapa(id, name, category, img, price, qty));
+                }
+            }
+            if (itemsProcesados.isEmpty()) {
+                itemsProcesados.add(crearItemMapa(1L, "Whey Protein 2 LB", "Suplementos", "/img/whey.jpg", 149.00, 1));
+            }
         }
 
         int numPedido;
@@ -285,8 +326,9 @@ public class CompraClienteController {
             } else {
                 numPedido = secuenciaPedido.incrementAndGet();
             }
-            // Descontar stock real de los productos en la base de datos en memoria
-            descontarStockDeProductos(itemsProcesados);
+            if (reservaPago == null) {
+                descontarStockDeProductos(itemsProcesados);
+            }
         } else {
             numPedido = primeraCompraDemoReemplazada.get() ? secuenciaPedido.get() + 1 : 521;
         }
@@ -303,12 +345,18 @@ public class CompraClienteController {
                 buyerName, buyerDocType, buyerDocNum, buyerEmail,
                 cardBrand, cardLast4, itemsProcesados
         );
+        if (reservaId != null) {
+            nuevaOrden.put("reservaId", reservaId);
+        }
 
         String codigo = (String) nuevaOrden.get("codigo");
         ordenesPorCodigo.put(codigo, nuevaOrden);
 
         if ("PAGADO".equals(estadoPago) || "EN_PROCESO".equals(estadoPago)) {
             registrarOrdenEnMemoria(nuevaOrden, true);
+        }
+        if ("PAGADO".equals(estadoPago) && reservaPago != null) {
+            reservaService.actualizarEstado(reservaId, EstadoReserva.CONFIRMADA);
         }
 
         return ResponseEntity.ok(Map.of(
@@ -321,9 +369,23 @@ public class CompraClienteController {
 
     @PostMapping("/api/compras/aprobar")
     @ResponseBody
-    public ResponseEntity<?> aprobarCompraEnProceso(@RequestParam(defaultValue = "#PED-00521") String codigo) {
+    public ResponseEntity<?> aprobarCompraEnProceso(@RequestParam(defaultValue = "#PED-00521") String codigo,
+                                                    Authentication auth) {
         Map<String, Object> orden = buscarOrdenPorCodigoODefault(codigo);
         if (orden != null) {
+            Object reservaId = orden.get("reservaId");
+            if (reservaId != null) {
+                Long id = ((Number) reservaId).longValue();
+                Reserva reserva = reservaService.buscarPorId(id).orElse(null);
+                if (reserva == null || auth == null
+                        || !auth.getName().equals(reserva.getSocio().getUsuario().getUsername())) {
+                    return ResponseEntity.notFound().build();
+                }
+                if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Esta reserva ya no está pendiente de pago."));
+                }
+                reservaService.actualizarEstado(id, EstadoReserva.CONFIRMADA);
+            }
             orden.put("estadoPago", "PAGADO");
             orden.put("estadoEntrega", "POR RECOGER EN GIMNASIO");
             registrarOrdenEnMemoria(orden, true);
@@ -346,8 +408,19 @@ public class CompraClienteController {
 
     // 2. Pago en línea
     @GetMapping("/pago-en-linea")
-    public String pagoEnLinea(Authentication auth, Model model) {
+    public String pagoEnLinea(@RequestParam(required = false) Long reservaId,
+                              Authentication auth, Model model) {
         cargarDatosSocio(auth, model);
+        if (reservaId != null) {
+            Reserva reserva = reservaService.buscarPorId(reservaId)
+                    .filter(r -> auth.getName().equals(r.getSocio().getUsuario().getUsername()))
+                    .orElse(null);
+            if (reserva == null || reserva.getEstado() != EstadoReserva.PENDIENTE) {
+                model.addAttribute("reservaPagoError", "La reserva no está disponible para pago. Revisa su estado en Mis Reservas.");
+            } else {
+                model.addAttribute("reservaPago", reserva);
+            }
+        }
         return "cliente/pago-en-linea";
     }
 

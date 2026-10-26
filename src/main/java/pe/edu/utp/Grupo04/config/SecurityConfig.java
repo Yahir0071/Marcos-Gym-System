@@ -49,7 +49,7 @@ public class SecurityConfig {
                 // Vistas públicas
                 .requestMatchers("/", "/inicio", "/planes", "/promociones", "/productos", "/afluencia", "/detalle-producto").permitAll()
                 // Autenticación pública
-                .requestMatchers("/login").permitAll()
+                .requestMatchers("/login", "/register").permitAll()
                 // Módulo de Clientes (Socios) y visualización desde Admin
                 .requestMatchers("/cliente/**").hasAnyRole("CLIENTE", "ADMINISTRADOR")
                 // Módulo exclusivo de Administradores

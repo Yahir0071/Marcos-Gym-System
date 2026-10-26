@@ -1,6 +1,6 @@
 /**
  * cliente/portal.js - Energy Gym Client Portal Logic
- * Responsabilidad: Seguimiento de entrenamientos, renovación, congelamiento, vouchers y gestión de avisos.
+ * Responsabilidad: seguimiento de entrenamientos, pagos de reservas, renovación y avisos del portal.
  */
 
 import { postJson } from "../core/api-client.js";
@@ -16,7 +16,22 @@ export function initWorkoutTracker() {
         const summary = document.getElementById("weeklyTrackerSummary");
         if (summary) summary.textContent = `${activeCount} / 6 DÍAS COMPLETADOS`;
         const att = document.getElementById("memberAttendanceCount");
-        if (att) att.textContent = `${13 + activeCount} visitas`;
+        const attendanceCount = 13 + activeCount;
+        if (att) att.textContent = `${attendanceCount} visitas`;
+        const goal = 20;
+        const goalCount = document.getElementById("monthlyGoalCount");
+        if (goalCount) goalCount.textContent = `${attendanceCount} / ${goal}`;
+        const goalProgress = document.getElementById("monthlyGoalProgress");
+        if (goalProgress) goalProgress.style.width = `${Math.min((attendanceCount / goal) * 100, 100)}%`;
+        const goalProgressBar = goalProgress?.parentElement;
+        if (goalProgressBar) goalProgressBar.setAttribute("aria-valuenow", `${Math.min(attendanceCount, goal)}`);
+        const goalMessage = document.getElementById("monthlyGoalMessage");
+        if (goalMessage) {
+            const remaining = Math.max(goal - attendanceCount, 0);
+            goalMessage.textContent = remaining > 0
+                ? `¡Vas muy bien! Te faltan ${remaining} entrenamientos para alcanzar tu meta mensual.`
+                : `¡Meta mensual cumplida! Has completado ${attendanceCount} entrenamientos.`;
+        }
         const streak = document.getElementById("topbarStreakCount");
         if (streak) streak.textContent = `${7 + activeCount} DÍAS 🔥`;
     };
@@ -160,44 +175,6 @@ export function initPlanActions() {
 
 export function initReservasClient() {
     const bindButtons = () => {
-        document.querySelectorAll(".btn-view-voucher").forEach((btn) => {
-            if (btn.dataset.bound) return;
-            btn.dataset.bound = "true";
-            btn.addEventListener("click", function () {
-                const code = this.getAttribute("data-code") || "#RES-00001";
-                const prod = this.getAttribute("data-product") || "Suplemento";
-                const qty = this.getAttribute("data-qty") || "1";
-                const status = this.getAttribute("data-status") || "PENDIENTE";
-                const socio = this.getAttribute("data-socio") || "Socio Energy Gym";
-
-                openGymModal(
-                    `<i class="fa-solid fa-receipt me-2"></i> VOUCHER DE RESERVA ${code}`,
-                    `<div class="p-2">
-                        <div class="p-3 rounded bg-elevated border border-secondary mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted text-xs">CÓDIGO:</span>
-                                <strong class="font-anton text-primary">${code}</strong>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted text-xs">SOCIO:</span>
-                                <strong class="text-light text-xs">${socio}</strong>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted text-xs">PRODUCTO:</span>
-                                <strong class="text-light text-xs">${prod} (x${qty})</strong>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted text-xs">ESTADO ACTUAL:</span>
-                                <span class="badge bg-primary text-dark font-anton">${status}</span>
-                            </div>
-                        </div>
-                        <p class="text-muted text-2xs mb-3">Presenta este voucher en el counter de suplementos de Energy Gym para recoger tu pedido.</p>
-                        <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">CERRAR VOUCHER</button>
-                    </div>`
-                );
-            });
-        });
-
         document.querySelectorAll(".btn-cancel-reserva").forEach((btn) => {
             if (btn.dataset.bound) return;
             btn.dataset.bound = "true";
@@ -281,6 +258,18 @@ export function initCartAndCompras() {
     ];
 
     const getStoredCartItems = () => {
+        const reservationCheckout = document.getElementById("reservationCheckout");
+        if (reservationCheckout) {
+            return [{
+                id: reservationCheckout.dataset.productId,
+                name: reservationCheckout.dataset.name,
+                category: reservationCheckout.dataset.category,
+                img: reservationCheckout.dataset.img,
+                price: Number(reservationCheckout.dataset.price),
+                qty: Number(reservationCheckout.dataset.qty)
+            }];
+        }
+
         try {
             const raw = sessionStorage.getItem("energyGymCartItems");
             if (raw) {
@@ -793,11 +782,12 @@ export function initCartAndCompras() {
             const buyerDocType = docTypeInput?.value || "DNI";
             const buyerDocNum = docNumInput?.value || "72563123";
             const buyerEmail = emailInput?.value || "carlos.mendoza@ejemplo.com";
+            const reservationCheckout = document.getElementById("reservationCheckout");
 
             saveBuyerInfo();
 
             try {
-                const resp = await postJson("/cliente/api/compras", {
+                const purchasePayload = {
                     estado: scenario,
                     buyerName,
                     buyerDocType,
@@ -806,21 +796,32 @@ export function initCartAndCompras() {
                     cardBrand,
                     cardLast4,
                     items
-                });
+                };
+                if (reservationCheckout) {
+                    purchasePayload.reservaId = reservationCheckout.dataset.reservationId;
+                }
+                const resp = await postJson("/cliente/api/compras", purchasePayload);
                 if (resp.ok) {
                     const data = await resp.json();
-                    if (scenario === "PAGADO" || scenario === "EN_PROCESO") {
+                    if (!reservationCheckout && (scenario === "PAGADO" || scenario === "EN_PROCESO")) {
                         sessionStorage.setItem("energyGymCartPaid", "true");
                     }
                     if (data.codigo) {
                         window.location.href = `${targetHref}?codigo=${encodeURIComponent(data.codigo)}`;
                         return;
                     }
+                    showGymToast("El pago se registró sin un código de pedido. Contacta con recepción antes de intentarlo de nuevo.", "fa-triangle-exclamation");
+                    return;
+                } else {
+                    const error = await resp.json().catch(() => ({}));
+                    showGymToast(error.error || "No se pudo procesar el pago. Revisa el estado de la reserva.", "fa-triangle-exclamation");
+                    return;
                 }
             } catch (err) {
                 console.warn("Error registrando compra en memoria:", err);
+                showGymToast("No se pudo conectar con el servicio de pago. Inténtalo de nuevo.", "fa-triangle-exclamation");
+                return;
             }
-            window.location.href = targetHref;
         });
     });
 
@@ -832,9 +833,16 @@ export function initCartAndCompras() {
             const targetHref = this.getAttribute("href") || "/cliente/compra-exitosa";
             const codigo = this.getAttribute("data-codigo") || "#PED-00521";
             try {
-                await postJson(`/cliente/api/compras/aprobar?codigo=${encodeURIComponent(codigo)}`, {});
+                const response = await postJson(`/cliente/api/compras/aprobar?codigo=${encodeURIComponent(codigo)}`, {});
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    showGymToast(error.error || "No se pudo confirmar el estado del pago.", "fa-triangle-exclamation");
+                    return;
+                }
             } catch (err) {
-                // ignore
+                console.warn("Error confirmando el pago pendiente:", err);
+                showGymToast("No se pudo consultar el estado del pago. Inténtalo de nuevo.", "fa-triangle-exclamation");
+                return;
             }
             window.location.href = targetHref;
         });

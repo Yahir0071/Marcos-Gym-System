@@ -22,7 +22,18 @@
                 <h1 class="display-3 font-anton leading-none mb-1 text-light">PAGO EN LÍNEA</h1>
                 <p class="font-anton text-muted mb-4 tracking-wide text-md">COMPLETA TUS DATOS PARA LA BOLETA ELECTRÓNICA &bull; RECOJO PRESENCIAL EN RECEPCIÓN</p>
 
-                <div class="row g-4 align-items-start">
+                <div th:if="${reservaPagoError}" class="alert alert-danger border-danger bg-dark text-danger mb-4"
+                     role="alert" th:text="${reservaPagoError}"></div>
+
+                <div th:if="${reservaPagoError == null}" class="row g-4 align-items-start">
+                    <div id="reservationCheckout" th:if="${reservaPago != null}" class="d-none"
+                         th:attr="data-reservation-id=${reservaPago.id},
+                                  data-product-id=${reservaPago.producto.id},
+                                  data-name=${reservaPago.producto.nombre},
+                                  data-category=${reservaPago.producto.nombre != null and (reservaPago.producto.nombre.toUpperCase().contains('SHAKER') or reservaPago.producto.nombre.toUpperCase().contains('BOTELLA')) ? 'Botellas' : 'Suplementos'},
+                                  data-img=${reservaPago.producto.imagenUrl != null and !#strings.isEmpty(reservaPago.producto.imagenUrl) ? reservaPago.producto.imagenUrl : '/img/whey.jpg'},
+                                  data-price=${reservaPago.producto.precio},
+                                  data-qty=${reservaPago.cantidad}"></div>
                     <!-- Columna Izquierda: Datos del Comprador y Pasarela Externa con Tarjeta Visual -->
                     <div class="col-lg-8">
                         <!-- 1. Datos del Comprador -->
@@ -175,7 +186,10 @@
                                 <span class="badge bg-dark text-primary border border-secondary font-anton px-2 py-1 text-2xs"
                                       id="checkoutNextOrderCode" th:text="${proximoCodigoPedido}">#PED-00521</span>
                             </div>
-                            <div class="text-muted text-2xs mb-3">Emitido hoy &bull; Pendiente de confirmación bancaria</div>
+                            <div class="text-muted text-2xs mb-3"
+                                 th:text="${reservaPago != null ? 'Reserva #' + #numbers.formatInteger(reservaPago.id, 5) + ' · Pendiente de confirmación bancaria' : 'Emitido hoy · Pendiente de confirmación bancaria'}">
+                                Emitido hoy &bull; Pendiente de confirmación bancaria
+                            </div>
 
                             <!-- Lista de Productos con Imágenes Reales -->
                             <div class="pb-3 mb-3 border-bottom border-secondary" id="checkoutItemsList">

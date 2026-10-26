@@ -30,8 +30,9 @@
                                 <h4 class="font-anton text-light mb-1">OPERACIÓN CANCELADA ANTES DEL CARGO</h4>
                                 <span class="badge bg-dark text-muted border border-secondary font-anton px-3 py-1 text-2xs">PAGO CANCELADO &bull; SIN CARGO</span>
                             </div>
-                            <p class="text-muted text-xs mb-0">
-                                Saliste de la pasarela antes de confirmar la transacción. No se realizó ningún cobro en tu tarjeta, no se descontó stock y tus productos siguen intactos en tu carrito.
+                            <p class="text-muted text-xs mb-0"
+                               th:text="${ordenActual['reservaId'] != null ? 'Cancelaste el pago antes de confirmar la transacción. No se realizó ningún cobro y tu reserva sigue pendiente.' : 'Saliste de la pasarela antes de confirmar la transacción. No se realizó ningún cobro en tu tarjeta, no se descontó stock y tus productos siguen intactos en tu carrito.'}">
+                                Cancelaste el pago antes de confirmar la transacción. No se realizó ningún cobro.
                             </p>
                         </div>
                     </div>
@@ -62,8 +63,9 @@
                         </div>
                     </div>
 
-                    <p class="text-muted text-2xs mb-3">
-                        No se generó compra activa, orden de recojo ni boleta. Puedes retomar la compra desde tu carrito o volver a la pasarela cuando quieras.
+                    <p class="text-muted text-2xs mb-3"
+                       th:text="${ordenActual['reservaId'] != null ? 'El pago se canceló sin cargo. Puedes volver a intentarlo cuando quieras; tu reserva sigue pendiente.' : 'No se generó compra activa, orden de recojo ni boleta. Puedes retomar la compra desde tu carrito o volver a la pasarela cuando quieras.'}">
+                        El pago se canceló sin cargo. Tu reserva sigue pendiente.
                     </p>
 
                     <div class="row g-3">
@@ -73,7 +75,8 @@
                             </a>
                         </div>
                         <div class="col-md-6">
-                            <a th:href="@{/cliente/pago-en-linea}" class="btn btn-outline w-100 py-3 text-center">
+                            <a th:href="${ordenActual['reservaId'] != null} ? @{/cliente/pago-en-linea(reservaId=${ordenActual['reservaId']})} : @{/cliente/pago-en-linea}"
+                               class="btn btn-outline w-100 py-3 text-center">
                                 <i class="fa-solid fa-rotate-right me-2"></i> RETOMAR PAGO EN LÍNEA
                             </a>
                         </div>

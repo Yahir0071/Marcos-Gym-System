@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Crear cuenta - Energy Gym</title></head>
+<body>
+    <section class="d-flex flex-column min-vh-100 bg-dark">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+        <div class="row g-0 flex-grow-1">
+            <div class="col-lg-7 d-flex flex-column justify-content-center p-5 login-split-left position-relative">
+                <div class="login-split-divider"></div>
+                <div class="w-100 ms-auto pe-lg-5 mw-550px z-index-2 mr-2rem mt-5">
+                    <div class="section-subtitle has-line mb-3 text-2xs">TU NUEVO COMIENZO</div>
+                    <h1 class="display-3 font-anton leading-none mb-4 text-light text-6xl">
+                        ENTRENA<br><span class="text-primary">A TU MANERA</span>
+                    </h1>
+                    <p class="font-anton text-muted tracking-wide text-sm mb-4">
+                        CREA TU CUENTA DE CLIENTE Y EMPIEZA A CONSTRUIR TU MEJOR VERSION.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-5 d-flex flex-column justify-content-center p-4 p-lg-5 bg-login-right">
+                <div class="w-100 mx-auto ps-lg-4 mw-420px mt-5">
+                    <h2 class="font-anton mb-2 text-light text-3xl">CREAR CUENTA</h2>
+                    <p class="text-muted text-xs mb-4">Regístrate como cliente para acceder a Energy Gym.</p>
+
+                    <div th:if="${mensajeError}" class="alert alert-danger py-2 px-3 text-xs mb-3 border-0"
+                         style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;"
+                         th:text="${mensajeError}"></div>
+                    <div th:if="${mensajeExito}" class="alert alert-success py-2 px-3 text-xs mb-3 border-0"
+                         style="background-color: rgba(0, 230, 118, 0.2); color: #00e676;"
+                         th:text="${mensajeExito}"></div>
+
+                    <form th:action="@{/registro}" method="post" id="registerForm">
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label for="nombres" class="form-label">NOMBRES</label>
+                                <input type="text" class="form-control" id="nombres" name="nombres"
+                                       placeholder="Tus nombres" autocomplete="given-name" required>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="apellidos" class="form-label">APELLIDOS</label>
+                                <input type="text" class="form-control" id="apellidos" name="apellidos"
+                                       placeholder="Tus apellidos" autocomplete="family-name" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label for="dni" class="form-label">DNI</label>
+                                <input type="text" class="form-control" id="dni" name="dni"
+                                       placeholder="8 dígitos" inputmode="numeric" pattern="[0-9]{8}"
+                                       minlength="8" maxlength="8" autocomplete="off" required>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="telefono" class="form-label">TELÉFONO <span class="text-muted">(OPCIONAL)</span></label>
+                                <input type="tel" class="form-control" id="telefono" name="telefono"
+                                       placeholder="9 dígitos" inputmode="numeric" pattern="[0-9]{9}"
+                                       minlength="9" maxlength="9" autocomplete="tel">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">CORREO ELECTRÓNICO</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   placeholder="tucorreo@ejemplo.com" autocomplete="email" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">CONTRASEÑA</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="Mínimo 6 caracteres" minlength="6"
+                                   autocomplete="new-password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 d-flex justify-content-between align-items-center mb-4 py-3">
+                            <span class="font-anton tracking-wide text-md">REGISTRARME COMO CLIENTE</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                        <hr class="border-secondary mb-4">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a th:href="@{/inicio}" class="btn-link-white font-anton text-xs tracking-wide d-inline-flex align-items-center gap-2">
+                                <i class="fa-solid fa-arrow-left"></i> VOLVER AL INICIO
+                            </a>
+                            <a th:href="@{/login}" class="text-primary font-anton text-xs text-decoration-none tracking-wide">
+                                YA TENGO CUENTA
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

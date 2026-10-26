@@ -16,6 +16,7 @@
                     <a th:href="@{/cliente/productos}" class="btn btn-primary">
                         <i class="fa-solid fa-plus"></i> NUEVA RESERVA
                     </a>
+                </div>
                 <!-- Flash Messages -->
                 <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
                     <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
@@ -68,13 +69,10 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn-table-action btn-view-voucher"
-                                                th:data-code="'#RES-' + ${#numbers.formatInteger(res.id, 5)}"
-                                                th:data-product="${res.producto.nombre}"
-                                                th:data-qty="${res.cantidad}"
-                                                th:data-status="${res.estado}"
-                                                th:data-socio="${socio != null ? socio.nombre + ' ' + socio.apellido + ' (' + socio.dni + ')' : #authentication.name}">VOUCHER</button>
-                                        <form th:if="${res.estado.name() == 'PENDIENTE' or res.estado.name() == 'CONFIRMADA'}"
+                                        <a th:if="${res.estado.name() == 'PENDIENTE'}"
+                                           th:href="@{/cliente/pago-en-linea(reservaId=${res.id})}"
+                                           class="btn-table-action btn-primary text-decoration-none">PAGAR</a>
+                                        <form th:if="${res.estado.name() == 'PENDIENTE'}"
                                               th:action="@{/cliente/reservas/cancelar}" method="post" class="m-0 p-0"
                                               onsubmit="return confirm('¿Estás seguro de cancelar esta reserva?');">
                                             <input type="hidden" name="reservaId" th:value="${res.id}"/>
