@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Pago Cancelado - Energy Gym</title></head>
+<body>
+    <section class="client-wrapper">
+        <div th:replace="~{fragments/cliente-sidebar :: sidebar('productos')}"></div>
+        <div class="client-main">
+            <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
+            <div class="client-content">
+                <!-- Barra de Progreso del Flujo -->
+                <div class="d-flex align-items-center gap-2 mb-4 text-2xs font-anton tracking-wide">
+                    <a th:href="@{/cliente/carrito}" class="badge bg-dark text-muted border border-secondary text-decoration-none px-3 py-2">1. TU CARRITO</a>
+                    <i class="fa-solid fa-chevron-right text-muted"></i>
+                    <a th:href="@{/cliente/pago-en-linea}" class="badge bg-dark text-light border border-secondary text-decoration-none px-3 py-2">2. PAGO EN LÍNEA</a>
+                    <i class="fa-solid fa-chevron-right text-muted"></i>
+                    <span class="badge bg-dark text-muted border border-secondary px-3 py-2">3. OPERACIÓN CANCELADA</span>
+                </div>
+
+                <div class="section-subtitle mb-2 text-primary text-2xs">PRODUCTOS &bull; PASARELA DE PAGO</div>
+                <h1 class="display-3 font-anton leading-none mb-1 text-light">PAGO CANCELADO</h1>
+                <p class="text-muted text-xs mb-4">Operación cancelada voluntariamente por el usuario &bull; Intento <span th:text="${codigoPedido}">#PED-00521</span></p>
+
+                <div class="card p-4 p-lg-5 border-secondary mb-3" style="max-width: 920px;">
+                    <div class="d-flex align-items-start gap-3 pb-4 mb-4 border-bottom border-secondary">
+                        <div class="d-flex align-items-center justify-content-center border border-secondary bg-dark text-muted font-anton fs-4 rounded" style="width: 54px; height: 54px; flex-shrink: 0;">
+                            <i class="fa-solid fa-ban"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <h4 class="font-anton text-light mb-1">OPERACIÓN CANCELADA ANTES DEL CARGO</h4>
+                                <span class="badge bg-dark text-muted border border-secondary font-anton px-3 py-1 text-2xs">PAGO CANCELADO &bull; SIN CARGO</span>
+                            </div>
+                            <p class="text-muted text-xs mb-0">
+                                Saliste de la pasarela antes de confirmar la transacción. No se realizó ningún cobro en tu tarjeta y tus productos siguen intactos en tu carrito.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-4 pb-4 mb-4 border-bottom border-secondary">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h5 class="font-anton text-light m-0" th:text="${codigoPedido}">#PED-00521</h5>
+                                <span class="text-muted text-2xs" id="step3CardSummary">&bull; 20 Ene 2025 10:45 &bull; En línea &bull; Tarjeta</span>
+                            </div>
+
+                            <!-- Productos dinámicos sincronizados con el Carrito -->
+                            <div class="d-flex flex-column gap-2 mt-3" id="step3OrderItems" data-status-note="Conservado en tu carrito">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 44px; height: 44px;">
+                                    <div>
+                                        <div class="text-light text-xs fw-bold">1 &times; Whey Protein 2 LB</div>
+                                        <div class="text-muted text-2xs">Conservado en tu carrito &bull; S/ 149.00</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 44px; height: 44px;">
+                                    <div>
+                                        <div class="text-light text-xs fw-bold">1 &times; Shaker 700ml</div>
+                                        <div class="text-muted text-2xs">Conservado en tu carrito &bull; S/ 45.00</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-lg-end p-3 rounded bg-deep-dark border border-secondary" style="min-width: 220px;">
+                            <div class="text-muted font-anton text-2xs tracking-wide mb-1">IMPORTE NO COBRADO</div>
+                            <h2 class="font-anton text-light m-0" id="step3OrderTotal">S/ 194.00</h2>
+                            <div class="text-muted text-2xs mt-1">Sin cargo realizado (S/ 0.00)</div>
+                        </div>
+                    </div>
+
+                    <p class="text-muted text-2xs mb-3">
+                        No se generó compra activa, orden de recojo ni boleta. Puedes retomar la compra desde tu carrito o volver a la pasarela cuando quieras.
+                    </p>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a th:href="@{/cliente/carrito}" class="btn btn-primary w-100 py-3 text-center">
+                                <i class="fa-solid fa-cart-shopping me-2"></i> VOLVER AL CARRITO
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a th:href="@{/cliente/pago-en-linea}" class="btn btn-outline w-100 py-3 text-center">
+                                <i class="fa-solid fa-rotate-right me-2"></i> RETOMAR PAGO EN LÍNEA
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-muted text-2xs mb-4">
+                    Los estados en proceso, rechazado y cancelado son escenarios alternativos del mismo intento; no representan pagos simultáneos ni nuevos ingresos.
+                </p>
+
+                <!-- Footer Disclaimer -->
+                <div class="mt-4 pt-3 border-top border-secondary text-muted text-2xs">
+                    <div>Demostración visual. Pagos y facturación requieren integración posterior.</div>
+                    <div>Pagos online solo para productos. Activación y renovación de membresías presenciales.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

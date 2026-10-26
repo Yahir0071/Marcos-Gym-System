@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Pago en Línea - Energy Gym</title></head>
+<body>
+    <section class="client-wrapper">
+        <div th:replace="~{fragments/cliente-sidebar :: sidebar('productos')}"></div>
+        <div class="client-main">
+            <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
+            <div class="client-content">
+                <!-- Barra de Progreso del Flujo de Compra -->
+                <div class="d-flex align-items-center gap-2 mb-4 text-2xs font-anton tracking-wide">
+                    <a th:href="@{/cliente/carrito}" class="badge bg-dark text-light border border-secondary text-decoration-none px-3 py-2">
+                        <i class="fa-solid fa-check text-primary me-1"></i> 1. TU CARRITO
+                    </a>
+                    <i class="fa-solid fa-chevron-right text-muted"></i>
+                    <span class="badge bg-primary text-dark px-3 py-2">2. PAGO EN LÍNEA</span>
+                    <i class="fa-solid fa-chevron-right text-muted"></i>
+                    <span class="badge bg-dark text-muted border border-secondary px-3 py-2">3. CONFIRMACIÓN Y BOLETA</span>
+                </div>
+
+                <div class="section-subtitle mb-2 text-primary text-2xs">PRODUCTOS &bull; CARRITO &bull; PASARELA DE PAGO</div>
+                <h1 class="display-3 font-anton leading-none mb-1 text-light">PAGO EN LÍNEA</h1>
+                <p class="font-anton text-muted mb-4 tracking-wide text-md">COMPLETA TUS DATOS PARA LA BOLETA ELECTRÓNICA &bull; RECOJO PRESENCIAL EN RECEPCIÓN</p>
+
+                <div class="row g-4 align-items-start">
+                    <!-- Columna Izquierda: Datos del Comprador y Pasarela Externa con Tarjeta Visual -->
+                    <div class="col-lg-8">
+                        <!-- 1. Datos del Comprador -->
+                        <div class="card p-4 border-secondary mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="font-anton text-light m-0">
+                                    <i class="fa-regular fa-id-card text-primary me-2"></i>1. DATOS DEL COMPRADOR (PARA BOLETA Y RECOJO)
+                                </h5>
+                                <span class="badge bg-dark text-success border border-success font-anton text-2xs">SOCIO VERIFICADO</span>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-2xs">NOMBRES</label>
+                                    <input type="text" class="form-control" id="buyerFirstName" th:value="${socio != null ? socio.nombres : 'Carlos'}" value="Carlos">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-2xs">APELLIDOS</label>
+                                    <input type="text" class="form-control" id="buyerLastName" th:value="${socio != null ? socio.apellidos : 'Mendoza Rojas'}" value="Mendoza Rojas">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-2xs">TIPO DE DOCUMENTO</label>
+                                    <select class="form-select" id="buyerDocType">
+                                        <option value="DNI" selected>DNI (Documento Nacional de Identidad)</option>
+                                        <option value="CE">Carné de Extranjería</option>
+                                        <option value="PASAPORTE">Pasaporte</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-2xs">NÚMERO DE DOCUMENTO</label>
+                                    <input type="text" class="form-control" id="buyerDocNum" th:value="${socio != null ? socio.dni : '72563123'}" value="72563123" maxlength="12">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-2xs">CORREO ELECTRÓNICO (ENVÍO DE BOLETA)</label>
+                                    <input type="email" class="form-control" id="buyerEmail" th:value="${socio != null and socio.usuario != null ? socio.usuario.username : 'carlos.mendoza@ejemplo.com'}" value="carlos.mendoza@ejemplo.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Pasarela Externa - Tarjeta con Vista Previa Visual y Logos Oficiales -->
+                        <div class="card p-4 border-secondary">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                <div>
+                                    <h5 class="font-anton text-light m-0">
+                                        <i class="fa-solid fa-lock text-primary me-2"></i>2. PASARELA DE PAGO &bull; TARJETA DE CRÉDITO O DÉBITO
+                                    </h5>
+                                </div>
+                                <!-- Logos de Tarjetas de la Pasarela -->
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-deep-dark border border-secondary px-2 py-1 d-flex align-items-center gap-1 text-light">
+                                        <i class="fa-brands fa-cc-visa fs-5 text-primary"></i> <span class="text-2xs font-anton">VISA</span>
+                                    </span>
+                                    <span class="badge bg-deep-dark border border-secondary px-2 py-1 d-flex align-items-center gap-1 text-light">
+                                        <i class="fa-brands fa-cc-mastercard fs-5 text-warning"></i> <span class="text-2xs font-anton">MASTERCARD</span>
+                                    </span>
+                                    <span class="badge bg-deep-dark border border-secondary px-2 py-1 d-flex align-items-center gap-1 text-light">
+                                        <i class="fa-brands fa-cc-amex fs-5 text-info"></i> <span class="text-2xs font-anton">AMEX</span>
+                                    </span>
+                                    <span class="badge bg-deep-dark border border-secondary px-2 py-1 d-flex align-items-center gap-1 text-light">
+                                        <i class="fa-brands fa-cc-diners-club fs-5 text-light"></i> <span class="text-2xs font-anton">DINERS</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Tarjeta Gráfica Interactiva + Formulario de Pasarela -->
+                            <div class="row g-4 align-items-center mb-3">
+                                <div class="col-md-5">
+                                    <!-- Representación Visual de la Tarjeta Bancaria -->
+                                    <div class="p-4 rounded border border-primary position-relative overflow-hidden"
+                                         style="background: linear-gradient(135deg, #1b1b1b 0%, #0d0d0d 65%, #262105 100%); min-height: 195px; box-shadow: 0 10px 25px rgba(0,0,0,0.6);">
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <!-- Chip EMV Simulado -->
+                                                <div class="rounded border border-warning"
+                                                     style="width: 40px; height: 28px; background: linear-gradient(135deg, #f5d142 0%, #c89d14 100%);"></div>
+                                                <i class="fa-solid fa-wifi text-muted" style="transform: rotate(90deg);"></i>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="font-anton text-primary text-xs">ENERGY PAY</span>
+                                                <i class="fa-brands fa-cc-visa fs-3 text-light" id="visualCardBrandIcon"></i>
+                                            </div>
+                                        </div>
+
+                                        <div class="font-anton text-light fs-5 tracking-wider mb-3" id="visualCardNumber" style="letter-spacing: 2px;">
+                                            4557 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4242
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-end text-2xs">
+                                            <div>
+                                                <div class="text-muted" style="font-size: 0.65rem;">TITULAR DE LA TARJETA</div>
+                                                <div class="font-anton text-light text-xs" id="visualCardHolder"
+                                                     th:text="${socio != null ? (socio.nombres + ' ' + socio.apellidos).toUpperCase() : 'CARLOS MENDOZA ROJAS'}">
+                                                    CARLOS MENDOZA ROJAS
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="text-muted" style="font-size: 0.65rem;">VENCE</div>
+                                                <div class="font-anton text-primary text-xs" id="visualCardExpiry">08 / 28</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-7">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label text-2xs">NÚMERO DE TARJETA</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-deep-dark border-secondary text-primary">
+                                                    <i class="fa-regular fa-credit-card"></i>
+                                                </span>
+                                                <input type="text" class="form-control" id="cardNumberInput"
+                                                       value="4557 8800 1234 4242" maxlength="19" placeholder="4557 •••• •••• 4242">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="form-label text-2xs">FECHA DE VENCIMIENTO</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-deep-dark border-secondary text-muted">
+                                                    <i class="fa-regular fa-calendar"></i>
+                                                </span>
+                                                <input type="text" class="form-control" id="cardExpiryInput"
+                                                       value="08 / 28" maxlength="7" placeholder="MM / AA">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="form-label text-2xs">CÓDIGO CVV / CVC</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-deep-dark border-secondary text-muted">
+                                                    <i class="fa-solid fa-key"></i>
+                                                </span>
+                                                <input type="password" class="form-control" id="cardCvvInput"
+                                                       value="424" maxlength="4" placeholder="•••">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mt-3 text-muted text-2xs">
+                                        <i class="fa-solid fa-shield-halved text-success"></i>
+                                        <span>Conexión cifrada TLS/SSL. Energy Gym no almacena los datos de tu tarjeta.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Tu Pedido + Botones de Resultado de Pasarela -->
+                    <div class="col-lg-4">
+                        <div class="card p-4 border-secondary">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h5 class="font-anton text-light m-0">TU PEDIDO</h5>
+                                <span class="badge bg-dark text-primary border border-secondary font-anton px-2 py-1 text-2xs">#PED-00521</span>
+                            </div>
+                            <div class="text-muted text-2xs mb-3">Emitido: 20 Ene 2025 &bull; 10:45 &bull; Pendiente de pago</div>
+
+                            <!-- Lista de Productos con Imágenes Reales -->
+                            <div class="pb-3 mb-3 border-bottom border-secondary" id="checkoutItemsList">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 44px; height: 44px;">
+                                        <div>
+                                            <div class="text-light text-xs fw-bold">1 &times; Whey Protein 2 LB</div>
+                                            <div class="text-muted text-2xs">Suplementos</div>
+                                        </div>
+                                    </div>
+                                    <span class="font-anton text-light text-xs">S/ 149.00</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 44px; height: 44px;">
+                                        <div>
+                                            <div class="text-light text-xs fw-bold">1 &times; Shaker 700ml</div>
+                                            <div class="text-muted text-2xs">Botellas</div>
+                                        </div>
+                                    </div>
+                                    <span class="font-anton text-light text-xs">S/ 45.00</span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">Op. gravada (base)</span>
+                                <span class="text-light" id="checkoutSummaryBase">S/ 164.41</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">IGV (18%)</span>
+                                <span class="text-light" id="checkoutSummaryIgv">S/ 29.59</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs pb-3 mb-3 border-bottom border-secondary">
+                                <span class="text-muted">Recojo en gimnasio</span>
+                                <span class="text-success fw-bold">GRATIS</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-baseline mb-2">
+                                <span class="text-muted font-anton text-xs tracking-wide">TOTAL A PAGAR</span>
+                                <h3 class="font-anton text-primary m-0" id="checkoutSummaryTotal">S/ 194.00</h3>
+                            </div>
+                            <p class="text-muted text-2xs mb-3">IGV incluido. Recojo presencial en recepción con tu DNI.</p>
+
+                            <!-- Botón Principal de Pago (Flujo Exitoso) -->
+                            <a th:href="@{/cliente/compra-exitosa}" class="btn btn-primary w-100 py-3 text-center mb-2 d-flex justify-content-between align-items-center px-3" id="btnPayOnlineNow">
+                                <span><i class="fa-solid fa-lock me-2"></i> PAGAR S/ 194.00 AHORA</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                            <a th:href="@{/cliente/carrito}" class="btn btn-outline w-100 py-2 text-center mb-3 text-xs">
+                                <i class="fa-solid fa-arrow-left me-1"></i> VOLVER AL CARRITO
+                            </a>
+
+                            <!-- Panel de Simulación de los 4 Escenarios de la Pasarela -->
+                            <div class="p-3 rounded bg-deep-dark border border-secondary">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fa-solid fa-sliders text-primary text-xs"></i>
+                                    <span class="font-anton text-light text-2xs tracking-wide">SIMULAR RESPUESTA DE LA PASARELA:</span>
+                                </div>
+                                <p class="text-muted text-2xs mb-2">
+                                    Prueba cómo responde el sistema ante cada estado bancario posible del mismo intento de pago:
+                                </p>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <a th:href="@{/cliente/compra-exitosa}" class="btn btn-outline w-100 py-2 px-2 text-2xs border-success text-success d-flex align-items-center justify-content-center gap-1">
+                                            <i class="fa-solid fa-circle-check"></i> 1. APROBADO
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a th:href="@{/cliente/pago-en-proceso}" class="btn btn-outline w-100 py-2 px-2 text-2xs border-primary text-primary d-flex align-items-center justify-content-center gap-1">
+                                            <i class="fa-solid fa-spinner"></i> 2. EN PROCESO
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a th:href="@{/cliente/pago-rechazado}" class="btn btn-outline w-100 py-2 px-2 text-2xs border-danger text-danger d-flex align-items-center justify-content-center gap-1">
+                                            <i class="fa-solid fa-circle-xmark"></i> 3. RECHAZADO
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a th:href="@{/cliente/pago-cancelado}" class="btn btn-outline w-100 py-2 px-2 text-2xs border-secondary text-muted d-flex align-items-center justify-content-center gap-1">
+                                            <i class="fa-solid fa-ban"></i> 4. CANCELADO
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Disclaimer -->
+                <div class="mt-5 pt-3 border-top border-secondary text-muted text-2xs">
+                    <div>Demostración visual. Pagos y facturación requieren integración posterior.</div>
+                    <div>Pagos online solo para productos. Activación y renovación de membresías presenciales.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

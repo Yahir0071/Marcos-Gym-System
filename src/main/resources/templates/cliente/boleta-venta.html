@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Boleta de Venta - Energy Gym</title></head>
+<body>
+    <section class="client-wrapper">
+        <div th:replace="~{fragments/cliente-sidebar :: sidebar('compras')}"></div>
+        <div class="client-main">
+            <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
+            <div class="client-content">
+                <div class="mb-2 d-print-none">
+                    <a th:href="@{/cliente/detalle-pedido(codigo=${codigoPedido})}" class="text-muted text-decoration-none font-anton text-2xs tracking-wide">
+                        &larr; VOLVER AL PEDIDO <span th:text="${codigoPedido}">#PED-00521</span>
+                    </a>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4 d-print-none">
+                    <div>
+                        <div class="section-subtitle mb-2 text-primary text-2xs">MIS COMPRAS &bull; COMPROBANTE ELECTRÓNICO</div>
+                        <h1 class="display-3 font-anton leading-none mb-1 text-light">BOLETA DE VENTA</h1>
+                        <p class="font-anton text-muted m-0 tracking-wide text-sm">
+                            COMPROBANTE ASOCIADO AL PEDIDO <span id="boletaHeaderOrderCode" th:text="${codigoPedido}">#PED-00521</span> &bull; REPRESENTACIÓN IMPRESA
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary py-2 px-3 text-xs btn-download-boleta" onclick="window.print();">
+                            <i class="fa-solid fa-print me-1"></i> IMPRIMIR / GUARDAR PDF
+                        </button>
+                        <a th:href="@{/cliente/mis-compras}" class="btn btn-outline py-2 px-3 text-xs">
+                            MIS COMPRAS
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contenedor Documento Boleta Electrónica -->
+                <div class="card p-4 p-lg-5 border-secondary" style="max-width: 960px;">
+                    <!-- Encabezado Emisor y Recuadro RUC/Boleta -->
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-4 pb-4 mb-4 border-bottom border-secondary">
+                        <div>
+                            <h3 class="font-anton m-0 mb-1">
+                                <span class="text-primary"><i class="fa-solid fa-dumbbell me-1"></i>ENERGY</span> <span class="text-light">GYM</span>
+                            </h3>
+                            <div class="text-light text-xs fw-bold">ENERGY GYM S.A.C. &bull; RUC 20601234567</div>
+                            <div class="text-muted text-2xs">Av. Javier Prado Este 1234, Lima &bull; Representación de Boleta de Venta Electrónica</div>
+                        </div>
+                        <div class="border border-primary p-3 text-center bg-deep-dark" style="min-width: 240px;">
+                            <div class="text-muted font-anton text-2xs">R.U.C. 20601234567</div>
+                            <div class="text-primary font-anton text-xs tracking-wide my-1">BOLETA DE VENTA ELECTRÓNICA</div>
+                            <h5 class="font-anton text-light m-0"
+                                th:text="${codigoPedido == '#PED-00498' ? 'B001-00000498' : (codigoPedido == '#PED-00462' ? 'B001-00000462' : (codigoPedido == '#PED-00419' ? 'B001-00000419' : 'B001-00000521'))}">B001-00000521</h5>
+                        </div>
+                    </div>
+
+                    <!-- Metadatos del Comprobante y Cliente -->
+                    <div class="row g-3 pb-4 mb-4 border-bottom border-secondary text-xs">
+                        <div class="col-md-3 col-6">
+                            <div class="text-muted font-anton text-2xs mb-1">FECHA DE EMISIÓN</div>
+                            <div class="text-light fw-bold"
+                                 th:text="${codigoPedido == '#PED-00498' ? '12 Ene 2025 · 17:18' : (codigoPedido == '#PED-00462' ? '18 Dic 2024 · 09:05' : (codigoPedido == '#PED-00419' ? '04 Dic 2024 · 11:20' : '20 Ene 2025 · 10:45'))}">20 Ene 2025 &bull; 10:45</div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-muted font-anton text-2xs mb-1">PEDIDO ASOCIADO</div>
+                            <div class="text-light fw-bold" th:text="${codigoPedido}">#PED-00521</div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-muted font-anton text-2xs mb-1">MONEDA</div>
+                            <div class="text-light fw-bold">PEN &bull; Soles (S/)</div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-muted font-anton text-2xs mb-1">MEDIO DE PAGO</div>
+                            <div class="text-light fw-bold"><i class="fa-brands fa-cc-visa text-primary me-1"></i>Tarjeta &bull;&bull;&bull;&bull; 4242</div>
+                        </div>
+
+                        <div class="col-md-4 col-6 mt-3">
+                            <div class="text-muted font-anton text-2xs mb-1">CLIENTE</div>
+                            <div class="text-light fw-bold" id="boletaBuyerName" th:text="${socio != null ? socio.nombres + ' ' + socio.apellidos : 'Carlos Mendoza Rojas'}">Carlos Mendoza Rojas</div>
+                        </div>
+                        <div class="col-md-4 col-6 mt-3">
+                            <div class="text-muted font-anton text-2xs mb-1">DOCUMENTO</div>
+                            <div class="text-light fw-bold" id="boletaBuyerDoc">DNI <span th:text="${socio != null ? socio.dni : '72563123'}">72563123</span></div>
+                        </div>
+                        <div class="col-md-4 col-12 mt-3">
+                            <div class="text-muted font-anton text-2xs mb-1">CORREO</div>
+                            <div class="text-light fw-bold" id="boletaBuyerEmail" th:text="${socio != null and socio.usuario != null ? socio.usuario.username : 'carlos.mendoza@ejemplo.com'}">carlos.mendoza@ejemplo.com</div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Ítems Coherente con el Pedido Seleccionado -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-dark table-borderless align-middle m-0 text-xs">
+                            <thead class="border-bottom border-secondary text-muted font-anton text-2xs">
+                                <tr>
+                                    <th class="py-2 ps-0" style="width: 80px;">CANT.</th>
+                                    <th class="py-2">DESCRIPCIÓN</th>
+                                    <th class="py-2 text-end" style="width: 140px;">P. UNIT.</th>
+                                    <th class="py-2 pe-0 text-end" style="width: 140px;">IMPORTE</th>
+                                </tr>
+                            </thead>
+                            <!-- Ítems de #PED-00521 (sincronizado con el Carrito activo) -->
+                            <tbody th:if="${codigoPedido != '#PED-00498' and codigoPedido != '#PED-00462' and codigoPedido != '#PED-00419'}" id="boletaActiveTbody">
+                                <tr class="border-bottom border-secondary">
+                                    <td class="py-3 ps-0 text-light">1</td>
+                                    <td class="py-3 text-light fw-bold">Whey Protein 2 LB (Suplemento Deportivo)</td>
+                                    <td class="py-3 text-end text-light">S/ 149.00</td>
+                                    <td class="py-3 pe-0 text-end font-anton text-light">S/ 149.00</td>
+                                </tr>
+                                <tr class="border-bottom border-secondary">
+                                    <td class="py-3 ps-0 text-light">1</td>
+                                    <td class="py-3 text-light fw-bold">Shaker 700ml (Vaso Mezclador Energy Gym)</td>
+                                    <td class="py-3 text-end text-light">S/ 45.00</td>
+                                    <td class="py-3 pe-0 text-end font-anton text-light">S/ 45.00</td>
+                                </tr>
+                            </tbody>
+                            <!-- Ítems de #PED-00498 -->
+                            <tbody th:if="${codigoPedido == '#PED-00498'}">
+                                <tr class="border-bottom border-secondary">
+                                    <td class="py-3 ps-0 text-light">1</td>
+                                    <td class="py-3 text-light fw-bold">Creatina Monohidratada 300g (Micronizada)</td>
+                                    <td class="py-3 text-end text-light">S/ 95.00</td>
+                                    <td class="py-3 pe-0 text-end font-anton text-light">S/ 95.00</td>
+                                </tr>
+                            </tbody>
+                            <!-- Ítems de #PED-00462 -->
+                            <tbody th:if="${codigoPedido == '#PED-00462'}">
+                                <tr class="border-bottom border-secondary">
+                                    <td class="py-3 ps-0 text-light">2</td>
+                                    <td class="py-3 text-light fw-bold">Shaker 700ml (Vaso Mezclador Energy Gym)</td>
+                                    <td class="py-3 text-end text-light">S/ 45.00</td>
+                                    <td class="py-3 pe-0 text-end font-anton text-light">S/ 90.00</td>
+                                </tr>
+                                <tr class="border-bottom border-secondary">
+                                    <td class="py-3 ps-0 text-light">1</td>
+                                    <td class="py-3 text-light fw-bold">Correas de Levantamiento Par (Straps)</td>
+                                    <td class="py-3 text-end text-light">S/ 39.00</td>
+                                    <td class="py-3 pe-0 text-end font-anton text-light">S/ 39.00</td>
+                                </tr>
+                            </tbody>
+                            <!-- Ítems de #PED-00419 -->
+                            <tbody th:if="${codigoPedido == '#PED-00419'}">
+                                <tr class="border-bottom border-secondary">
+                                    <td class="py-3 ps-0 text-light">1</td>
+                                    <td class="py-3 text-light fw-bold">Whey Protein 2 LB (Suplemento Deportivo)</td>
+                                    <td class="py-3 text-end text-light">S/ 149.00</td>
+                                    <td class="py-3 pe-0 text-end font-anton text-light">S/ 149.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totales Desglosados (Derecha) -->
+                    <div class="row justify-content-end mb-3">
+                        <div class="col-md-5 col-lg-4">
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">Op. gravada (base imponible)</span>
+                                <span class="text-light fw-bold" id="boletaBase"
+                                      th:text="${codigoPedido == '#PED-00498' ? 'S/ 80.51' : (codigoPedido == '#PED-00462' ? 'S/ 109.32' : (codigoPedido == '#PED-00419' ? 'S/ 126.27' : 'S/ 164.41'))}">S/ 164.41</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">IGV (18%)</span>
+                                <span class="text-light fw-bold" id="boletaIgv"
+                                      th:text="${codigoPedido == '#PED-00498' ? 'S/ 14.49' : (codigoPedido == '#PED-00462' ? 'S/ 19.68' : (codigoPedido == '#PED-00419' ? 'S/ 22.73' : 'S/ 29.59'))}">S/ 29.59</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs pb-2 mb-2 border-bottom border-secondary">
+                                <span class="text-muted">Descuento</span>
+                                <span class="text-muted">S/ 0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <span class="text-muted font-anton text-xs tracking-wide">IMPORTE TOTAL</span>
+                                <h3 class="font-anton text-primary m-0" id="boletaTotal"
+                                    th:text="${codigoPedido == '#PED-00498' ? 'S/ 95.00' : (codigoPedido == '#PED-00462' ? 'S/ 129.00' : (codigoPedido == '#PED-00419' ? 'S/ 149.00' : 'S/ 194.00'))}">S/ 194.00</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-top border-secondary text-muted text-2xs">
+                        Representación impresa de Boleta de Venta Electrónica. Autorizado mediante resolución de intendencia de demostración.
+                    </div>
+                </div>
+
+                <!-- Footer Disclaimer -->
+                <div class="mt-4 pt-3 border-top border-secondary text-muted text-2xs d-print-none">
+                    <div>Demostración visual. Pagos y facturación requieren integración posterior.</div>
+                    <div>Pagos online solo para productos. Activación y renovación de membresías presenciales.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

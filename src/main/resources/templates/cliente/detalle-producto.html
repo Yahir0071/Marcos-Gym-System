@@ -10,7 +10,7 @@
                 <nav aria-label="breadcrumb" class="mb-4">
                     <ol class="breadcrumb m-0 font-anton text-sm tracking-wide">
                         <li class="breadcrumb-item"><a th:href="@{/cliente/productos}" class="text-muted text-decoration-none">PRODUCTOS</a></li>
-                        <li class="breadcrumb-item"><span class="text-muted" id="detailBreadcrumbCat" th:text="${producto != null ? producto.categoria : 'SUPLEMENTOS'}">SUPLEMENTOS</span></li>
+                        <li class="breadcrumb-item"><span class="text-muted" id="detailBreadcrumbCat" th:text="${producto != null and (producto.nombre.toUpperCase().contains('SHAKER') or producto.nombre.toUpperCase().contains('BOTELLA')) ? 'BOTELLAS' : (producto != null and (producto.nombre.toUpperCase().contains('CORREA') or producto.nombre.toUpperCase().contains('GUANTE')) ? 'ACCESORIOS' : 'SUPLEMENTOS')}">SUPLEMENTOS</span></li>
                         <li class="breadcrumb-item active text-primary" aria-current="page" id="detailBreadcrumbName" th:text="${producto != null ? producto.nombre : 'WHEY PROTEIN 2 LB'}">WHEY PROTEIN 2 LB</li>
                     </ol>
                 </nav>
@@ -64,7 +64,7 @@
 
                     <!-- Right: Product Details & Dynamic Reservation Form -->
                     <div class="d-flex flex-column">
-                        <span class="text-primary font-anton mb-2 text-sm tracking-wide" id="detailCategory" th:text="${producto != null ? producto.categoria : 'SUPLEMENTOS'}">SUPLEMENTOS</span>
+                        <span class="text-primary font-anton mb-2 text-sm tracking-wide" id="detailCategory" th:text="${producto != null and (producto.nombre.toUpperCase().contains('SHAKER') or producto.nombre.toUpperCase().contains('BOTELLA')) ? 'BOTELLAS' : (producto != null and (producto.nombre.toUpperCase().contains('CORREA') or producto.nombre.toUpperCase().contains('GUANTE')) ? 'ACCESORIOS' : 'SUPLEMENTOS')}">SUPLEMENTOS</span>
                         <h1 class="display-4 font-anton text-light mb-3 leading-none" id="detailName" th:text="${producto != null ? producto.nombre : 'WHEY PROTEIN 2 LB'}">WHEY PROTEIN 2 LB</h1>
                         <p class="text-muted text-sm mb-4" id="detailDesc" th:text="${producto != null ? producto.descripcion : 'Proteína de suero de alta calidad. Ideal para apoyar el crecimiento y la recuperación muscular.'}">
                             Proteína de suero de alta calidad. Ideal para apoyar el crecimiento y la recuperación muscular.
@@ -79,7 +79,7 @@
 
                         <div class="row g-3 mb-4">
                             <div class="col-sm-6">
-                                <label class="form-label">CANTIDAD A RESERVAR</label>
+                                <label class="form-label">CANTIDAD</label>
                                 <div class="d-flex align-items-center border border-secondary rounded bg-card" style="width: 145px;">
                                     <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2" id="btnQtyMinus">-</button>
                                     <input type="number" id="detailQtyInput" class="form-control text-center border-0 bg-transparent text-light p-0 fw-bold" value="1" min="1" max="10" readonly>
@@ -95,11 +95,18 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn btn-primary w-100 d-flex justify-content-between align-items-center py-3 mb-4" id="btnConfirmProductReserve"
-                                th:attr="data-id=${producto != null ? producto.id : 1}">
-                            <span>CONFIRMAR RESERVA DE PRODUCTO</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
+                        <div class="d-flex flex-column gap-2 mb-4">
+                            <a th:href="@{/cliente/carrito}" class="btn btn-primary w-100 d-flex justify-content-between align-items-center py-3" id="btnAddToCartDetail"
+                               th:attr="data-id=${producto != null ? producto.id : 1}, data-name=${producto != null ? producto.nombre : 'Whey Protein 2 LB'}, data-price=${producto != null ? producto.precio : 149.0}, data-img=${producto != null and producto.imagenUrl != null ? producto.imagenUrl : '/img/whey.jpg'}, data-category=${producto != null and (producto.nombre.toUpperCase().contains('SHAKER') or producto.nombre.toUpperCase().contains('BOTELLA')) ? 'Botellas' : 'Suplementos'}">
+                                <span><i class="fa-solid fa-cart-plus me-2"></i> AGREGAR AL CARRITO Y COMPRAR EN LÍNEA</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline w-100 d-flex justify-content-between align-items-center py-3" id="btnConfirmProductReserve"
+                                    th:attr="data-id=${producto != null ? producto.id : 1}">
+                                <span>CONFIRMAR RESERVA PARA PAGO PRESENCIAL</span>
+                                <i class="fa-solid fa-bag-shopping text-primary"></i>
+                            </button>
+                        </div>
 
                         <div class="card p-3 bg-transparent border-secondary">
                             <div class="d-flex align-items-center gap-2 mb-1">

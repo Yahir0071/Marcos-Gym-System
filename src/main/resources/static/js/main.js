@@ -19,7 +19,7 @@ import { initProductCatalog, initProductDetail } from "./public/catalogo.js";
 import { initLoginControls } from "./auth/login.js";
 
 // Client Portal Modules
-import { initWorkoutTracker, initPlanActions, initReservasClient, initNotifications } from "./cliente/portal.js";
+import { initWorkoutTracker, initPlanActions, initReservasClient, initNotifications, initCartAndCompras } from "./cliente/portal.js";
 
 // Admin Module
 import { initTableFilters, initDashboardChart, initAdminTabs, initAdminCrudModals } from "./admin/tables-crud.js";
@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initPlanActions();
     initReservasClient();
     initNotifications();
+    initCartAndCompras();
 
     // 5. Módulo del Panel de Administración
     initTableFilters();

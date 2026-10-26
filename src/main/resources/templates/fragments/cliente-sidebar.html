@@ -17,14 +17,17 @@
             <i class="fa-solid fa-id-card"></i> <span>MI MEMBRESÍA</span>
         </a>
         <a th:href="@{/cliente/productos}" th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')">
-            <i class="fa-solid fa-jar"></i> <span>CATÁLOGO PRODUCTOS</span>
+            <i class="fa-solid fa-jar"></i> <span>PRODUCTOS</span>
         </a>
         <a th:href="@{/cliente/mis-reservas}" th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')">
             <i class="fa-solid fa-bag-shopping"></i> <span>MIS RESERVAS</span>
             <span class="badge bg-dark text-primary border border-secondary ms-auto" id="sidebarReservaCount">4</span>
         </a>
+        <a th:href="@{/cliente/mis-compras}" th:class="'sidebar-link ' + (${activeItem == 'compras'} ? 'active' : '')">
+            <i class="fa-solid fa-credit-card"></i> <span>MIS COMPRAS</span>
+        </a>
         <a th:href="@{/cliente/afluencia}" th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')">
-            <i class="fa-solid fa-people-group"></i> <span>AFLUENCIA EN VIVO</span>
+            <i class="fa-solid fa-people-group"></i> <span>AFLUENCIA</span>
         </a>
         <a th:href="@{/cliente/notificaciones}" th:class="'sidebar-link ' + (${activeItem == 'notificaciones'} ? 'active' : '')">
             <i class="fa-solid fa-bell"></i> <span>NOTIFICACIONES</span>

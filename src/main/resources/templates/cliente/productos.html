@@ -13,9 +13,14 @@
                         <h1 class="display-3 font-anton leading-none mb-1 text-light">CATÁLOGO DE <span class="text-primary">PRODUCTOS</span></h1>
                         <p class="font-anton text-muted m-0 tracking-wide text-lg">RESERVA EN LÍNEA Y RECOGE EN RECEPCIÓN SIN COLAS</p>
                     </div>
-                    <a th:href="@{/cliente/mis-reservas}" class="btn btn-outline">
-                        <i class="fa-solid fa-bag-shopping text-primary"></i> VER MIS RESERVAS
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/cliente/carrito}" class="btn btn-primary">
+                            <i class="fa-solid fa-cart-shopping"></i> TU CARRITO <span class="badge bg-dark text-primary ms-1" id="headerCartBadge">2</span>
+                        </a>
+                        <a th:href="@{/cliente/mis-reservas}" class="btn btn-outline">
+                            <i class="fa-solid fa-bag-shopping text-primary"></i> VER MIS RESERVAS
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Search & Sort Controls -->

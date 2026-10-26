@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Compra Exitosa - Energy Gym</title></head>
+<body>
+    <section class="client-wrapper">
+        <div th:replace="~{fragments/cliente-sidebar :: sidebar('compras')}"></div>
+        <div class="client-main">
+            <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
+            <div class="client-content">
+                <!-- Barra de Progreso del Flujo -->
+                <div class="d-flex align-items-center gap-2 mb-4 text-2xs font-anton tracking-wide">
+                    <span class="badge bg-dark text-muted border border-secondary px-3 py-2">1. TU CARRITO</span>
+                    <i class="fa-solid fa-chevron-right text-muted"></i>
+                    <span class="badge bg-dark text-muted border border-secondary px-3 py-2">2. PAGO EN LÍNEA</span>
+                    <i class="fa-solid fa-chevron-right text-muted"></i>
+                    <span class="badge bg-success text-dark px-3 py-2"><i class="fa-solid fa-check me-1"></i> 3. COMPRA EXITOSA</span>
+                </div>
+
+                <div class="section-subtitle mb-2 text-primary text-2xs">MIS COMPRAS &bull; CONFIRMACIÓN DE PAGO</div>
+                <h1 class="display-3 font-anton leading-none mb-1 text-light">COMPRA EXITOSA</h1>
+                <p class="text-muted text-xs mb-4">Pedido <span th:text="${codigoPedido}">#PED-00521</span> &bull; Boleta Electrónica B001-00000521 emitida</p>
+
+                <div class="card p-4 p-lg-5 border-secondary mb-3" style="max-width: 920px;">
+                    <div class="d-flex align-items-start gap-3 pb-4 mb-4 border-bottom border-secondary">
+                        <div class="d-flex align-items-center justify-content-center border border-success bg-dark text-success font-anton fs-4 rounded" style="width: 54px; height: 54px; flex-shrink: 0;">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <h4 class="font-anton text-light mb-1">TU PEDIDO ESTÁ LISTO PARA RECOJO EN RECEPCIÓN</h4>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-dark text-success border border-success font-anton px-2 py-1 text-2xs">PAGO APROBADO</span>
+                                    <span class="badge bg-dark text-primary border border-primary font-anton px-2 py-1 text-2xs">POR RECOGER EN GIMNASIO</span>
+                                </div>
+                            </div>
+                            <p class="text-muted text-xs mb-0">
+                                Presenta tu DNI y el código <strong class="text-light" th:text="${codigoPedido}">#PED-00521</strong> en el counter de recepción de Energy Gym para retirar tus productos sin hacer cola.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-4 pb-4 mb-4 border-bottom border-secondary">
+                        <div>
+                            <h5 class="font-anton text-light mb-1" th:text="${codigoPedido}">#PED-00521</h5>
+                            <div class="text-muted text-2xs mb-1" id="step3CardSummary">
+                                20 Ene 2025 10:45 &bull; En línea &bull; <i class="fa-brands fa-cc-visa text-primary"></i> Tarjeta VISA &bull;&bull;&bull;&bull; 4242 &bull; Op. OP-EJ-00521
+                            </div>
+                            <div class="text-muted text-2xs mb-3" id="step3BuyerSummary">
+                                Comprador: <strong class="text-light" th:text="${socio != null ? socio.nombres + ' ' + socio.apellidos : 'Carlos Mendoza Rojas'}">Carlos Mendoza Rojas</strong> &bull;
+                                DNI <span th:text="${socio != null ? socio.dni : '72563123'}">72563123</span>
+                            </div>
+
+                            <!-- Productos comprados dinámicos sincronizados con el Carrito -->
+                            <div class="d-flex flex-column gap-2 mt-2" id="step3OrderItems" data-status-note="Listo para recojo">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 48px; height: 48px;">
+                                    <div>
+                                        <div class="text-light text-xs fw-bold">1 &times; Whey Protein 2 LB</div>
+                                        <div class="text-muted text-2xs">Suplementos &bull; S/ 149.00</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 48px; height: 48px;">
+                                    <div>
+                                        <div class="text-light text-xs fw-bold">1 &times; Shaker 700ml</div>
+                                        <div class="text-muted text-2xs">Botellas &bull; S/ 45.00</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-lg-end p-3 rounded bg-deep-dark border border-primary" style="min-width: 230px;">
+                            <div class="text-muted font-anton text-2xs tracking-wide mb-1">TOTAL PAGADO</div>
+                            <h2 class="font-anton text-primary m-0" id="step3OrderTotal">S/ 194.00</h2>
+                            <div class="text-muted text-2xs mt-1" id="step3OrderTaxBreakdown">Base S/ 164.41 + IGV S/ 29.59</div>
+                            <div class="badge bg-dark text-light border border-secondary font-anton text-2xs mt-2">Boleta B001-00000521</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <a th:href="@{/cliente/boleta-venta(codigo=${codigoPedido})}" class="btn btn-primary w-100 py-3 text-center">
+                                <i class="fa-solid fa-file-invoice me-2"></i> VER BOLETA ELECTRÓNICA
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a th:href="@{/cliente/detalle-pedido(codigo=${codigoPedido})}" class="btn btn-outline w-100 py-3 text-center">
+                                <i class="fa-solid fa-box-open me-2"></i> VER DETALLE DEL PEDIDO
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-2">
+                        <a th:href="@{/cliente/mis-compras}" class="text-primary text-decoration-none font-anton text-xs tracking-wide">
+                            IR A MIS COMPRAS &rarr;
+                        </a>
+                        <a th:href="@{/cliente/productos}" class="text-muted text-decoration-none font-anton text-2xs tracking-wide">
+                            VOLVER A LA TIENDA
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Footer Disclaimer -->
+                <div class="mt-4 pt-3 border-top border-secondary text-muted text-2xs">
+                    <div>Demostración visual. Pagos y facturación requieren integración posterior.</div>
+                    <div>Pagos online solo para productos. Activación y renovación de membresías presenciales.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

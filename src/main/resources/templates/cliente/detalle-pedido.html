@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Detalle del Pedido - Energy Gym</title></head>
+<body>
+    <section class="client-wrapper">
+        <div th:replace="~{fragments/cliente-sidebar :: sidebar('compras')}"></div>
+        <div class="client-main">
+            <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
+            <div class="client-content">
+                <div class="mb-2">
+                    <a th:href="@{/cliente/mis-compras}" class="text-muted text-decoration-none font-anton text-2xs tracking-wide">
+                        &larr; VOLVER A MIS COMPRAS
+                    </a>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+                    <div>
+                        <div class="section-subtitle mb-2 text-primary text-2xs">MIS COMPRAS &bull; DETALLE DEL PEDIDO</div>
+                        <h1 class="display-3 font-anton leading-none mb-1 text-light" id="detallePedidoHeaderCode" th:text="${codigoPedido}">#PED-00521</h1>
+                        <p class="font-anton text-muted m-0 tracking-wide text-sm">
+                            EMITIDO:
+                            <span th:text="${codigoPedido == '#PED-00498' ? '12 ENE 2025 · 17:18' : (codigoPedido == '#PED-00462' ? '18 DIC 2024 · 09:05' : (codigoPedido == '#PED-00419' ? '04 DIC 2024 · 11:20' : '20 ENE 2025 · 10:45'))}">20 ENE 2025 &bull; 10:45</span>
+                            &bull; CANAL: COMPRA EN LÍNEA
+                        </p>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span th:if="${codigoPedido == '#PED-00521'}" class="badge bg-dark text-primary border border-primary font-anton px-3 py-2 text-2xs">POR RECOGER EN GIMNASIO</span>
+                        <span th:if="${codigoPedido != '#PED-00521'}" class="badge bg-dark text-muted border border-secondary font-anton px-3 py-2 text-2xs">ENTREGADO EN RECEPCIÓN</span>
+                        <span class="badge bg-dark text-success border border-success font-anton px-3 py-2 text-2xs">PAGO APROBADO</span>
+                    </div>
+                </div>
+
+                <div class="row g-4 align-items-start">
+                    <!-- Columna Izquierda: Productos del Pedido + Comprador y Recojo -->
+                    <div class="col-lg-8">
+                        <div class="card p-4 border-secondary mb-4">
+                            <h5 class="font-anton text-light mb-3" id="detallePedidoCountTitle"
+                                th:text="${codigoPedido == '#PED-00498' or codigoPedido == '#PED-00419' ? 'PRODUCTOS DEL PEDIDO (1)' : (codigoPedido == '#PED-00462' ? 'PRODUCTOS DEL PEDIDO (3)' : 'PRODUCTOS DEL PEDIDO (2)')}">
+                                PRODUCTOS DEL PEDIDO (2)
+                            </h5>
+
+                            <!-- Caso #PED-00521 (sincronizado dinámicamente con el Carrito activo) -->
+                            <div th:if="${codigoPedido != '#PED-00498' and codigoPedido != '#PED-00462' and codigoPedido != '#PED-00419'}" id="detallePedidoActiveItems">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 mb-3 border-bottom border-secondary">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
+                                        <div>
+                                            <h6 class="font-anton text-light mb-1">Whey Protein 2 LB</h6>
+                                            <div class="text-muted text-2xs">Suplementos &bull; Cantidad: 1 &bull; Precio unitario: S/ 149.00</div>
+                                        </div>
+                                    </div>
+                                    <div class="font-anton text-primary fs-5">S/ 149.00</div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
+                                        <div>
+                                            <h6 class="font-anton text-light mb-1">Shaker 700ml</h6>
+                                            <div class="text-muted text-2xs">Botellas &bull; Cantidad: 1 &bull; Precio unitario: S/ 45.00</div>
+                                        </div>
+                                    </div>
+                                    <div class="font-anton text-primary fs-5">S/ 45.00</div>
+                                </div>
+                            </div>
+
+                            <!-- Caso #PED-00498: 1 Creatina Monohidratada 300g -->
+                            <div th:if="${codigoPedido == '#PED-00498'}">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img th:src="@{/img/creatina.jpg}" alt="Creatina Monohidratada 300g" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
+                                        <div>
+                                            <h6 class="font-anton text-light mb-1">Creatina Monohidratada 300g</h6>
+                                            <div class="text-muted text-2xs">Suplementos &bull; Cantidad: 1 &bull; Precio unitario: S/ 95.00</div>
+                                        </div>
+                                    </div>
+                                    <div class="font-anton text-primary fs-5">S/ 95.00</div>
+                                </div>
+                            </div>
+
+                            <!-- Caso #PED-00462: 2 Shaker 700ml + 1 Correas -->
+                            <div th:if="${codigoPedido == '#PED-00462'}">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 mb-3 border-bottom border-secondary">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img th:src="@{/img/shaker.jpg}" alt="Shaker 700ml" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
+                                        <div>
+                                            <h6 class="font-anton text-light mb-1">Shaker 700ml</h6>
+                                            <div class="text-muted text-2xs">Botellas &bull; Cantidad: 2 &bull; Precio unitario: S/ 45.00</div>
+                                        </div>
+                                    </div>
+                                    <div class="font-anton text-primary fs-5">S/ 90.00</div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img th:src="@{/img/shaker.jpg}" alt="Correas de Levantamiento Par" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
+                                        <div>
+                                            <h6 class="font-anton text-light mb-1">Correas de Levantamiento Par</h6>
+                                            <div class="text-muted text-2xs">Accesorios &bull; Cantidad: 1 &bull; Precio unitario: S/ 39.00</div>
+                                        </div>
+                                    </div>
+                                    <div class="font-anton text-primary fs-5">S/ 39.00</div>
+                                </div>
+                            </div>
+
+                            <!-- Caso #PED-00419: 1 Whey Protein 2 LB -->
+                            <div th:if="${codigoPedido == '#PED-00419'}">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img th:src="@{/img/whey.jpg}" alt="Whey Protein 2 LB" class="rounded border border-secondary bg-deep-dark p-1 obj-contain" style="width: 64px; height: 64px;">
+                                        <div>
+                                            <h6 class="font-anton text-light mb-1">Whey Protein 2 LB</h6>
+                                            <div class="text-muted text-2xs">Suplementos &bull; Cantidad: 1 &bull; Precio unitario: S/ 149.00</div>
+                                        </div>
+                                    </div>
+                                    <div class="font-anton text-primary fs-5">S/ 149.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comprador y Recojo -->
+                        <div class="card p-4 border-secondary">
+                            <h5 class="font-anton text-light mb-3">COMPRADOR Y MODALIDAD DE ENTREGA</h5>
+                            <div class="row g-3 text-xs">
+                                <div class="col-md-6">
+                                    <div class="text-muted font-anton text-2xs mb-1">DATOS DEL COMPRADOR</div>
+                                    <div class="text-light fw-bold" id="detallePedidoBuyerName" th:text="${socio != null ? socio.nombres + ' ' + socio.apellidos : 'Carlos Mendoza Rojas'}">Carlos Mendoza Rojas</div>
+                                    <div class="text-muted text-2xs" id="detallePedidoBuyerDoc">
+                                        DNI <span th:text="${socio != null ? socio.dni : '72563123'}">72563123</span> &bull;
+                                        <span th:text="${socio != null and socio.usuario != null ? socio.usuario.username : 'carlos.mendoza@ejemplo.com'}">carlos.mendoza@ejemplo.com</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-muted font-anton text-2xs mb-1">PUNTO DE RECOJO</div>
+                                    <div class="text-light fw-bold">Counter de Recepción &bull; Energy Gym</div>
+                                    <div class="text-muted text-2xs">Presentando DNI físico y código <span class="text-light" th:text="${codigoPedido}">#PED-00521</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Pago y Comprobante -->
+                    <div class="col-lg-4">
+                        <div class="card p-4 border-secondary">
+                            <h5 class="font-anton text-light mb-3">PAGO Y COMPROBANTE</h5>
+
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">Método de pago</span>
+                                <span class="text-light fw-bold">
+                                    <i class="fa-brands fa-cc-visa text-primary me-1"></i>Tarjeta &bull;&bull;&bull;&bull; 4242
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">Referencia de op.</span>
+                                <span class="text-light fw-bold"
+                                      th:text="${codigoPedido == '#PED-00498' ? 'OP-EJ-00498' : (codigoPedido == '#PED-00462' ? 'OP-EJ-00462' : (codigoPedido == '#PED-00419' ? 'OP-EJ-00419' : 'OP-EJ-00521'))}">OP-EJ-00521</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">Fecha de pago</span>
+                                <span class="text-light fw-bold"
+                                      th:text="${codigoPedido == '#PED-00498' ? '12 Ene 2025 17:18' : (codigoPedido == '#PED-00462' ? '18 Dic 2024 09:05' : (codigoPedido == '#PED-00419' ? '04 Dic 2024 11:20' : '20 Ene 2025 10:45'))}">20 Ene 2025 10:45</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs pb-3 mb-3 border-bottom border-secondary">
+                                <span class="text-muted">Boleta electrónica</span>
+                                <span class="text-primary font-anton"
+                                      th:text="${codigoPedido == '#PED-00498' ? 'B001-00000498' : (codigoPedido == '#PED-00462' ? 'B001-00000462' : (codigoPedido == '#PED-00419' ? 'B001-00000419' : 'B001-00000521'))}">B001-00000521</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">Op. gravada (base)</span>
+                                <span class="text-light fw-bold" id="detallePedidoBase"
+                                      th:text="${codigoPedido == '#PED-00498' ? 'S/ 80.51' : (codigoPedido == '#PED-00462' ? 'S/ 109.32' : (codigoPedido == '#PED-00419' ? 'S/ 126.27' : 'S/ 164.41'))}">S/ 164.41</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs mb-2">
+                                <span class="text-muted">IGV (18%)</span>
+                                <span class="text-light fw-bold" id="detallePedidoIgv"
+                                      th:text="${codigoPedido == '#PED-00498' ? 'S/ 14.49' : (codigoPedido == '#PED-00462' ? 'S/ 19.68' : (codigoPedido == '#PED-00419' ? 'S/ 22.73' : 'S/ 29.59'))}">S/ 29.59</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs pb-3 mb-3 border-bottom border-secondary">
+                                <span class="text-muted">Descuento</span>
+                                <span class="text-muted">S/ 0.00</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-baseline mb-4">
+                                <span class="text-muted font-anton text-xs tracking-wide">TOTAL PAGADO</span>
+                                <h3 class="font-anton text-primary m-0" id="detallePedidoTotal"
+                                    th:text="${codigoPedido == '#PED-00498' ? 'S/ 95.00' : (codigoPedido == '#PED-00462' ? 'S/ 129.00' : (codigoPedido == '#PED-00419' ? 'S/ 149.00' : 'S/ 194.00'))}">S/ 194.00</h3>
+                            </div>
+
+                            <a th:href="@{/cliente/boleta-venta(codigo=${codigoPedido})}" class="btn btn-primary w-100 py-3 text-center mb-2">
+                                <i class="fa-solid fa-file-invoice me-2"></i> VER BOLETA DE VENTA
+                            </a>
+                            <button type="button" class="btn btn-outline w-100 py-2 text-center btn-download-boleta">
+                                <i class="fa-solid fa-download me-2"></i> DESCARGAR BOLETA (PDF)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Disclaimer -->
+                <div class="mt-5 pt-3 border-top border-secondary text-muted text-2xs">
+                    <div>Demostración visual. Pagos y facturación requieren integración posterior.</div>
+                    <div>Pagos online solo para productos. Activación y renovación de membresías presenciales.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

@@ -50,8 +50,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/inicio", "/planes", "/promociones", "/productos", "/afluencia", "/detalle-producto").permitAll()
                 // Autenticación pública
                 .requestMatchers("/login").permitAll()
-                // Módulo exclusivo de Clientes (Socios)
-                .requestMatchers("/cliente/**").hasRole("CLIENTE")
+                // Módulo de Clientes (Socios) y visualización desde Admin
+                .requestMatchers("/cliente/**").hasAnyRole("CLIENTE", "ADMINISTRADOR")
                 // Módulo exclusivo de Administradores
                 .requestMatchers("/admin/**").hasRole("ADMINISTRADOR")
                 // Cualquier otra solicitud requiere autenticación
