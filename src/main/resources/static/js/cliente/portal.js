@@ -7,47 +7,7 @@ import { postJson } from "../core/api-client.js";
 import { openGymModal } from "../core/modal.js";
 import { showGymToast } from "../core/toast.js";
 
-export function initWorkoutTracker() {
-    const workoutBtns = document.querySelectorAll(".workout-day-btn");
-    if (workoutBtns.length === 0) return;
-
-    const updateWorkoutTrackerSummary = () => {
-        const activeCount = document.querySelectorAll(".workout-day-btn.active").length;
-        const summary = document.getElementById("weeklyTrackerSummary");
-        if (summary) summary.textContent = `${activeCount} / 6 DÍAS COMPLETADOS`;
-        const att = document.getElementById("memberAttendanceCount");
-        if (att) att.textContent = `${13 + activeCount} visitas`;
-        const streak = document.getElementById("topbarStreakCount");
-        if (streak) streak.textContent = `${7 + activeCount} DÍAS 🔥`;
-    };
-
-    workoutBtns.forEach((btn) => {
-        btn.addEventListener("click", function () {
-            this.classList.toggle("active");
-            const icon = this.querySelector("i");
-            if (this.classList.contains("active")) {
-                if (icon) icon.className = "fa-solid fa-circle-check fs-4 text-primary";
-                showGymToast(`¡Entrenamiento del día ${this.getAttribute("data-day")} registrado!`, "fa-dumbbell");
-            } else {
-                if (icon) icon.className = "fa-regular fa-circle fs-4 text-muted";
-            }
-            updateWorkoutTrackerSummary();
-        });
-    });
-
-    const btnCheckinToday = document.getElementById("btnCheckinToday");
-    if (btnCheckinToday) {
-        btnCheckinToday.addEventListener("click", function () {
-            const todayBtn = document.getElementById("todayWorkoutBtn");
-            if (todayBtn && !todayBtn.classList.contains("active")) {
-                todayBtn.click();
-            } else {
-                showGymToast("¡Tu asistencia de hoy ya está registrada! Sigue así 🔥", "fa-fire");
-            }
-            this.innerHTML = `<i class="fa-solid fa-check"></i> ENTRENO DE HOY REGISTRADO`;
-        });
-    }
-}
+export { initWorkoutTracker } from "./rutina.js";
 
 export function initPlanActions() {
     const btnRenewPlan = document.getElementById("btnRenewPlan");
