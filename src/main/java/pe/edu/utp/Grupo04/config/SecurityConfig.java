@@ -47,7 +47,7 @@ public class SecurityConfig {
                 // Recursos estáticos públicos y ruta de error
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
                 // Vistas públicas
-                .requestMatchers("/", "/inicio", "/planes", "/promociones", "/productos", "/afluencia", "/detalle-producto").permitAll()
+                .requestMatchers("/", "/inicio", "/planes", "/promociones", "/productos", "/afluencia", "/detalle-producto", "/api/**").permitAll()
                 // Autenticación pública
                 .requestMatchers("/login", "/registrarse", "/registro", "/register").permitAll()
                 // Módulo de Clientes (Socios) y visualización desde Admin

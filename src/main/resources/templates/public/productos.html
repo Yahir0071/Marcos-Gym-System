@@ -4,10 +4,12 @@
 <body>
     <section>
         <div th:replace="~{fragments/navbar :: navbar}"></div>
-        <div class="container-fluid px-4 px-lg-5 page-container">
-            <div class="section-subtitle has-line mb-3">NUTRE TU ESFUERZO</div>
-            <h1 class="display-3 font-anton leading-none mb-1 text-light">PRODUCTOS<br><span class="text-primary">SUPLEMENTOS Y MÁS</span></h1>
-            <p class="font-anton text-muted mb-4 tracking-wide text-lg">CALIDAD CERTIFICADA PARA TU MEJOR VERSIÓN</p>
+        <div class="container-fluid px-4 px-lg-5 page-container" style="max-width: 1360px; margin-left: auto; margin-right: auto;">
+            <div class="pt-2 mb-4">
+                <div class="section-subtitle has-line mb-3">NUTRE TU ESFUERZO</div>
+                <h1 class="display-3 font-anton leading-none mb-2 text-light">PRODUCTOS<br><span class="text-primary">SUPLEMENTOS Y MÁS</span></h1>
+                <p class="font-anton text-muted m-0 tracking-wide text-lg">CALIDAD CERTIFICADA PARA TU MEJOR VERSIÓN</p>
+            </div>
 
             <!-- Search & Sort Controls -->
             <div class="row g-3 align-items-end mb-4">
@@ -63,11 +65,12 @@
                         <p class="text-muted text-xs mb-3" th:text="${prod.descripcion}">24g de proteína aislada por servicio para máxima recuperación.</p>
                         <h4 class="font-anton text-primary mb-4 mt-auto" th:text="'S/ ' + ${#numbers.formatDecimal(prod.precio, 1, 'POINT', 0, 'POINT')}">S/ 149</h4>
                         <div class="d-flex gap-2">
-                            <a th:href="@{/detalle-producto(id=${prod.id})}" class="btn btn-outline flex-grow-1">VER DETALLE</a>
-                            <button type="button" class="btn btn-primary px-3 btn-quick-reserve" 
-                                    th:attr="data-product=${prod.nombre}, data-price=${prod.precio}, data-id=${prod.id}" title="Reservar rápido">
-                                <i class="fa-solid fa-bag-shopping"></i>
-                            </button>
+                            <a th:href="@{/detalle-producto(id=${prod.id})}" class="btn btn-outline flex-grow-1 font-anton text-xs">
+                                <i class="fa-solid fa-eye me-1"></i> DETALLE
+                            </a>
+                            <a th:href="@{/detalle-producto(id=${prod.id})}" class="btn btn-primary px-3 font-anton text-xs d-flex align-items-center gap-1" title="Comprar en línea con pasarela de pago">
+                                <i class="fa-solid fa-credit-card"></i> COMPRAR
+                            </a>
                         </div>
                     </div>
                 </div>
