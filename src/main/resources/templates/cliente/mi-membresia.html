@@ -112,23 +112,25 @@
                         </ul>
                     </div>
 
-                    <div class="card p-4 d-flex flex-column" id="renewalAlertCard" 
-                         th:style="${estaPorVencer} ? 'border-top: 3px solid #ff3366; box-shadow: 0 -10px 20px rgba(255,51,102,0.12);' : 'border-top: 3px solid #00f0ff; box-shadow: 0 -10px 20px rgba(0,240,255,0.08);'">
+                    <div class="card p-4 d-flex flex-column" id="monthlyGoalCard" style="border-top: 3px solid var(--primary);">
                         <div class="d-flex align-items-center gap-2 mb-3">
-                            <i th:class="${estaPorVencer} ? 'fa-solid fa-triangle-exclamation text-danger fs-5' : 'fa-solid fa-circle-check text-primary fs-5'" id="renewalAlertIcon"></i>
-                            <h6 class="font-anton m-0" th:classappend="${estaPorVencer} ? 'text-danger' : 'text-primary'" id="renewalAlertTitle"
-                                th:text="${estaPorVencer} ? 'TU PLAN ESTÁ POR VENCER' : 'MEMBRESÍA ACTIVA Y AL DÍA'">TU PLAN ESTÁ POR VENCER</h6>
+                            <i class="fa-solid fa-bullseye text-primary fs-5"></i>
+                            <h6 class="font-anton text-primary m-0">TU META DEL MES</h6>
                         </div>
-                        <p class="text-muted text-sm mb-4" id="renewalAlertDesc" th:if="${membresia != null}">
-                            Te quedan <strong th:class="${estaPorVencer} ? 'text-danger' : 'text-primary'" th:text="${diasRestantes + ' días'}">4 días</strong> de membresía. 
-                            <span th:text="${estaPorVencer} ? 'Solicita tu renovación o cambia al Plan Premium para que tu progreso no se detenga.' : 'Continúa entrenando al máximo y aprovechando todos tus beneficios exclusivos.'"></span>
-                        </p>
-                        <p class="text-muted text-sm mb-4" id="renewalAlertDesc" th:if="${membresia == null}">
-                            Actualmente no cuentas con una membresía activa. Revisa nuestros planes para comenzar tu entrenamiento.
+                        <div class="d-flex justify-content-between align-items-end mb-2">
+                            <span class="text-muted text-sm">Entrenamientos completados</span>
+                            <strong class="font-anton text-light" id="monthlyGoalCount">18 / 20</strong>
+                        </div>
+                        <div class="progress progress-custom mb-3" role="progressbar" aria-label="Progreso de la meta mensual"
+                             aria-valuemin="0" aria-valuemax="20" aria-valuenow="18" style="height: 10px;">
+                            <div class="progress-bar progress-bar-custom" id="monthlyGoalProgress" style="width: 90%;"></div>
+                        </div>
+                        <p class="text-muted text-sm mb-4" id="monthlyGoalMessage">
+                            ¡Vas muy bien! Te faltan <strong class="text-primary">2 entrenamientos</strong> para alcanzar tu meta mensual.
                         </p>
                         <div class="d-flex gap-2 mt-auto">
-                            <a href="/public/planes" class="btn btn-primary flex-grow-1 justify-content-between" id="btnRenewPlan">
-                                <span th:text="${estaPorVencer} ? 'RENOVAR / MEJORAR PLAN' : 'VER PLANES DISPONIBLES'">RENOVAR / MEJORAR PLAN</span> <i class="fa-solid fa-arrow-right"></i>
+                            <a th:href="@{/planes}" class="btn btn-outline flex-grow-1 justify-content-between" id="btnRenewPlan">
+                                <span>VER PLANES DISPONIBLES</span> <i class="fa-solid fa-arrow-right"></i>
                             </a>
                         </div>
                     </div>
