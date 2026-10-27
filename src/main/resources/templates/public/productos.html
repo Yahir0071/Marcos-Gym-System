@@ -27,7 +27,7 @@
 
             <!-- Category Filter Pills -->
             <div class="d-flex gap-2 flex-wrap mb-5" id="publicCategoryFilters">
-                <button type="button" class="btn btn-primary px-4 cat-filter-btn active" data-category="ALL">TODOS (6)</button>
+                <button type="button" class="btn btn-primary px-4 cat-filter-btn active" data-category="ALL" th:text="'TODOS (' + ${#lists.size(productos)} + ')'">TODOS</button>
                 <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="SUPLEMENTOS">SUPLEMENTOS</button>
                 <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="ACCESORIOS">ACCESORIOS</button>
                 <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="ROPA">ROPA</button>
