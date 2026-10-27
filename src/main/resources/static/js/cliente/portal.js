@@ -281,6 +281,17 @@ export function initCartAndCompras() {
     ];
 
     const getStoredCartItems = () => {
+        const reservationCheckout = document.getElementById("reservationCheckout");
+        if (reservationCheckout) {
+            return [{
+                id: reservationCheckout.dataset.productId || 1,
+                name: reservationCheckout.dataset.name || "Producto Reservado",
+                category: reservationCheckout.dataset.category || "Suplementos",
+                img: reservationCheckout.dataset.img || "/img/whey.jpg",
+                price: Number(reservationCheckout.dataset.price || 0),
+                qty: Number(reservationCheckout.dataset.qty || 1)
+            }];
+        }
         try {
             const raw = sessionStorage.getItem("energyGymCartItems");
             if (raw) {
@@ -797,7 +808,8 @@ export function initCartAndCompras() {
             saveBuyerInfo();
 
             try {
-                const resp = await postJson("/cliente/api/compras", {
+                const reservationCheckout = document.getElementById("reservationCheckout");
+                const payload = {
                     estado: scenario,
                     buyerName,
                     buyerDocType,
@@ -806,7 +818,11 @@ export function initCartAndCompras() {
                     cardBrand,
                     cardLast4,
                     items
-                });
+                };
+                if (reservationCheckout && reservationCheckout.dataset.reservationId) {
+                    payload.reservaId = reservationCheckout.dataset.reservationId;
+                }
+                const resp = await postJson("/cliente/api/compras", payload);
                 if (resp.ok) {
                     const data = await resp.json();
                     if (scenario === "PAGADO" || scenario === "EN_PROCESO") {

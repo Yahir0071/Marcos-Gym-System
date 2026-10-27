@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'pagos', ~{::main})}">
-<head><title>Pagos Presenciales - Energy Gym</title></head>
+<head><title>Auditoría de Pagos y Boletas - Energy Gym</title></head>
 <body>
 <main class="admin-page">
     <div class="page-header">
         <div>
-            <small class="subtitle">REGISTRA PAGOS RECIBIDOS EN EL GIMNASIO</small>
-            <h1>PAGOS PRESENCIALES</h1>
-            <p>CONTROL DE CAJA Y PAGOS REALIZADOS EN NUESTRO LOCAL</p>
+            <small class="subtitle">AUDITORÍA Y CONTROL FINANCIERO DEL GIMNASIO</small>
+            <h1>GESTIÓN DE PAGOS Y BOLETAS</h1>
+            <p>PAGOS PRESENCIALES EN CAJA Y AUDITORÍA DE TRANSACCIONES EN LÍNEA (RF11 / RF22)</p>
         </div>
         <div>
-            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">+ REGISTRAR PAGO</button>
+            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">+ REGISTRAR PAGO EN CAJA</button>
         </div>
     </div>
 
@@ -24,82 +24,182 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- Info Banner -->
-    <div class="info-banner mb-4">
-        <span class="info-icon fs-5 text-primary"><i class="fa-solid fa-cash-register"></i></span>
-        <div>
-            <strong>SOLO REGISTRO DE PAGOS RECIBIDOS PRESENCIALMENTE EN RECEPCIÓN</strong>
-            <small>Aceptamos Efectivo, Tarjeta POS, Transferencia y Billeteras Digitales (Yape / Plin).</small>
+    <!-- Pestañas de Navegación (RF11 Presencial vs RF22 Online) -->
+    <ul class="nav nav-pills custom-tabs mb-4" id="pagosTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active font-anton tracking-wide" id="tab-presencial-btn" data-bs-toggle="pill" data-bs-target="#tab-presencial" type="button" role="tab">
+                <i class="fa-solid fa-cash-register me-2"></i> PAGOS EN CAJA (PRESENCIAL)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link font-anton tracking-wide" id="tab-online-btn" data-bs-toggle="pill" data-bs-target="#tab-online" type="button" role="tab">
+                <i class="fa-solid fa-credit-card me-2"></i> TRANSACCIONES Y BOLETAS EN LÍNEA (RF22)
+                <span class="badge bg-primary text-black ms-2" th:text="${#lists.size(comprasOnline)}">4</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pagosTabsContent">
+        <!-- TAB 1: PAGOS PRESENCIALES EN CAJA (RF11) -->
+        <div class="tab-pane fade show active" id="tab-presencial" role="tabpanel">
+            <div class="info-banner mb-4">
+                <span class="info-icon fs-5 text-primary"><i class="fa-solid fa-receipt"></i></span>
+                <div>
+                    <strong>REGISTRO DE PAGOS RECIBIDOS PRESENCIALMENTE EN RECEPCIÓN (PostgreSQL)</strong>
+                    <small>Acepta Efectivo, Tarjeta POS, Transferencia y Billeteras Digitales (Yape / Plin) vinculados a membresías.</small>
+                </div>
+            </div>
+
+            <!-- Filters Presencial -->
+            <div class="filters-bar">
+                <div class="filter-group filter-large">
+                    <label>BUSCAR PAGO EN CAJA</label>
+                    <input type="text" class="table-search-input" placeholder="Buscar por socio, concepto o método...">
+                </div>
+                <div class="filter-group">
+                    <label>MÉTODO DE PAGO</label>
+                    <select class="table-filter-select" data-filter-col="5">
+                        <option value="">TODOS LOS MÉTODOS</option>
+                        <option value="EFECTIVO">EFECTIVO</option>
+                        <option value="TARJETA">TARJETA</option>
+                        <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                        <option value="YAPE">YAPE</option>
+                        <option value="PLIN">PLIN</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Presencial -->
+            <div class="table-container">
+                <table class="custom-table filterable-table" id="tablaPagos">
+                    <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>FECHA Y HORA</th>
+                        <th>SOCIO</th>
+                        <th>PLAN / CONCEPTO</th>
+                        <th>MONTO</th>
+                        <th>MÉTODO</th>
+                        <th>ESTADO</th>
+                        <th>ACCIÓN</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="pago : ${pagos}">
+                        <td class="code-cell" th:text="${#numbers.formatInteger(pago.id, 3)}">001</td>
+                        <td th:text="${#temporals.format(pago.fechaPago, 'dd MMM yyyy, HH:mm')}">20 Ene 2025, 14:30</td>
+                        <td>
+                            <div class="fw-bold" th:text="${pago.membresia.socio.nombres + ' ' + pago.membresia.socio.apellidos}">Carlos Mendoza</div>
+                            <small class="text-muted" th:text="${'DNI: ' + pago.membresia.socio.dni}">DNI: 72563123</small>
+                        </td>
+                        <td th:text="${pago.membresia.plan.nombre}">Plan Plus</td>
+                        <td class="text-primary fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(pago.monto, 1, 2)}">S/ 119.00</td>
+                        <td class="fw-bold" th:text="${pago.metodoPago}">Efectivo</td>
+                        <td><span class="badge bg-success">PAGADO</span></td>
+                        <td>
+                            <button type="button" class="btn-edit-row btn-view-voucher"
+                                    th:data-pago-id="${pago.id}"
+                                    th:data-socio="${pago.membresia.socio.nombres + ' ' + pago.membresia.socio.apellidos}"
+                                    th:data-dni="${pago.membresia.socio.dni}"
+                                    th:data-plan="${pago.membresia.plan.nombre}"
+                                    th:data-monto="${#numbers.formatDecimal(pago.monto, 1, 2)}"
+                                    th:data-metodo="${pago.metodoPago}"
+                                    th:data-fecha="${#temporals.format(pago.fechaPago, 'dd/MM/yyyy HH:mm')}">
+                                COMPROBANTE
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pagos)}">
+                        <td colspan="8" class="text-center text-muted py-4">No se han registrado pagos presenciales en la caja.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: AUDITORÍA DE COMPRAS Y BOLETAS EN LÍNEA (RF22) -->
+        <div class="tab-pane fade" id="tab-online" role="tabpanel">
+            <div class="info-banner mb-4">
+                <span class="info-icon fs-5 text-warning"><i class="fa-solid fa-shield-halved"></i></span>
+                <div>
+                    <strong>AUDITORÍA DE PAGOS ELECTRÓNICOS Y BOLETAS DEL PROTOTIPO (RF22)</strong>
+                    <small>Muestra pagos en pasarela simulada, trazabilidad de referencias, desglose contable IGV y control de entrega presencial.</small>
+                </div>
+            </div>
+
+            <!-- Table Online -->
+            <div class="table-container">
+                <table class="custom-table" id="tablaComprasOnline">
+                    <thead>
+                    <tr>
+                        <th>PEDIDO</th>
+                        <th>BOLETA</th>
+                        <th>FECHA</th>
+                        <th>CLIENTE / SOCIO</th>
+                        <th>CONCEPTO</th>
+                        <th>TOTAL</th>
+                        <th>PAGO</th>
+                        <th>ESTADO ENTREGA</th>
+                        <th>ACCIONES</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="ord : ${comprasOnline}">
+                        <td class="code-cell font-anton text-primary" th:text="${ord.codigo}">#PED-00521</td>
+                        <td class="fw-bold" th:text="${ord.boleta}">B001-00000521</td>
+                        <td th:text="${ord.fecha}">20 Ene 2025 · 10:45</td>
+                        <td>
+                            <div class="fw-bold" th:text="${ord.buyerName}">Carlos Mendoza</div>
+                            <small class="text-muted" th:text="${ord.buyerDocType + ': ' + ord.buyerDocNum}">DNI: 72563123</small>
+                        </td>
+                        <td>
+                            <span class="text-light" th:text="${ord.resumenItems}">2 items</span>
+                        </td>
+                        <td class="text-primary fw-bold font-anton fs-6" th:text="${'S/ ' + ord.totalFormatted}">S/ 194.00</td>
+                        <td>
+                            <span th:if="${ord.estadoPago == 'PAGADO'}" class="badge bg-success">PAGADO</span>
+                            <span th:if="${ord.estadoPago == 'EN_PROCESO'}" class="badge bg-warning text-dark">EN REVISIÓN</span>
+                            <span th:if="${ord.estadoPago == 'RECHAZADO'}" class="badge bg-danger">RECHAZADO</span>
+                            <span th:if="${ord.estadoPago == 'CANCELADO'}" class="badge bg-secondary">CANCELADO</span>
+                        </td>
+                        <td>
+                            <span th:if="${ord.estadoEntrega == 'ENTREGADO'}" class="badge bg-info text-dark">
+                                <i class="fa-solid fa-check-double me-1"></i> ENTREGADO
+                            </span>
+                            <span th:if="${ord.estadoEntrega == 'POR RECOGER EN GIMNASIO'}" class="badge bg-warning text-dark">
+                                <i class="fa-solid fa-box-archive me-1"></i> POR RECOGER
+                            </span>
+                            <span th:if="${ord.estadoEntrega == 'ACTIVADA'}" class="badge bg-success">
+                                <i class="fa-solid fa-bolt me-1"></i> ACTIVADA
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a th:href="@{/cliente/boleta-venta(codigo=${ord.codigo})}" target="_blank" class="btn btn-sm btn-outline text-nowrap" title="Ver Boleta de Venta">
+                                    <i class="fa-solid fa-file-invoice me-1"></i> BOLETA
+                                </a>
+                                <a th:href="@{/cliente/boleta-venta/descargar(codigo=${ord.codigo})}" class="btn btn-sm btn-outline text-nowrap" title="Descargar comprobante TXT/PDF">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                                <button th:if="${ord.estadoEntrega == 'POR RECOGER EN GIMNASIO'}"
+                                        type="button"
+                                        class="btn btn-sm btn-primary text-nowrap btn-entregar-pedido"
+                                        th:data-codigo="${ord.codigo}">
+                                    <i class="fa-solid fa-hand-holding-box me-1"></i> ENTREGAR
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(comprasOnline)}">
+                        <td colspan="9" class="text-center text-muted py-4">No se han registrado transacciones de prueba online todavía.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="filters-bar">
-        <div class="filter-group filter-large">
-            <label>BUSCAR PAGO</label>
-            <input type="text" class="table-search-input" placeholder="Buscar por socio, concepto o método...">
-        </div>
-        <div class="filter-group">
-            <label>MÉTODO DE PAGO</label>
-            <select class="table-filter-select" data-filter-col="5">
-                <option value="">TODOS LOS MÉTODOS</option>
-                <option value="EFECTIVO">EFECTIVO</option>
-                <option value="TARJETA">TARJETA</option>
-                <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                <option value="YAPE">YAPE</option>
-                <option value="PLIN">PLIN</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Table -->
-    <div class="table-container">
-        <table class="custom-table filterable-table" id="tablaPagos">
-            <thead>
-            <tr>
-                <th>N°</th>
-                <th>FECHA Y HORA</th>
-                <th>SOCIO</th>
-                <th>PLAN / CONCEPTO</th>
-                <th>MONTO</th>
-                <th>MÉTODO</th>
-                <th>ESTADO</th>
-                <th>ACCIÓN</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="pago : ${pagos}">
-                <td class="code-cell" th:text="${#numbers.formatInteger(pago.id, 3)}">001</td>
-                <td th:text="${#temporals.format(pago.fechaPago, 'dd MMM yyyy, HH:mm')}">20 Ene 2025, 14:30</td>
-                <td>
-                    <div class="fw-bold" th:text="${pago.membresia.socio.nombres + ' ' + pago.membresia.socio.apellidos}">Carlos Mendoza</div>
-                    <small class="text-muted" th:text="${'DNI: ' + pago.membresia.socio.dni}">DNI: 72563123</small>
-                </td>
-                <td th:text="${pago.membresia.plan.nombre}">Plan Plus</td>
-                <td class="text-primary fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(pago.monto, 1, 2)}">S/ 119.00</td>
-                <td class="fw-bold" th:text="${pago.metodoPago}">Efectivo</td>
-                <td><span>PAGADO</span></td>
-                <td>
-                    <button type="button" class="btn-edit-row btn-view-voucher"
-                            th:data-pago-id="${pago.id}"
-                            th:data-socio="${pago.membresia.socio.nombres + ' ' + pago.membresia.socio.apellidos}"
-                            th:data-dni="${pago.membresia.socio.dni}"
-                            th:data-plan="${pago.membresia.plan.nombre}"
-                            th:data-monto="${#numbers.formatDecimal(pago.monto, 1, 2)}"
-                            th:data-metodo="${pago.metodoPago}"
-                            th:data-fecha="${#temporals.format(pago.fechaPago, 'dd/MM/yyyy HH:mm')}">
-                        COMPROBANTE
-                    </button>
-                </td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(pagos)}">
-                <td colspan="8" class="text-center text-muted py-4">No se han registrado pagos presenciales en la caja.</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Modal Registrar Pago -->
+    <!-- Modal Registrar Pago Presencial -->
     <div class="modal fade" id="modalRegistrarPago" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content gym-modal">
@@ -149,5 +249,33 @@
         </div>
     </div>
 </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".btn-entregar-pedido").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            var codigo = this.getAttribute("data-codigo");
+            if (!confirm("¿Confirmar la entrega física de los productos para el pedido " + codigo + "?")) {
+                return;
+            }
+            fetch("/admin/api/compras/" + encodeURIComponent(codigo) + "/entregar", {
+                method: "POST"
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert("No se pudo actualizar el estado de entrega.");
+                }
+            })
+            .catch(function(err) {
+                console.error(err);
+                alert("Error de comunicación con el servidor.");
+            });
+        });
+    });
+});
+</script>
 </body>
 </html>

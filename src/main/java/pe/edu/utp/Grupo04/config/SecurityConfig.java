@@ -41,7 +41,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf
                 // Eximir /login y endpoints JSON internos del token CSRF para evitar 403 en sesiones demo
-                .ignoringRequestMatchers("/login", "/api/**", "/cliente/api/**")
+                .ignoringRequestMatchers("/login", "/registrarse", "/registro", "/register", "/api/**", "/cliente/api/**")
             )
             .authorizeHttpRequests(auth -> auth
                 // Recursos estáticos públicos y ruta de error
@@ -49,7 +49,7 @@ public class SecurityConfig {
                 // Vistas públicas
                 .requestMatchers("/", "/inicio", "/planes", "/promociones", "/productos", "/afluencia", "/detalle-producto").permitAll()
                 // Autenticación pública
-                .requestMatchers("/login").permitAll()
+                .requestMatchers("/login", "/registrarse", "/registro", "/register").permitAll()
                 // Módulo de Clientes (Socios) y visualización desde Admin
                 .requestMatchers("/cliente/**").hasAnyRole("CLIENTE", "ADMINISTRADOR")
                 // Módulo exclusivo de Administradores

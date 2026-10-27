@@ -68,6 +68,11 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-2">
+                                        <a th:if="${res.estado.name() == 'PENDIENTE'}"
+                                           th:href="@{/cliente/pago-en-linea(reservaId=${res.id})}"
+                                           class="btn-table-action btn-primary text-decoration-none">
+                                            <i class="fa-solid fa-credit-card me-1"></i> PAGAR
+                                        </a>
                                         <button type="button" class="btn-table-action btn-view-voucher"
                                                 th:data-code="'#RES-' + ${#numbers.formatInteger(res.id, 5)}"
                                                 th:data-product="${res.producto.nombre}"

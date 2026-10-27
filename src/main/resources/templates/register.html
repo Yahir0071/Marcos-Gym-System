@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Contratación de Membresía - Energy Gym</title></head>
+<body>
+    <section class="d-flex flex-column min-vh-100 position-relative"
+             style="background: linear-gradient(180deg, rgba(8, 10, 14, 0.88) 0%, rgba(8, 10, 14, 0.96) 100%), url('/img/login-bg.jpg') center top / cover no-repeat fixed;">
+        <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+        <div class="container-fluid px-4 px-lg-5 page-container flex-grow-1">
+            <!-- Stepper de Contratación por Pasos (Estilo Smart Fit) -->
+            <div class="card p-3 mb-4 border-secondary bg-card" style="backdrop-filter: blur(12px); background-color: rgba(17, 21, 30, 0.92);">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-2xs font-anton tracking-wide">
+                    <div class="d-flex align-items-center gap-2 step-indicator" id="stepIndicator1">
+                        <span class="badge bg-primary text-dark rounded-circle px-2 py-1 fs-6">1</span>
+                        <span class="text-light fw-bold">DATOS DEL SOCIO</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-muted d-none d-sm-inline"></i>
+                    <div class="d-flex align-items-center gap-2 step-indicator" id="stepIndicator2">
+                        <span class="badge bg-dark text-muted border border-secondary rounded-circle px-2 py-1 fs-6">2</span>
+                        <span class="text-muted">CUENTA &amp; FACTURACIÓN</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-muted d-none d-sm-inline"></i>
+                    <div class="d-flex align-items-center gap-2 step-indicator" id="stepIndicator3">
+                        <span class="badge bg-dark text-muted border border-secondary rounded-circle px-2 py-1 fs-6">3</span>
+                        <span class="text-muted">MÉTODO DE PAGO</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-muted d-none d-sm-inline"></i>
+                    <div class="d-flex align-items-center gap-2 step-indicator" id="stepIndicator4">
+                        <span class="badge bg-dark text-muted border border-secondary rounded-circle px-2 py-1 fs-6">4</span>
+                        <span class="text-muted">REVISIÓN &amp; CONFIRMACIÓN</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 align-items-start">
+                <!-- COLUMNA IZQUIERDA: RESUMEN CONTINUO DEL PLAN (Conserva Selección Trimestral/Anual) -->
+                <div class="col-lg-5">
+                    <div class="card p-4 p-lg-5 border-secondary bg-card mb-4 position-relative" 
+                         id="membershipSummaryCard"
+                         style="backdrop-filter: blur(12px); background-color: rgba(17, 21, 30, 0.92);"
+                         th:attr="data-base-price=${baseMensual}, data-meses=${meses}, data-periodo=${periodo}, data-total=${precioTotal}">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="section-subtitle mb-0 text-2xs">RESUMEN DE CONTRATACIÓN</span>
+                            <span class="badge bg-primary text-dark font-anton px-3 py-1">MATRÍCULA S/ 0</span>
+                        </div>
+
+                        <!-- Título del Plan y Periodo Conservado -->
+                        <h2 class="font-anton text-light text-3xl mb-1" id="summaryPlanName"
+                            th:text="${selectedPlan != null ? selectedPlan.nombre.toUpperCase() : 'PLAN PLUS'}">PLAN PLUS</h2>
+                        
+                        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded bg-elevated border border-secondary mb-3">
+                            <i class="fa-solid fa-clock-rotate-left text-primary"></i>
+                            <span class="font-anton text-primary text-xs" id="summaryPeriodBadge"
+                                  th:text="${periodo == 'TRIMESTRAL' ? 'MODALIDAD TRIMESTRAL (3 MESES)' : (periodo == 'ANUAL' ? 'MODALIDAD ANUAL (12 MESES)' : 'MODALIDAD MENSUAL')}">MODALIDAD TRIMESTRAL (3 MESES)</span>
+                        </div>
+
+                        <p class="text-muted text-xs mb-3" id="summaryPlanDesc"
+                           th:text="${selectedPlan != null ? selectedPlan.descripcion : 'Acceso total e ilimitado a todas las áreas de musculación y fuerza biomecánica sin restricciones de horario.'}">
+                            Acceso total e ilimitado a todas las áreas de musculación y fuerza biomecánica sin restricciones de horario.
+                        </p>
+
+                        <!-- Selector interactivo para cambiar modalidad en vivo -->
+                        <div class="mb-3">
+                            <label class="form-label text-2xs text-muted fw-bold">DURACIÓN Y FACTURACIÓN</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm flex-grow-1 duration-btn" data-mode="MENSUAL" data-mult="1" data-disc="1"
+                                        th:classappend="${periodo == 'MENSUAL'} ? 'btn-primary' : 'btn-outline'">
+                                    1 MES
+                                </button>
+                                <button type="button" class="btn btn-sm flex-grow-1 duration-btn" data-mode="TRIMESTRAL" data-mult="3" data-disc="0.9"
+                                        th:classappend="${periodo == 'TRIMESTRAL'} ? 'btn-primary' : 'btn-outline'">
+                                    3 MESES <span class="badge bg-dark text-primary ms-1">-10%</span>
+                                </button>
+                                <button type="button" class="btn btn-sm flex-grow-1 duration-btn" data-mode="ANUAL" data-mult="12" data-disc="0.8"
+                                        th:classappend="${periodo == 'ANUAL'} ? 'btn-primary' : 'btn-outline'">
+                                    1 AÑO <span class="badge bg-dark text-primary ms-1">-20%</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary my-3">
+
+                        <!-- Desglose Financiero Transparente (Estilo Smart Fit) -->
+                        <div class="d-flex flex-column gap-2 text-xs mb-3">
+                            <div class="d-flex justify-content-between text-muted">
+                                <span>Tarifa Base Mensual:</span>
+                                <span id="summaryBasePriceText" th:text="'S/ ' + ${#numbers.formatDecimal(baseMensual, 1, 'POINT', 2, 'POINT')}">S/ 229.90</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted">
+                                <span>Periodo de Cobertura:</span>
+                                <span id="summaryDurationText" th:text="${meses + ' mes(es) · ' + (meses * 30) + ' días'}">3 mes(es) · 90 días</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted" id="discountRow" th:classappend="${discPct == 0} ? 'd-none' : ''">
+                                <span class="text-success"><i class="fa-solid fa-tag me-1"></i> Descuento de Modalidad:</span>
+                                <span class="text-success fw-bold" id="summaryDiscountText" th:text="'-' + ${discPct} + '% (S/ ' + ${#numbers.formatDecimal(ahorroEstimado, 1, 'POINT', 2, 'POINT')} + ')'">-10%</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted d-none" id="couponDiscountRow">
+                                <span class="text-primary"><i class="fa-solid fa-gift me-1"></i> Cupón Promocional:</span>
+                                <span class="text-primary fw-bold" id="couponDiscountText">-S/ 0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted">
+                                <span>Matrícula de Apertura:</span>
+                                <span class="text-success fw-bold">S/ 0.00 (GRATIS)</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted">
+                                <span>Fecha de Activación:</span>
+                                <span class="text-light fw-bold" id="summaryStartDateText" th:text="${fechaInicio}">Hoy</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted">
+                                <span>Vigencia del Ciclo:</span>
+                                <span class="text-light fw-bold" id="summaryEndDateText" th:text="${fechaFinEstimada}">En 90 días</span>
+                            </div>
+                        </div>
+
+                        <!-- Cupón con Validación en Vivo -->
+                        <div class="p-3 rounded bg-elevated border border-secondary mb-3">
+                            <label class="form-label text-2xs text-muted fw-bold mb-1">¿TIENES UN CUPÓN PROMOCIONAL?</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control text-uppercase" id="inputPromoCode" placeholder="Ej. ENERGY2X1, APERTURA10">
+                                <button class="btn btn-outline px-3" type="button" id="btnApplyCoupon">APLICAR</button>
+                            </div>
+                            <small class="text-success text-2xs d-none mt-1" id="couponSuccessMsg"><i class="fa-solid fa-circle-check"></i> Cupón aplicado: S/ 30 de descuento directo.</small>
+                            <small class="text-danger text-2xs d-none mt-1" id="couponErrorMsg"><i class="fa-solid fa-circle-exclamation"></i> Cupón no válido o expirado.</small>
+                        </div>
+
+                        <!-- Total a Pagar Destacado -->
+                        <div class="p-3 rounded bg-elevated border border-primary d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted text-2xs d-block fw-bold">TOTAL A LIQUIDAR</small>
+                                <h3 class="font-anton text-primary m-0 fs-2" id="summaryTotalText"
+                                    th:text="'S/ ' + ${#numbers.formatDecimal(precioTotal, 1, 'POINT', 2, 'POINT')}">S/ 621.00</h3>
+                            </div>
+                            <span class="badge bg-dark text-success border border-success font-anton text-xs px-3 py-2">
+                                <i class="fa-solid fa-check me-1"></i> TARIFA GARANTIZADA
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA: FORMULARIO WIZARD PASO A PASO -->
+                <div class="col-lg-7">
+                    <div class="card p-4 p-lg-5 border-secondary bg-card" style="backdrop-filter: blur(12px); background-color: rgba(17, 21, 30, 0.92);">
+                        <!-- Alertas de Error del Backend -->
+                        <div th:if="${mensajeError}" class="alert alert-danger py-2 px-3 text-xs mb-4 border-0 d-flex align-items-center gap-2"
+                             style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;">
+                            <i class="fa-solid fa-triangle-exclamation fs-6"></i>
+                            <span th:text="${mensajeError}"></span>
+                        </div>
+
+                        <form th:action="@{/registrarse}" method="post" id="enrollmentWizardForm">
+                            <!-- Campos Ocultos de Estado del Plan -->
+                            <input type="hidden" name="planId" id="fieldPlanId" th:value="${planId}">
+                            <input type="hidden" name="periodo" id="fieldPeriodo" th:value="${periodo}">
+                            <input type="hidden" name="meses" id="fieldMeses" th:value="${meses}">
+                            <input type="hidden" name="precioTotal" id="fieldPrecioTotal" th:value="${precioTotal}">
+                            <input type="hidden" name="cupon" id="fieldCupon" value="">
+
+                            <!-- ============================================== -->
+                            <!-- PASO 1: DATOS PERSONALES DEL SOCIO             -->
+                            <!-- ============================================== -->
+                            <div class="wizard-step" id="wizardStep1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h3 class="font-anton text-light text-3xl m-0">1. DATOS DEL SOCIO</h3>
+                                    <span class="badge bg-elevated text-primary border border-secondary font-anton text-2xs">PASO 1 DE 4</span>
+                                </div>
+                                <p class="text-muted text-xs mb-4">Ingresa los datos personales del titular que entrenará en el gimnasio.</p>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-sm-6">
+                                        <label for="nombres" class="form-label text-xs">NOMBRES COMPLETOS</label>
+                                        <input type="text" class="form-control" id="nombres" name="nombres"
+                                               th:value="${nombres}" placeholder="Ej. Carlos Eduardo" autocomplete="given-name" required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="apellidos" class="form-label text-xs">APELLIDOS COMPLETOS</label>
+                                        <input type="text" class="form-control" id="apellidos" name="apellidos"
+                                               th:value="${apellidos}" placeholder="Ej. Mendoza Rojas" autocomplete="family-name" required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="dni" class="form-label text-xs">DNI / DOCUMENTO (8 DÍGITOS)</label>
+                                        <input type="text" class="form-control" id="dni" name="dni"
+                                               th:value="${dni}" placeholder="72563123" inputmode="numeric" pattern="[0-9]{8}"
+                                               minlength="8" maxlength="8" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="telefono" class="form-label text-xs">TELÉFONO MÓVIL (WHATSAPP)</label>
+                                        <input type="tel" class="form-control" id="telefono" name="telefono"
+                                               th:value="${telefono}" placeholder="987654321" inputmode="numeric" pattern="[0-9]{9}"
+                                               minlength="9" maxlength="9" autocomplete="tel" required>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-2">
+                                    <a th:href="@{/planes}" class="btn-link-white font-anton text-xs tracking-wide">
+                                        <i class="fa-solid fa-arrow-left me-1"></i> VOLVER A PLANES
+                                    </a>
+                                    <button type="button" class="btn btn-primary px-4 py-3" id="btnNextToStep2">
+                                        SIGUIENTE: CUENTA &amp; FACTURACIÓN <i class="fa-solid fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ============================================== -->
+                            <!-- PASO 2: CUENTA & DATOS DE FACTURACIÓN          -->
+                            <!-- ============================================== -->
+                            <div class="wizard-step d-none" id="wizardStep2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h3 class="font-anton text-light text-3xl m-0">2. CUENTA &amp; FACTURACIÓN</h3>
+                                    <span class="badge bg-elevated text-primary border border-secondary font-anton text-2xs">PASO 2 DE 4</span>
+                                </div>
+                                <p class="text-muted text-xs mb-4">Crea tus credenciales de acceso y elige cómo emitir tu comprobante electrónico.</p>
+
+                                <!-- Credenciales de Acceso -->
+                                <div class="text-xs font-anton text-primary tracking-wider mb-2">
+                                    <i class="fa-solid fa-key me-1"></i> A. TUS CREDENCIALES DE ACCESO AL PORTAL
+                                </div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-sm-6">
+                                        <label for="email" class="form-label text-xs">CORREO ELECTRÓNICO (USUARIO)</label>
+                                        <input type="email" class="form-control" id="email" name="email"
+                                               th:value="${email}" placeholder="tu.correo@ejemplo.com" autocomplete="email">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label for="password" class="form-label text-xs">CONTRASEÑA (MÍNIMO 6 CARACTERES)</label>
+                                        <input type="password" class="form-control" id="password" name="password"
+                                               placeholder="••••••••••" minlength="6" autocomplete="new-password">
+                                    </div>
+                                </div>
+
+                                <!-- Datos de Facturación Separados -->
+                                <div class="text-xs font-anton text-primary tracking-wider mb-2 d-flex justify-content-between align-items-center">
+                                    <span><i class="fa-solid fa-file-invoice me-1"></i> B. TIPO DE COMPROBANTE ELECTRÓNICO</span>
+                                    <button type="button" class="btn btn-sm btn-outline py-1 px-2 text-2xs" id="btnCopySocioData">
+                                        <i class="fa-solid fa-copy me-1"></i> USAR MIS MISMOS DATOS DE SOCIO
+                                    </button>
+                                </div>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-sm-6">
+                                        <label class="form-label text-xs">TIPO DE COMPROBANTE</label>
+                                        <select class="form-select" id="tipoComprobante" name="tipoComprobante">
+                                            <option value="BOLETA" selected>BOLETA DE VENTA ELECTRÓNICA</option>
+                                            <option value="FACTURA">FACTURA ELECTRÓNICA (CON RUC)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-6" id="boxRucFactura" style="display: none;">
+                                        <label for="rucFactura" class="form-label text-xs">RUC DE LA EMPRESA (11 DÍGITOS)</label>
+                                        <input type="text" class="form-control" id="rucFactura" name="rucFactura" placeholder="20601234567" maxlength="11">
+                                    </div>
+                                    <div class="col-12" id="boxRazonSocial" style="display: none;">
+                                        <label for="razonSocialFactura" class="form-label text-xs">RAZÓN SOCIAL</label>
+                                        <input type="text" class="form-control" id="razonSocialFactura" name="razonSocialFactura" placeholder="Ej. INVERSIONES &amp; FITNESS S.A.C.">
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                                    <button type="button" class="btn btn-outline px-4 py-2" id="btnBackToStep1">
+                                        <i class="fa-solid fa-arrow-left me-2"></i> VOLVER A DATOS
+                                    </button>
+                                    <button type="button" class="btn btn-primary px-4 py-3" id="btnNextToStep3">
+                                        SIGUIENTE: FORMA DE PAGO <i class="fa-solid fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ============================================== -->
+                            <!-- PASO 3: FORMA DE PAGO (ONLINE vs RECEPCIÓN)    -->
+                            <!-- ============================================== -->
+                            <div class="wizard-step d-none" id="wizardStep3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h3 class="font-anton text-light text-3xl m-0">3. FORMA DE PAGO</h3>
+                                    <span class="badge bg-elevated text-primary border border-secondary font-anton text-2xs">PASO 3 DE 4</span>
+                                </div>
+                                <p class="text-muted text-xs mb-4">Elige si prefieres activar tu membresía con tarjeta en línea o pagar en recepción.</p>
+
+                                <div class="row g-3 mb-4">
+                                    <!-- Opción A: Pago en Línea -->
+                                    <div class="col-sm-6">
+                                        <div class="card p-3 border-primary bg-elevated payment-option-card active" id="optPayOnline" style="cursor: pointer;">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <input type="radio" name="metodoPago" id="radioPayOnline" value="ONLINE" checked class="form-check-input">
+                                                    <strong class="text-light text-xs font-anton">PAGO EN LÍNEA</strong>
+                                                </div>
+                                                <span class="badge bg-primary text-dark font-anton">INMEDIATO</span>
+                                            </div>
+                                            <p class="text-muted text-2xs m-0">Tarjeta débito/crédito. Tu carnet digital QR se activa al instante.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Opción B: Pago en Recepción -->
+                                    <div class="col-sm-6">
+                                        <div class="card p-3 border-secondary bg-card payment-option-card" id="optPayRecepcion" style="cursor: pointer;">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <input type="radio" name="metodoPago" id="radioPayRecepcion" value="RECEPCION" class="form-check-input">
+                                                    <strong class="text-light text-xs font-anton">PAGO EN RECEPCIÓN</strong>
+                                                </div>
+                                                <span class="badge bg-elevated text-muted border border-secondary">72 HORAS</span>
+                                            </div>
+                                            <p class="text-muted text-2xs m-0">Congela tu tarifa y paga en el local con Efectivo, POS, Yape o Plin.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Formulario de Tarjeta Online (Se oculta si elige Recepción) -->
+                                <div id="cardPaymentBox" class="p-4 rounded bg-elevated border border-secondary mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="text-xs font-anton text-primary"><i class="fa-solid fa-credit-card me-1"></i> DATOS DE LA TARJETA</span>
+                                        <div class="d-flex gap-2 fs-5 text-light">
+                                            <i class="fa-brands fa-cc-visa text-primary"></i>
+                                            <i class="fa-brands fa-cc-mastercard"></i>
+                                            <i class="fa-brands fa-cc-amex"></i>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label text-2xs">NÚMERO DE TARJETA</label>
+                                            <input type="text" class="form-control" id="cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19" value="4242 4242 4242 4242">
+                                        </div>
+                                        <div class="col-sm-6 col-6">
+                                            <label class="form-label text-2xs">EXPIRACIÓN (MM/AA)</label>
+                                            <input type="text" class="form-control" id="cardExpiry" placeholder="12/28" maxlength="5" value="12/28">
+                                        </div>
+                                        <div class="col-sm-6 col-6">
+                                            <label class="form-label text-2xs">CÓDIGO DE SEGURIDAD (CVV)</label>
+                                            <input type="password" class="form-control" id="cardCvc" placeholder="•••" maxlength="4" value="888">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Aviso de Pago en Recepción (Se muestra si elige Recepción) -->
+                                <div id="recepcionNoticeBox" class="p-4 rounded bg-elevated border border-primary mb-4 d-none">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <i class="fa-solid fa-receipt text-primary fs-3"></i>
+                                        <div>
+                                            <h6 class="font-anton text-light m-0 mb-1">PREINSCRIPCIÓN CON TARIFA GARANTIZADA</h6>
+                                            <p class="text-muted text-xs m-0">Generaremos tu código oficial #INS-XXXXX. Tendrás <strong>72 horas</strong> para liquidar en la recepción de sede Lince mediante Efectivo, POS, Yape o Plin.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                                    <button type="button" class="btn btn-outline px-4 py-2" id="btnBackToStep2">
+                                        <i class="fa-solid fa-arrow-left me-2"></i> VOLVER A FACTURACIÓN
+                                    </button>
+                                    <button type="button" class="btn btn-primary px-4 py-3" id="btnNextToStep4">
+                                        REVISAR MI CONTRATACIÓN <i class="fa-solid fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ============================================== -->
+                            <!-- PASO 4: REVISIÓN FINAL & CONFIRMACIÓN          -->
+                            <!-- ============================================== -->
+                            <div class="wizard-step d-none" id="wizardStep4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h3 class="font-anton text-light text-3xl m-0">4. REVISIÓN Y CONFIRMACIÓN</h3>
+                                    <span class="badge bg-primary text-dark font-anton text-2xs">PASO FINAL</span>
+                                </div>
+                                <p class="text-muted text-xs mb-4">Verifica que tus datos y modalidad de membresía sean correctos antes de confirmar.</p>
+
+                                <div class="card p-3 border-secondary bg-elevated mb-4">
+                                    <div class="row g-3 text-xs">
+                                        <div class="col-sm-6">
+                                            <small class="text-muted text-2xs d-block">SOCIO TITULAR</small>
+                                            <strong class="text-light" id="revSocioName">—</strong>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <small class="text-muted text-2xs d-block">DOCUMENTO DE IDENTIDAD</small>
+                                            <strong class="text-light" id="revSocioDoc">—</strong>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <small class="text-muted text-2xs d-block">CORREO / CUENTA</small>
+                                            <strong class="text-light" id="revSocioEmail">—</strong>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <small class="text-muted text-2xs d-block">TELÉFONO DE CONTACTO</small>
+                                            <strong class="text-light" id="revSocioTel">—</strong>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <small class="text-muted text-2xs d-block">PLAN SELECCIONADO</small>
+                                            <strong class="text-primary font-anton fs-6" id="revPlanName">—</strong>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <small class="text-muted text-2xs d-block">MODALIDAD DE PAGO</small>
+                                            <strong class="text-light" id="revPaymentMode">—</strong>
+                                        </div>
+                                        <div class="col-12 pt-2 border-top border-secondary">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="text-muted text-xs">TOTAL A LIQUIDAR:</span>
+                                                <strong class="font-anton text-primary fs-4" id="revTotalPrice">—</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Checkbox de Términos y Condiciones -->
+                                <div class="form-check p-3 rounded bg-elevated border border-secondary mb-4 ms-0">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="termsCheck" required checked>
+                                    <label class="form-check-label text-xs text-muted" for="termsCheck">
+                                        Declaro ser mayor de 18 años, declaro que la información consignada es fidedigna y acepto el reglamento interno, términos de membresía y política de privacidad de Energy Gym.
+                                    </label>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                                    <button type="button" class="btn btn-outline px-4 py-2" id="btnBackToStep3">
+                                        <i class="fa-solid fa-arrow-left me-2"></i> VOLVER A PAGO
+                                    </button>
+                                    <button type="submit" class="btn btn-primary px-4 py-3 font-anton tracking-wide" id="btnSubmitFinal">
+                                        <i class="fa-solid fa-bolt me-1"></i> FINALIZAR Y CONFIRMAR MI MEMBRESÍA
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
+
+        <!-- Script del Wizard Interactivo de Contratación (DENTRO DE LA SECCIÓN PARA THYMELEAF) -->
+        <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const summaryCard = document.getElementById("membershipSummaryCard");
+            const baseMonthly = parseFloat(summaryCard.getAttribute("data-base-price")) || 119;
+            let activeMultiplier = parseInt(summaryCard.getAttribute("data-meses"), 10) || 1;
+            let activeDiscount = activeMultiplier === 3 ? 0.9 : (activeMultiplier === 12 ? 0.8 : 1.0);
+            let couponDiscountAmount = 0;
+
+            function updateCalculatedPrices() {
+                const subtotal = Math.round(baseMonthly * activeMultiplier);
+                const discPct = activeMultiplier === 3 ? 10 : (activeMultiplier === 12 ? 20 : 0);
+                const discountedPrice = Math.round(subtotal * activeDiscount);
+                const finalPrice = Math.max(0, discountedPrice - couponDiscountAmount);
+                const ahorro = subtotal - finalPrice;
+
+                const fTotal = document.getElementById("fieldPrecioTotal");
+                if (fTotal) fTotal.value = finalPrice;
+                
+                const fMeses = document.getElementById("fieldMeses");
+                if (fMeses) fMeses.value = activeMultiplier;
+                
+                const mode = activeMultiplier === 3 ? "TRIMESTRAL" : (activeMultiplier === 12 ? "ANUAL" : "MENSUAL");
+                const fPeriodo = document.getElementById("fieldPeriodo");
+                if (fPeriodo) fPeriodo.value = mode;
+
+                const bBadge = document.getElementById("summaryPeriodBadge");
+                if (bBadge) bBadge.textContent = `MODALIDAD ${mode} (${activeMultiplier} MESES)`;
+                
+                const dText = document.getElementById("summaryDurationText");
+                if (dText) dText.textContent = `${activeMultiplier} mes(es) · ${activeMultiplier * 30} días`;
+                
+                const tText = document.getElementById("summaryTotalText");
+                if (tText) tText.textContent = `S/ ${finalPrice}.00`;
+
+                // Calcular fecha de vencimiento estimada
+                const now = new Date();
+                now.setDate(now.getDate() + (activeMultiplier * 30));
+                const d = String(now.getDate()).padStart(2, '0');
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                const y = now.getFullYear();
+                const endText = document.getElementById("summaryEndDateText");
+                if (endText) endText.textContent = `${d}/${m}/${y}`;
+
+                const discRow = document.getElementById("discountRow");
+                if (discRow) {
+                    if (discPct > 0) {
+                        discRow.classList.remove("d-none");
+                        const dSpan = document.getElementById("summaryDiscountText");
+                        if (dSpan) dSpan.textContent = `-${discPct}% (S/ ${ahorro}.00)`;
+                    } else {
+                        discRow.classList.add("d-none");
+                    }
+                }
+            }
+
+            // Manejo de botones de duración (1 mes, 3 meses, 1 año)
+            document.querySelectorAll(".duration-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    document.querySelectorAll(".duration-btn").forEach(b => {
+                        b.classList.remove("btn-primary");
+                        b.classList.add("btn-outline");
+                    });
+                    this.classList.remove("btn-outline");
+                    this.classList.add("btn-primary");
+
+                    activeMultiplier = parseInt(this.getAttribute("data-mult"), 10) || 1;
+                    activeDiscount = parseFloat(this.getAttribute("data-disc")) || 1.0;
+                    updateCalculatedPrices();
+                });
+            });
+
+            // Botón Usar mismos datos de socio para comprobante
+            const btnCopy = document.getElementById("btnCopySocioData");
+            if (btnCopy) {
+                btnCopy.addEventListener("click", () => {
+                    const nombres = document.getElementById("nombres").value.trim();
+                    const apellidos = document.getElementById("apellidos").value.trim();
+                    const dni = document.getElementById("dni").value.trim();
+                    if (!nombres || !dni) {
+                        alert("Por favor completa primero los nombres y DNI en el Paso 1.");
+                        return;
+                    }
+                    document.getElementById("tipoComprobante").value = "BOLETA";
+                    toggleComprobanteBoxes();
+                    alert(`Datos vinculados para la boleta: ${nombres} ${apellidos} (DNI ${dni}).`);
+                });
+            }
+
+            // Alternar campos de Factura vs Boleta
+            const selComprobante = document.getElementById("tipoComprobante");
+            function toggleComprobanteBoxes() {
+                const isFactura = selComprobante.value === "FACTURA";
+                document.getElementById("boxRucFactura").style.display = isFactura ? "block" : "none";
+                document.getElementById("boxRazonSocial").style.display = isFactura ? "block" : "none";
+            }
+            if (selComprobante) selComprobante.addEventListener("change", toggleComprobanteBoxes);
+
+            // Alternar Pago Online vs Recepción
+            const cardBox = document.getElementById("cardPaymentBox");
+            const recepcionBox = document.getElementById("recepcionNoticeBox");
+            const optOnline = document.getElementById("optPayOnline");
+            const optRec = document.getElementById("optPayRecepcion");
+
+            optOnline.addEventListener("click", () => {
+                document.getElementById("radioPayOnline").checked = true;
+                optOnline.classList.add("border-primary", "bg-elevated");
+                optOnline.classList.remove("border-secondary", "bg-card");
+                optRec.classList.remove("border-primary", "bg-elevated");
+                optRec.classList.add("border-secondary", "bg-card");
+                cardBox.classList.remove("d-none");
+                recepcionBox.classList.add("d-none");
+            });
+
+            optRec.addEventListener("click", () => {
+                document.getElementById("radioPayRecepcion").checked = true;
+                optRec.classList.add("border-primary", "bg-elevated");
+                optRec.classList.remove("border-secondary", "bg-card");
+                optOnline.classList.remove("border-primary", "bg-elevated");
+                optOnline.classList.add("border-secondary", "bg-card");
+                cardBox.classList.add("d-none");
+                recepcionBox.classList.remove("d-none");
+            });
+
+            // Validación en vivo de cupón
+            const btnCoupon = document.getElementById("btnApplyCoupon");
+            btnCoupon.addEventListener("click", () => {
+                const code = document.getElementById("inputPromoCode").value.trim().toUpperCase();
+                const msgSuccess = document.getElementById("couponSuccessMsg");
+                const msgError = document.getElementById("couponErrorMsg");
+                const couponRow = document.getElementById("couponDiscountRow");
+
+                if (code === "ENERGY2X1" || code === "APERTURA10" || code === "SHAKERPRO") {
+                    couponDiscountAmount = 30; // S/ 30 de descuento directo
+                    document.getElementById("fieldCupon").value = code;
+                    msgSuccess.classList.remove("d-none");
+                    msgError.classList.add("d-none");
+                    couponRow.classList.remove("d-none");
+                    document.getElementById("couponDiscountText").textContent = "-S/ 30.00";
+                    updateCalculatedPrices();
+                } else {
+                    couponDiscountAmount = 0;
+                    document.getElementById("fieldCupon").value = "";
+                    msgSuccess.classList.add("d-none");
+                    msgError.classList.remove("d-none");
+                    couponRow.classList.add("d-none");
+                    updateCalculatedPrices();
+                }
+            });
+
+            // Navegación entre pasos
+            function showStep(step) {
+                for (let i = 1; i <= 4; i++) {
+                    const el = document.getElementById(`wizardStep${i}`);
+                    const ind = document.getElementById(`stepIndicator${i}`);
+                    if (el) el.classList.toggle("d-none", i !== step);
+                    if (ind) {
+                        const badge = ind.querySelector(".badge");
+                        const text = ind.querySelector("span:last-child");
+                        if (i === step) {
+                            badge.className = "badge bg-primary text-dark rounded-circle px-2 py-1 fs-6";
+                            text.className = "text-light fw-bold";
+                        } else if (i < step) {
+                            badge.className = "badge bg-dark text-success border border-success rounded-circle px-2 py-1 fs-6";
+                            text.className = "text-muted";
+                        } else {
+                            badge.className = "badge bg-dark text-muted border border-secondary rounded-circle px-2 py-1 fs-6";
+                            text.className = "text-muted";
+                        }
+                    }
+                }
+                window.scrollTo({ top: 120, behavior: "smooth" });
+            }
+
+            document.getElementById("btnNextToStep2").addEventListener("click", () => {
+                const nombres = document.getElementById("nombres").value.trim();
+                const apellidos = document.getElementById("apellidos").value.trim();
+                const dni = document.getElementById("dni").value.trim();
+                const tel = document.getElementById("telefono").value.trim();
+
+                if (!nombres || !apellidos || !dni || !tel) {
+                    alert("Por favor completa todos tus datos personales.");
+                    return;
+                }
+                if (dni.length !== 8) {
+                    alert("El DNI debe tener exactamente 8 dígitos.");
+                    return;
+                }
+                showStep(2);
+            });
+
+            document.getElementById("btnBackToStep1").addEventListener("click", () => showStep(1));
+
+            document.getElementById("btnNextToStep3").addEventListener("click", () => {
+                const email = document.getElementById("email").value.trim();
+                const pass = document.getElementById("password").value;
+                if (!email || !pass) {
+                    alert("Por favor completa tu correo y contraseña.");
+                    return;
+                }
+                if (pass.length < 6) {
+                    alert("La contraseña debe tener mínimo 6 caracteres.");
+                    return;
+                }
+                showStep(3);
+            });
+
+            document.getElementById("btnBackToStep2").addEventListener("click", () => showStep(2));
+
+            document.getElementById("btnNextToStep4").addEventListener("click", () => {
+                // Cargar datos en la pantalla de revisión
+                document.getElementById("revSocioName").textContent = `${document.getElementById("nombres").value} ${document.getElementById("apellidos").value}`;
+                document.getElementById("revSocioDoc").textContent = `DNI ${document.getElementById("dni").value}`;
+                document.getElementById("revSocioEmail").textContent = document.getElementById("email").value;
+                document.getElementById("revSocioTel").textContent = document.getElementById("telefono").value;
+                document.getElementById("revPlanName").textContent = document.getElementById("summaryPlanName").textContent;
+                
+                const isOnline = document.getElementById("radioPayOnline").checked;
+                document.getElementById("revPaymentMode").textContent = isOnline ? "Pago en Línea con Tarjeta" : "Pago Presencial en Recepción (72 hrs)";
+                document.getElementById("revTotalPrice").textContent = document.getElementById("summaryTotalText").textContent;
+                showStep(4);
+            });
+
+            document.getElementById("btnBackToStep3").addEventListener("click", () => showStep(3));
+
+            // Disparar sincronización inicial
+            updateCalculatedPrices();
+        });
+        </script>
+    </section>
+</body>
+</html>

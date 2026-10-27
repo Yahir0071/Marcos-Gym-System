@@ -22,7 +22,32 @@
             <div class="col-lg-5 d-flex flex-column justify-content-center p-4 p-lg-5 bg-login-right">
                 <div class="w-100 mx-auto ps-lg-4 mw-420px mt-5">
                     <h2 class="font-anton mb-2 text-light text-3xl">INICIAR SESIÓN</h2>
-                    <p class="text-muted text-xs mb-4">Ingresa tus credenciales o utiliza el acceso directo de demostración:</p>
+                    <p class="text-muted text-xs mb-4">Ingresa tu correo electrónico y contraseña para acceder a tu portal:</p>
+
+                    <!-- Alerta de Activación Online Exitosa -->
+                    <div th:if="${param.activado}" class="p-3 rounded border border-success mb-3 bg-elevated text-xs">
+                        <div class="d-flex align-items-center gap-2 text-success fw-bold font-anton mb-1">
+                            <i class="fa-solid fa-circle-check fs-5"></i> ¡MEMBRESÍA ACTIVADA CON ÉXITO!
+                        </div>
+                        <p class="text-muted text-2xs mb-0">Tu suscripción ha sido confirmada. Inicia sesión a continuación para acceder a tu portal y utilizar tu <strong>código QR de acceso</strong> en los torniquetes.</p>
+                    </div>
+
+                    <!-- Alerta de Preinscripción para Pago en Recepción -->
+                    <div th:if="${param.preinscrito}" class="p-3 rounded border border-primary mb-3 bg-elevated text-xs">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="text-primary fw-bold font-anton"><i class="fa-solid fa-receipt me-1"></i> PREINSCRIPCIÓN RESERVADA</span>
+                            <span class="badge bg-primary text-dark font-anton">72 HORAS</span>
+                        </div>
+                        <p class="text-muted text-2xs mb-1">Código de recepción: <strong class="text-primary font-anton fs-6" th:text="${param.codigo != null ? param.codigo : '#INS-OFICIAL'}">#INS-12345</strong></p>
+                        <p class="text-muted text-2xs mb-0">Tu tarifa se encuentra congelada. Acércate a la recepción de sede Lince para abonar en efectivo, POS o Yape/Plin.</p>
+                    </div>
+
+                    <!-- Mensaje de Éxito de Registro -->
+                    <div th:if="${mensajeExito}" class="alert alert-success py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0"
+                         style="background-color: rgba(0, 230, 118, 0.2); color: #00e676;">
+                        <i class="fa-solid fa-circle-check fs-6"></i>
+                        <span th:text="${mensajeExito}"></span>
+                    </div>
 
                     <!-- Alertas de Spring Security -->
                     <div th:if="${param.error}" class="alert alert-danger py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;">
@@ -34,44 +59,38 @@
                         <span>Has cerrado sesión correctamente. ¡Vuelve pronto a entrenar!</span>
                     </div>
 
-                    <!-- Botones de Acceso Rápido (1 Clic) -->
-                    <div class="d-grid gap-2 mb-4">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline w-100 py-2 text-2xs" id="btnQuickClientLogin">
-                                    <i class="fa-solid fa-user text-primary"></i> DEMO SOCIO
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline w-100 py-2 text-2xs" id="btnQuickAdminLogin">
-                                    <i class="fa-solid fa-user-shield text-primary"></i> DEMO ADMIN
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
                     <form th:action="@{/login}" method="post" id="loginForm">
                         <input type="hidden" name="role" id="loginRoleInput" value="cliente">
                         <div class="mb-3">
                             <label for="username" class="form-label text-xs">CORREO ELECTRÓNICO</label>
-                            <input type="email" class="form-control" id="username" name="username" value="cliente@energygym.pe" placeholder="tucorreo@ejemplo.com" required>
+                            <input type="email" class="form-control" id="username" name="username" placeholder="tucorreo@ejemplo.com" autocomplete="email" required>
                         </div>
                         <div class="mb-4">
                             <label for="password" class="form-label text-xs">CONTRASEÑA</label>
                             <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" value="cliente123" placeholder="••••••••••" required>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="••••••••••" autocomplete="current-password" required>
                                 <button class="btn btn-outline px-3" type="button" id="togglePasswordBtn" title="Mostrar/Ocultar contraseña">
                                     <i class="fa-regular fa-eye"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 d-flex justify-content-between align-items-center mb-4 py-3">
+                        <button type="submit" class="btn btn-primary w-100 d-flex justify-content-between align-items-center mb-3 py-3">
                             <span class="font-anton tracking-wide text-md">INGRESAR AL SISTEMA</span>
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
 
-                        <hr class="border-secondary mb-4">
+                        <!-- Opción de Crear Cuenta Nueva (Faltaba en el flujo original) -->
+                        <div class="text-center p-3 rounded border border-secondary bg-elevated mb-4">
+                            <span class="text-muted text-xs">¿Aún no tienes una cuenta de cliente?</span>
+                            <div class="mt-2">
+                                <a th:href="@{/registrarse}" class="btn btn-outline w-100 py-2 font-anton text-xs tracking-wide">
+                                    <i class="fa-solid fa-user-plus text-primary me-2"></i> CREAR CUENTA NUEVA
+                                </a>
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary mb-3">
 
                         <div class="d-flex justify-content-between align-items-center">
                             <a th:href="@{/inicio}" class="btn-link-white font-anton text-xs tracking-wide d-inline-flex align-items-center gap-2">

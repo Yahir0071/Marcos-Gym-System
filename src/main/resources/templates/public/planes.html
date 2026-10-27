@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
-<head><title>Planes - Energy Gym</title></head>
+<head><title>Planes y Tarifas - Energy Gym</title></head>
 <body>
     <section>
         <div th:replace="~{fragments/navbar :: navbar}"></div>
         <div class="container-fluid px-4 px-lg-5 page-container">
+            <!-- Encabezado de Página -->
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-4 mb-5">
                 <div>
                     <div class="section-subtitle has-line mb-3">ELIGE TU PLAN</div>
@@ -12,7 +13,7 @@
                     <p class="font-anton text-muted m-0 tracking-wide text-lg">ENTRENA A TU MANERA SIN CONTRATOS OCULTOS</p>
                 </div>
 
-                <!-- Interactive Billing Period Switcher -->
+                <!-- Selector de Periodos de Facturación Sincronizado -->
                 <div class="d-flex align-items-center gap-2 bg-card p-2 rounded border border-secondary" id="billingSwitcher">
                     <button type="button" class="btn btn-primary py-2 px-3 text-xs billing-period-btn active" data-multiplier="1" data-discount="1" data-label="AL MES">
                         MENSUAL
@@ -26,8 +27,8 @@
                 </div>
             </div>
 
+            <!-- Grid de Tarjetas de Planes -->
             <div class="grid-plans mb-5">
-                <!-- Tarjeta Dinámica de Plan desde Supabase -->
                 <div th:each="plan : ${planes}"
                      th:class="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'card card-active p-4 p-lg-5 d-flex flex-column position-relative' : 'card p-4 p-lg-5 d-flex flex-column'"
                      th:style="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'border-top: 4px solid var(--primary);' : ''">
@@ -55,24 +56,181 @@
                         <li th:if="${plan.nombre != null and plan.nombre.toUpperCase().contains('PREMIUM')}" class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> 4 pases de invitado + 10% descuento en Suplementos</li>
                         <li th:if="${plan.nombre == null or (!plan.nombre.toUpperCase().contains('PLUS') and !plan.nombre.toUpperCase().contains('PREMIUM'))}" class="mb-3 text-muted text-sm"><i class="fa-solid fa-xmark text-secondary me-2"></i> Acceso a zona VIP y pases de invitado</li>
                     </ul>
-                    <button type="button" 
-                            th:class="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'btn btn-primary mt-auto w-100 justify-content-between text-dark btn-choose-plan' : 'btn btn-outline mt-auto w-100 justify-content-between btn-choose-plan'"
-                            th:attr="data-plan-name=${plan.nombre}, data-plan-price=${plan.precio}">
-                        <span th:text="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'ELEGIR PLAN PLUS' : 'PRE-INSCRIBIRME EN ' + (${plan.nombre != null ? plan.nombre.toUpperCase() : 'PLAN'})">ELEGIR PLAN</span> 
+
+                    <!-- Botón de Inscripción Directa Sincronizado -->
+                    <a sec:authorize="isAuthenticated()"
+                       th:href="@{/cliente/pago-en-linea(planId=${plan.id})}"
+                       class="btn btn-enroll-plan mt-auto w-100 justify-content-between"
+                       th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'btn-primary text-dark' : 'btn-outline'"
+                       th:attr="data-plan-id=${plan.id}, data-auth='true'">
+                        <span th:text="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'INSCRIBIRME EN PLAN PLUS' : 'INSCRIBIRME EN ' + (${plan.nombre != null ? plan.nombre.toUpperCase() : 'PLAN'})">INSCRIBIRME</span> 
                         <i class="fa-solid fa-arrow-right"></i>
-                    </button>
+                    </a>
+                    <a sec:authorize="isAnonymous()"
+                       th:href="@{/registrarse(planId=${plan.id})}"
+                       class="btn btn-enroll-plan mt-auto w-100 justify-content-between"
+                       th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'btn-primary text-dark' : 'btn-outline'"
+                       th:attr="data-plan-id=${plan.id}, data-auth='false'">
+                        <span th:text="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'INSCRIBIRME EN PLAN PLUS' : 'INSCRIBIRME EN ' + (${plan.nombre != null ? plan.nombre.toUpperCase() : 'PLAN'})">INSCRIBIRME</span> 
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
 
-            <div class="card p-4 d-flex flex-row justify-content-between align-items-center flex-wrap gap-3">
+            <!-- Banner de Compromiso y Transparencia -->
+            <div class="card p-4 d-flex flex-row justify-content-between align-items-center flex-wrap gap-3 mb-5">
                 <div class="d-flex align-items-center gap-3">
-                    <i class="fa-solid fa-circle-info text-primary fs-4"></i>
+                    <i class="fa-solid fa-shield-halved text-primary fs-3"></i>
                     <div>
-                        <div class="text-light font-anton text-sm tracking-wide">ACTIVACIÓN PRESENCIAL INMEDIATA EN RECEPCIÓN</div>
-                        <small class="text-muted text-xs">Genera tu código de pre-inscripción aquí para congelar tu tarifa promocional y paga en el local.</small>
+                        <div class="text-light font-anton text-sm tracking-wide">INSCRIPCIÓN 100% DIGITAL Y TRANSPARENTE</div>
+                        <small class="text-muted text-xs">Sin costos de matrícula ocultos ni permanencia forzada. Carnet con código QR directo en tu celular para ingresar a sede Lince.</small>
                     </div>
                 </div>
-                <a th:href="@{/promociones}" class="btn btn-outline py-2 px-3 text-xs">VER PROMOCIONES 2×1 →</a>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/promociones}" class="btn btn-outline py-2 px-3 text-xs">VER PROMOCIONES 2×1 →</a>
+                    <a th:href="@{/registrarse}" class="btn btn-primary py-2 px-3 text-xs">REGISTRARME COMO SOCIO</a>
+                </div>
+            </div>
+
+            <!-- COMPARADOR DE PLANES ESTILO SMART FIT -->
+            <div class="mb-5 pt-3">
+                <div class="text-center mb-4">
+                    <div class="section-subtitle mb-2">COMPARATIVA DETALLADA</div>
+                    <h2 class="display-3 font-anton leading-none text-light">¿QUÉ PLAN SE ADAPTA A TI?</h2>
+                    <p class="text-muted text-sm mx-auto" style="max-width: 600px;">
+                        Compara cada beneficio y servicio incluido en nuestros planes BÁSICO, PLUS y VIP ANUAL.
+                    </p>
+                </div>
+
+                <div class="table-container">
+                    <table class="custom-table w-100 text-center">
+                        <thead>
+                            <tr>
+                                <th class="text-start ps-4" style="width: 40%;">BENEFICIOS Y ÁREAS INCLUIDAS</th>
+                                <th style="width: 20%;">PLAN BÁSICO</th>
+                                <th class="text-primary bg-elevated" style="width: 20%;">PLAN PLUS (RECOMENDADO)</th>
+                                <th style="width: 20%;">PLAN VIP ANUAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Acceso a Máquinas de Musculación y Peso Libre</td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Zona Cardio HIIT y Máquinas Biomecánicas</td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Horario Ilimitado (Lunes a Domingo 06:00 a 23:00)</td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Carnet Digital QR para Torniquetes en tu Portal</td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Evaluación Física y Bioimpedancia Mensual</td>
+                                <td><i class="fa-solid fa-circle-xmark text-secondary fs-6"></i></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-primary fs-6"></i></td>
+                                <td><i class="fa-solid fa-circle-check text-primary fs-6"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Pases Libres para Invitados al Mes</td>
+                                <td><span class="text-muted text-xs">Sin pases</span></td>
+                                <td class="bg-elevated font-anton text-primary">2 PASES / MES</td>
+                                <td class="font-anton text-light">4 PASES / MES</td>
+                            </tr>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Descuento en Tienda de Suplementos</td>
+                                <td><span class="text-muted text-xs">—</span></td>
+                                <td class="bg-elevated font-anton text-primary">5% DSCTO</td>
+                                <td class="font-anton text-light">10% DSCTO</td>
+                            </tr>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Congelamiento de Membresía por Viaje o Salud</td>
+                                <td><span class="text-muted text-xs">No aplica</span></td>
+                                <td class="bg-elevated font-anton text-xs text-light">Hasta 15 días</td>
+                                <td class="font-anton text-xs text-primary">Hasta 30 días</td>
+                            </tr>
+                            <tr>
+                                <td class="text-start ps-4 fw-bold">Opción de Pago Presencial en Recepción o Pasarela Online</td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PREGUNTAS FRECUENTES (FAQ ESTILO SMART FIT) -->
+            <div class="mb-5 pt-3">
+                <div class="text-center mb-4">
+                    <div class="section-subtitle mb-2">RESOLVEMOS TUS DUDAS</div>
+                    <h2 class="display-3 font-anton leading-none text-light">PREGUNTAS FRECUENTES</h2>
+                    <p class="text-muted text-sm mx-auto" style="max-width: 600px;">
+                        Todo lo que necesitas saber sobre pagos, periodos de facturación, acceso con QR y activación.
+                    </p>
+                </div>
+
+                <div class="row g-4 justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="accordion gym-accordion" id="faqAccordion">
+                            <div class="card p-3 mb-3 border-secondary bg-card">
+                                <h6 class="font-anton text-light m-0 d-flex justify-content-between align-items-center"
+                                    style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    <span>¿CÓMO FUNCIONA EL DESCUENTO TRIMESTRAL (-10%) Y ANUAL (-20%)?</span>
+                                    <i class="fa-solid fa-chevron-down text-primary"></i>
+                                </h6>
+                                <div id="faq1" class="collapse show pt-3 text-muted text-xs">
+                                    Al contratar tu plan por 3 meses o 12 meses, congelas tu tarifa y recibes un descuento directo aplicado sobre el total. La duración seleccionada se conserva intacta en tu resumen de contratación y en tu comprobante de pago.
+                                </div>
+                            </div>
+
+                            <div class="card p-3 mb-3 border-secondary bg-card">
+                                <h6 class="font-anton text-light m-0 d-flex justify-content-between align-items-center"
+                                    style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    <span>¿PUEDO PREINSCRIBIRME Y PAGAR EN RECEPCIÓN?</span>
+                                    <i class="fa-solid fa-chevron-down text-primary"></i>
+                                </h6>
+                                <div id="faq2" class="collapse pt-3 text-muted text-xs">
+                                    ¡Sí! En el paso de pago puedes elegir «Pago Presencial en Recepción». El sistema generará tu código de inscripción #INS-XXXXX y congelará tu tarifa por 72 horas para que liquides en caja con efectivo, tarjeta POS, Yape o Plin.
+                                </div>
+                            </div>
+
+                            <div class="card p-3 mb-3 border-secondary bg-card">
+                                <h6 class="font-anton text-light m-0 d-flex justify-content-between align-items-center"
+                                    style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    <span>¿CÓMO INGRESO AL GIMNASIO UNA VEZ CONTRATADO EL PLAN?</span>
+                                    <i class="fa-solid fa-chevron-down text-primary"></i>
+                                </h6>
+                                <div id="faq3" class="collapse pt-3 text-muted text-xs">
+                                    Tu membresía activa te otorga un <strong>Carnet Digital con Código QR</strong> visible en tu portal de socio. Al llegar a nuestra sede en Lince, solo acercas la pantalla de tu celular al lector del torniquete y el acceso se habilita automáticamente.
+                                </div>
+                            </div>
+
+                            <div class="card p-3 mb-3 border-secondary bg-card">
+                                <h6 class="font-anton text-light m-0 d-flex justify-content-between align-items-center"
+                                    style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    <span>¿EMITEN BOLETA O FACTURA ELECTRÓNICA?</span>
+                                    <i class="fa-solid fa-chevron-down text-primary"></i>
+                                </h6>
+                                <div id="faq4" class="collapse pt-3 text-muted text-xs">
+                                    Totalmente. Puedes elegir entre Boleta Electrónica (con tu DNI de socio o datos de un tercero pagador) o Factura Electrónica ingresando RUC y Razón Social. El comprobante oficial con desglose de IGV (18%) queda disponible para descarga inmediata en PDF.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -1,37 +1,10 @@
 /**
  * auth/login.js - Energy Gym Authentication Interactions
- * Responsabilidad: Acceso rápido con credenciales demo y alternancia de visibilidad de contraseña.
+ * Responsabilidad: Control de visibilidad de contraseña y validación básica de formulario.
  */
 
 export function initLoginControls() {
-    const btnQuickClient = document.getElementById("btnQuickClientLogin");
-    const btnQuickAdmin = document.getElementById("btnQuickAdminLogin");
-    const loginForm = document.getElementById("loginForm");
     const togglePassBtn = document.getElementById("togglePasswordBtn");
-
-    if (btnQuickClient && loginForm) {
-        btnQuickClient.addEventListener("click", () => {
-            const userInput = document.getElementById("username");
-            const passInput = document.getElementById("password");
-            const roleInput = document.getElementById("loginRoleInput");
-            if (userInput) userInput.value = "cliente@energygym.pe";
-            if (passInput) passInput.value = "cliente123";
-            if (roleInput) roleInput.value = "cliente";
-            loginForm.submit();
-        });
-    }
-
-    if (btnQuickAdmin && loginForm) {
-        btnQuickAdmin.addEventListener("click", () => {
-            const userInput = document.getElementById("username");
-            const passInput = document.getElementById("password");
-            const roleInput = document.getElementById("loginRoleInput");
-            if (userInput) userInput.value = "admin@energygym.pe";
-            if (passInput) passInput.value = "admin123";
-            if (roleInput) roleInput.value = "admin";
-            loginForm.submit();
-        });
-    }
 
     if (togglePassBtn) {
         togglePassBtn.addEventListener("click", function () {
