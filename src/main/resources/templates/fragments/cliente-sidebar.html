@@ -42,14 +42,14 @@
         </div>
         <p class="text-muted text-2xs mb-2">Muestra tu código QR en recepción para ingresar rápidamente.</p>
         <button type="button" class="btn btn-primary w-100 py-2 text-2xs" id="btnOpenQrPass"
-                th:attr="data-socio-name=${socio != null ? socio.nombre + ' ' + socio.apellido : 'Carlos Mendoza Pérez'},
-                         data-socio-dni=${socio != null ? socio.dni : '72563123'},
-                         data-socio-code=${socio != null ? '#SOC-00' + socio.id : '#SOC-001'},
-                         data-socio-initials=${socio != null ? #strings.substring(socio.nombre, 0, 1) + #strings.substring(socio.apellido, 0, 1) : 'CM'},
-                         data-plan-name=${membresia != null and membresia.plan != null ? membresia.plan.nombre : 'PLAN PLUS'},
-                         data-plan-estado=${membresia != null ? membresia.estado : 'ACTIVO'},
-                         data-plan-vence=${membresia != null and membresia.fechaFin != null ? #temporals.format(membresia.fechaFin, 'dd/MM/yyyy') : '16/11/2026'},
-                         data-dias-restantes=${diasRestantes != null ? diasRestantes : 21}">
+                th:attr="data-socio-name=${socio != null ? socio.nombre + ' ' + socio.apellido : (#authentication != null ? #authentication.name : 'Socio')},
+                         data-socio-dni=${socio != null ? socio.dni : '—'},
+                         data-socio-code=${socio != null ? '#SOC-00' + socio.id : '—'},
+                         data-socio-initials=${socio != null ? #strings.substring(socio.nombre, 0, 1) + #strings.substring(socio.apellido, 0, 1) : 'EG'},
+                         data-plan-name=${membresia != null and membresia.plan != null ? membresia.plan.nombre : 'SIN MEMBRESÍA ACTIVA'},
+                         data-plan-estado=${membresia != null and membresia.estado != null ? membresia.estado.name() : 'INACTIVA'},
+                         data-plan-vence=${membresia != null and membresia.fechaFin != null ? #temporals.format(membresia.fechaFin, 'dd/MM/yyyy') : '—'},
+                         data-dias-restantes=${diasRestantes != null ? diasRestantes : 0}">
             VER MI QR DE ACCESO
         </button>
     </div>

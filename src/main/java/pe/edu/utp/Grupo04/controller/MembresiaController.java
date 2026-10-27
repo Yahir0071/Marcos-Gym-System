@@ -80,9 +80,9 @@ public class MembresiaController {
             socio = socioService.buscarPorDni(dni).orElse(null);
         }
 
-        String nombreSocio = (socio != null) ? (socio.getNombre() + " " + socio.getApellido()).trim() : "Carlos Mendoza Pérez";
-        String dniSocio = (socio != null) ? socio.getDni() : "72563123";
-        String codigoSocio = (socio != null) ? ("#SOC-00" + socio.getId()) : "#SOC-001";
+        String nombreSocio = (socio != null) ? (socio.getNombre() + " " + socio.getApellido()).trim() : (username != null ? username : "Socio");
+        String dniSocio = (socio != null) ? socio.getDni() : "—";
+        String codigoSocio = (socio != null) ? ("#SOC-00" + socio.getId()) : "—";
 
         Optional<Membresia> memOpt = (username != null) ? membresiaService.obtenerMembresiaActivaPorUsername(username) : Optional.empty();
         boolean activa = memOpt.isPresent() || socio != null;
@@ -97,7 +97,7 @@ public class MembresiaController {
                     "socio", nombreSocio,
                     "dni", dniSocio,
                     "codigo", codigoSocio,
-                    "sede", "Sede Las Am�ricas, Ate - Ingreso Central",
+                    "sede", "Sede Las Am�ricas, Ate - Ingreso Central",
                     "hora", horaActual,
                     "visitasNuevas", 19
             ));
@@ -108,7 +108,7 @@ public class MembresiaController {
                     "mensaje", "Membresía no vigente o suspendida. Por favor acérquese a recepción.",
                     "socio", nombreSocio,
                     "dni", dniSocio,
-                    "sede", "Sede Las Am�ricas, Ate"
+                    "sede", "Sede Las Am�ricas, Ate"
             ));
         }
     }

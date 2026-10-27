@@ -34,4 +34,14 @@ public class GlobalModelAdvice {
         }
         return null;
     }
+
+    @ModelAttribute("diasRestantes")
+    public Long currentDiasRestantes(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
+            return membresiaService.obtenerMembresiaActivaPorUsername(authentication.getName())
+                    .map(membresiaService::calcularDiasRestantes)
+                    .orElse(0L);
+        }
+        return 0L;
+    }
 }

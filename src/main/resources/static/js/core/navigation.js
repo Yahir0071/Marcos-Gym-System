@@ -59,14 +59,14 @@ export function initQrPass() {
             || document.getElementById("btnOpenQrPass") 
             || triggerEl;
 
-        const socioName = sourceEl?.getAttribute("data-socio-name") || "Carlos Mendoza Pérez";
-        const socioDni = sourceEl?.getAttribute("data-socio-dni") || "72563123";
-        const socioCode = sourceEl?.getAttribute("data-socio-code") || "#SOC-001";
-        const socioInitials = sourceEl?.getAttribute("data-socio-initials") || "CM";
-        const planName = sourceEl?.getAttribute("data-plan-name") || "PLAN PLUS";
-        const planEstado = sourceEl?.getAttribute("data-plan-estado") || "ACTIVO";
-        const planVence = sourceEl?.getAttribute("data-plan-vence") || "16/11/2026";
-        const diasRestantes = sourceEl?.getAttribute("data-dias-restantes") || "21";
+        const socioName = sourceEl?.getAttribute("data-socio-name") || "Socio Energy";
+        const socioDni = sourceEl?.getAttribute("data-socio-dni") || "—";
+        const socioCode = sourceEl?.getAttribute("data-socio-code") || "—";
+        const socioInitials = sourceEl?.getAttribute("data-socio-initials") || "EG";
+        const planName = sourceEl?.getAttribute("data-plan-name") || "SIN MEMBRESÍA ACTIVA";
+        const planEstado = sourceEl?.getAttribute("data-plan-estado") || "INACTIVO";
+        const planVence = sourceEl?.getAttribute("data-plan-vence") || "—";
+        const diasRestantes = sourceEl?.getAttribute("data-dias-restantes") || "0";
 
         const randomToken = "EG-" + socioDni.slice(-4) + "-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -74,7 +74,7 @@ export function initQrPass() {
 Socio: ${socioName}
 DNI: ${socioDni} | Pase: ${socioCode}
 Plan: ${planName} (${planEstado})
-Sede: Las Am�ricas, Ate
+Sede: Las Am�ricas, Ate
 Vigencia: ${planVence} (${diasRestantes} días restantes)
 Token Seguridad: ${randomToken}
 Verificado por: torniquete.energygym.pe`;
@@ -142,7 +142,7 @@ Verificado por: torniquete.energygym.pe`;
                     <!-- Cobertura y Sede -->
                     <div class="d-flex justify-content-between align-items-center text-xs mb-3 px-1">
                         <span class="text-primary font-anton tracking-wide"><i class="fa-solid fa-dumbbell me-1"></i> ${passData.planName.toUpperCase()}</span>
-                        <span class="text-muted"><i class="fa-solid fa-location-dot me-1 text-primary"></i> Las Am�ricas, Ate</span>
+                        <span class="text-muted"><i class="fa-solid fa-location-dot me-1 text-primary"></i> Las Am�ricas, Ate</span>
                         <span class="text-light fw-bold"><i class="fa-regular fa-calendar-check me-1 text-primary"></i> Vence: ${passData.planVence}</span>
                     </div>
 
@@ -312,7 +312,7 @@ Verificado por: torniquete.energygym.pe`;
                                 visitsCard.textContent = `${res.visitasNuevas} VISITAS`;
                             }
 
-                            showGymToast("¡Acceso concedido en Torniquete Las Am�ricas, Ate!", "fa-door-open");
+                            showGymToast("¡Acceso concedido en Torniquete Las Am�ricas, Ate!", "fa-door-open");
                         }, 600);
                     } catch (err) {
                         setTimeout(() => {
@@ -320,7 +320,7 @@ Verificado por: torniquete.energygym.pe`;
                             if (visualArea) visualArea.classList.add("d-none");
                             if (antifraudArea) antifraudArea.classList.add("d-none");
                             if (grantedArea) grantedArea.classList.remove("d-none");
-                            showGymToast("¡Acceso concedido en Torniquete Las Am�ricas, Ate!", "fa-door-open");
+                            showGymToast("¡Acceso concedido en Torniquete Las Am�ricas, Ate!", "fa-door-open");
                         }, 600);
                     }
                 });
