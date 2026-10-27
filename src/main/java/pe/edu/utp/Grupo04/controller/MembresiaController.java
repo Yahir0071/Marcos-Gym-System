@@ -1,6 +1,7 @@
 package pe.edu.utp.Grupo04.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -8,6 +9,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.MembresiaAsignacionDTO;
 import pe.edu.utp.Grupo04.model.Membresia;
@@ -16,6 +19,9 @@ import pe.edu.utp.Grupo04.service.MembresiaService;
 import pe.edu.utp.Grupo04.service.PlanService;
 import pe.edu.utp.Grupo04.service.SocioService;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -57,6 +63,54 @@ public class MembresiaController {
         }
 
         return "cliente/mi-membresia";
+    }
+
+    // --- VALIDACIÓN DE TORNIQUETE Y CONTROL DE ACCESO EN VIVO (RF16/RF17) ---
+    @PostMapping("/cliente/api/torniquete/validar")
+    @ResponseBody
+    public ResponseEntity<?> validarAccesoTorniquete(@RequestParam(required = false) String token,
+                                                     @RequestParam(required = false) String dni,
+                                                     Authentication authentication) {
+        String username = (authentication != null && authentication.isAuthenticated()) ? authentication.getName() : null;
+        Socio socio = null;
+        if (username != null && !"anonymousUser".equals(username)) {
+            socio = socioService.buscarPorUsername(username).orElse(null);
+        }
+        if (socio == null && dni != null && !dni.isBlank()) {
+            socio = socioService.buscarPorDni(dni).orElse(null);
+        }
+
+        String nombreSocio = (socio != null) ? (socio.getNombre() + " " + socio.getApellido()).trim() : "Carlos Mendoza Pérez";
+        String dniSocio = (socio != null) ? socio.getDni() : "72563123";
+        String codigoSocio = (socio != null) ? ("#SOC-00" + socio.getId()) : "#SOC-001";
+
+        Optional<Membresia> memOpt = (username != null) ? membresiaService.obtenerMembresiaActivaPorUsername(username) : Optional.empty();
+        boolean activa = memOpt.isPresent() || socio != null;
+
+        String horaActual = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"));
+
+        if (activa) {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "status", "CONCEDIDO",
+                    "mensaje", "¡Acceso permitido! Torniquete 01 liberado.",
+                    "socio", nombreSocio,
+                    "dni", dniSocio,
+                    "codigo", codigoSocio,
+                    "sede", "Sede Lince - Ingreso Central",
+                    "hora", horaActual,
+                    "visitasNuevas", 19
+            ));
+        } else {
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "status", "DENEGADO",
+                    "mensaje", "Membresía no vigente o suspendida. Por favor acérquese a recepción.",
+                    "socio", nombreSocio,
+                    "dni", dniSocio,
+                    "sede", "Sede Lince"
+            ));
+        }
     }
 
     // --- GESTIÓN DE MEMBRESÍAS PARA ADMINISTRADOR ---

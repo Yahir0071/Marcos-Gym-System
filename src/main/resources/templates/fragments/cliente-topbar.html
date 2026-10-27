@@ -13,7 +13,15 @@
     </div>
 
     <div class="d-flex align-items-center gap-3">
-        <button type="button" class="btn btn-outline py-2 px-3 text-xs" id="btnTopbarQr">
+        <button type="button" class="btn btn-outline py-2 px-3 text-xs" id="btnTopbarQr"
+                th:attr="data-socio-name=${socio != null ? socio.nombre + ' ' + socio.apellido : 'Carlos Mendoza Pérez'},
+                         data-socio-dni=${socio != null ? socio.dni : '72563123'},
+                         data-socio-code=${socio != null ? '#SOC-00' + socio.id : '#SOC-001'},
+                         data-socio-initials=${socio != null ? #strings.substring(socio.nombre, 0, 1) + #strings.substring(socio.apellido, 0, 1) : 'CM'},
+                         data-plan-name=${membresia != null and membresia.plan != null ? membresia.plan.nombre : 'PLAN PLUS'},
+                         data-plan-estado=${membresia != null ? membresia.estado : 'ACTIVO'},
+                         data-plan-vence=${membresia != null and membresia.fechaFin != null ? #temporals.format(membresia.fechaFin, 'dd/MM/yyyy') : '16/11/2026'},
+                         data-dias-restantes=${diasRestantes != null ? diasRestantes : 21}">
             <i class="fa-solid fa-qrcode text-primary"></i> <span class="d-none d-sm-inline">MI PASE QR</span>
         </button>
         <a th:href="@{/cliente/notificaciones}" class="btn btn-outline py-2 px-3 position-relative">

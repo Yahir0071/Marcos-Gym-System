@@ -17,6 +17,9 @@
                         <span class="badge font-anton px-4 py-2 text-xs tracking-wide" 
                               th:style="${membresia != null and membresia.estado != null and membresia.estado.name() == 'ACTIVA'} ? 'background-color: var(--accent-success); color: #000;' : 'background-color: #ff3366; color: #fff;'"
                               th:text="${membresia != null and membresia.estado != null ? membresia.estado.name() : 'INACTIVA'}">VIGENTE</span>
+                        <button type="button" class="btn btn-outline py-2 px-3 text-xs btn-open-qr-pass" id="btnPageQrPass">
+                            <i class="fa-solid fa-qrcode text-primary"></i> VER MI PASE QR
+                        </button>
                         <button type="button" class="btn btn-primary py-2 px-3 text-xs" id="btnCheckinToday">
                             <i class="fa-solid fa-fire-flame-curved"></i> REGISTRAR ENTRENO DE HOY
                         </button>
