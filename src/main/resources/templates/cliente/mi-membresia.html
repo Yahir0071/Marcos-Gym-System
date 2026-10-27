@@ -31,7 +31,7 @@
                     <div class="card p-4">
                         <span class="text-muted font-anton mb-2 text-xs tracking-wide">FECHA DE INICIO</span>
                         <h4 class="font-anton m-0 text-light" id="memberStartDate" th:text="${membresia != null and membresia.fechaInicio != null ? #temporals.format(membresia.fechaInicio, 'dd MMM yyyy') : '—'}">01 Ene 2025</h4>
-                        <small class="text-muted text-2xs mt-1">Activado en Sede Las Am�ricas, Ate</small>
+                        <small class="text-muted text-2xs mt-1">Activado en Sede Las Am�ricas, Ate</small>
                     </div>
                     <div class="card p-4">
                         <span class="text-muted font-anton mb-2 text-xs tracking-wide">FECHA DE VENCIMIENTO</span>
@@ -47,9 +47,9 @@
                         </div>
                     </div>
                     <div class="card p-4">
-                        <span class="text-muted font-anton mb-2 text-xs tracking-wide">ASISTENCIAS DEL MES</span>
-                        <h4 class="font-anton m-0 text-success" id="memberAttendanceCount">18 visitas</h4>
-                        <small class="text-muted text-2xs mt-1">Meta mensual: 20 entrenamientos</small>
+                        <span class="text-muted font-anton mb-2 text-xs tracking-wide">ENTRENAMIENTOS DEL MES</span>
+                        <h4 class="font-anton m-0 text-success" id="memberAttendanceCount">0 entrenamientos</h4>
+                        <small class="text-muted text-2xs mt-1"><span id="memberMonthlyTarget">Meta según tu rutina</span></small>
                     </div>
                 </div>
 
@@ -58,42 +58,34 @@
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                         <div>
                             <h6 class="font-anton m-0 text-light">MI REGISTRO SEMANAL DE DISCIPLINA</h6>
-                            <small class="text-muted text-xs">Haz clic en un día para marcar o desmarcar tu asistencia a entrenamiento</small>
+                            <small class="text-muted text-xs">Marca o desmarca entrenamientos de esta semana. Los días futuros y de descanso no se pueden marcar.</small>
                         </div>
-                        <span class="badge bg-elevated border border-secondary text-primary font-anton px-3 py-2" id="weeklyTrackerSummary">5 / 6 DÍAS COMPLETADOS</span>
+                        <span class="badge bg-elevated border border-secondary text-primary font-anton px-3 py-2" id="weeklyTrackerSummary">0 / 0 DÍAS COMPLETADOS</span>
                     </div>
-                    <div class="grid-features" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
-                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="LUN">
-                            <span class="text-2xs text-muted">LUNES</span>
-                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
-                            <span class="text-2xs">PECHO / TRÍCEPS</span>
-                        </button>
-                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="MAR">
-                            <span class="text-2xs text-muted">MARTES</span>
-                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
-                            <span class="text-2xs">ESPALDA / BÍCEPS</span>
-                        </button>
-                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="MIE">
-                            <span class="text-2xs text-muted">MIÉRCOLES</span>
-                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
-                            <span class="text-2xs">PIERNA COMPLETA</span>
-                        </button>
-                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="JUE">
-                            <span class="text-2xs text-muted">JUEVES</span>
-                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
-                            <span class="text-2xs">HOMBROS / ABS</span>
-                        </button>
-                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn active" data-day="VIE">
-                            <span class="text-2xs text-muted">VIERNES</span>
-                            <i class="fa-solid fa-circle-check fs-4 text-primary"></i>
-                            <span class="text-2xs">TREN SUPERIOR</span>
-                        </button>
-                        <button type="button" class="btn btn-outline py-3 d-flex flex-column align-items-center gap-1 workout-day-btn" id="todayWorkoutBtn" data-day="SAB">
-                            <span class="text-2xs text-muted">HOY · SÁBADO</span>
-                            <i class="fa-regular fa-circle fs-4 text-muted"></i>
-                            <span class="text-2xs">CARDIO HIIT</span>
-                        </button>
+                    <div id="weeklyWorkoutGrid" class="grid-features" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));" aria-live="polite"></div>
+                    <p id="routineStatus" class="text-muted text-sm mt-3 mb-0" role="status">Cargando tu rutina…</p>
+                </div>
+
+                <div class="card p-4 mb-4" id="routineSection">
+                    <div class="section-subtitle has-line mb-2">A TU RITMO</div>
+                    <h5 class="font-anton text-light">MI RUTINA PERSONALIZADA</h5>
+                    <p class="text-muted text-sm">Elige una plantilla editable o crea tu propia distribución. Marca tus días de entrenamiento y describe los ejercicios, series y repeticiones. Los demás días serán de descanso.</p>
+                    <div class="row g-3 mb-4" id="routineTemplates">
+                        <div class="col-md-4"><button type="button" class="btn btn-outline w-100 h-100 routine-template" data-template="3">3 DÍAS · DIVISIÓN MUSCULAR</button></div>
+                        <div class="col-md-4"><button type="button" class="btn btn-outline w-100 h-100 routine-template" data-template="4">4 DÍAS · TORSO / PIERNA</button></div>
+                        <div class="col-md-4"><button type="button" class="btn btn-outline w-100 h-100 routine-template" data-template="5">5 DÍAS · DISTRIBUCIÓN MIXTA</button></div>
                     </div>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-outline" id="newCustomRoutine">CREAR RUTINA PROPIA</button>
+                        <button type="button" class="btn btn-outline" id="restoreRoutine">DESCARTAR CAMBIOS</button>
+                    </div>
+                    <p class="text-muted text-xs">Las plantillas contienen ejemplos editables. Puedes cambiar los días y adaptar cada sesión a tu rutina.</p>
+                    <form id="routineForm">
+                        <div id="routineEditor" class="row g-3 mb-4"></div>
+                        <p class="text-muted text-sm">Al guardar, los cambios se aplican desde hoy. Los días anteriores conservan su rutina y sus registros. La meta del mes cuenta las fechas programadas del calendario; en el primer mes comienza desde la fecha de configuración.</p>
+                        <button type="submit" class="btn btn-primary" id="saveRoutine">GUARDAR MI RUTINA</button>
+                        <span class="text-muted text-sm ms-2" id="routineSaveStatus" role="status"></span>
+                    </form>
                 </div>
 
                 <!-- Benefits & Renewal Alert -->
@@ -121,15 +113,15 @@
                             <h6 class="font-anton text-primary m-0">TU META DEL MES</h6>
                         </div>
                         <div class="d-flex justify-content-between align-items-end mb-2">
-                            <span class="text-muted text-sm">Entrenamientos completados</span>
-                            <strong class="font-anton text-light" id="monthlyGoalCount">18 / 20</strong>
+                            <span class="text-muted text-sm">Entrenamientos registrados por ti</span>
+                            <strong class="font-anton text-light" id="monthlyGoalCount">0 / 0</strong>
                         </div>
                         <div class="progress progress-custom mb-3" role="progressbar" aria-label="Progreso de la meta mensual"
-                             aria-valuemin="0" aria-valuemax="20" aria-valuenow="18" style="height: 10px;">
-                            <div class="progress-bar progress-bar-custom" id="monthlyGoalProgress" style="width: 90%;"></div>
+                             aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" style="height: 10px;">
+                            <div class="progress-bar progress-bar-custom" id="monthlyGoalProgress" style="width: 0%;"></div>
                         </div>
                         <p class="text-muted text-sm mb-4" id="monthlyGoalMessage">
-                            ¡Vas muy bien! Te faltan <strong class="text-primary">2 entrenamientos</strong> para alcanzar tu meta mensual.
+                            Configura tu rutina para calcular tu meta mensual.
                         </p>
                         <div class="d-flex gap-2 mt-auto">
                             <a th:href="@{/planes}" class="btn btn-outline flex-grow-1 justify-content-between" id="btnRenewPlan">
