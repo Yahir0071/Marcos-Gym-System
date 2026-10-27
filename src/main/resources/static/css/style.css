@@ -865,6 +865,7 @@ body {
 .progress-dark-bg { background-color: rgba(255, 255, 255, 0.08); }
 .w-120px { width: 120px; }
 .mw-550px { max-width: 550px; }
+.mw-650px { max-width: 650px; }
 .mw-420px { max-width: 420px; }
 .z-index-2 { z-index: 2; }
 .z-index-3 { z-index: 3; }
