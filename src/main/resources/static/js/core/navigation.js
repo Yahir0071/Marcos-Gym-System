@@ -74,7 +74,7 @@ export function initQrPass() {
 Socio: ${socioName}
 DNI: ${socioDni} | Pase: ${socioCode}
 Plan: ${planName} (${planEstado})
-Sede: Principal Lince
+Sede: Las Américas, Ate
 Vigencia: ${planVence} (${diasRestantes} dÃ­as restantes)
 Token Seguridad: ${randomToken}
 Verificado por: torniquete.energygym.pe`;
@@ -142,7 +142,7 @@ Verificado por: torniquete.energygym.pe`;
                     <!-- Cobertura y Sede -->
                     <div class="d-flex justify-content-between align-items-center text-xs mb-3 px-1">
                         <span class="text-primary font-anton tracking-wide"><i class="fa-solid fa-dumbbell me-1"></i> ${passData.planName.toUpperCase()}</span>
-                        <span class="text-muted"><i class="fa-solid fa-location-dot me-1 text-primary"></i> Sede Lince</span>
+                        <span class="text-muted"><i class="fa-solid fa-location-dot me-1 text-primary"></i> Las Américas, Ate</span>
                         <span class="text-light fw-bold"><i class="fa-regular fa-calendar-check me-1 text-primary"></i> Vence: ${passData.planVence}</span>
                     </div>
 
@@ -312,7 +312,7 @@ Verificado por: torniquete.energygym.pe`;
                                 visitsCard.textContent = `${res.visitasNuevas} VISITAS`;
                             }
 
-                            showGymToast("Â¡Acceso concedido en Torniquete Sede Lince!", "fa-door-open");
+                            showGymToast("Â¡Acceso concedido en Torniquete Las Américas, Ate!", "fa-door-open");
                         }, 600);
                     } catch (err) {
                         setTimeout(() => {
@@ -320,7 +320,7 @@ Verificado por: torniquete.energygym.pe`;
                             if (visualArea) visualArea.classList.add("d-none");
                             if (antifraudArea) antifraudArea.classList.add("d-none");
                             if (grantedArea) grantedArea.classList.remove("d-none");
-                            showGymToast("Â¡Acceso concedido en Torniquete Sede Lince!", "fa-door-open");
+                            showGymToast("Â¡Acceso concedido en Torniquete Las Américas, Ate!", "fa-door-open");
                         }, 600);
                     }
                 });

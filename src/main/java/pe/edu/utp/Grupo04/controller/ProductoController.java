@@ -140,7 +140,7 @@ public class ProductoController {
         sb.append(String.format("I.G.V. (18%%)       : S/ %s\n", orden.get("igvFormatted")));
         sb.append(String.format("IMPORTE TOTAL      : S/ %s\n", orden.get("totalFormatted")));
         sb.append("========================================================================\n");
-        sb.append("Lugar de Recojo    : Recepción Central Energy Gym (Sede Lince)\n");
+        sb.append("Lugar de Recojo    : Recepción Central Energy Gym (Sede Las Am�ricas, Ate)\n");
         sb.append("Aviso Legal        : Comprobante generado para entorno de evaluación académica.\n");
         sb.append("========================================================================\n");
 

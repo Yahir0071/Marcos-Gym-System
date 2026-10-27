@@ -97,7 +97,7 @@ public class MembresiaController {
                     "socio", nombreSocio,
                     "dni", dniSocio,
                     "codigo", codigoSocio,
-                    "sede", "Sede Lince - Ingreso Central",
+                    "sede", "Sede Las AmÈricas, Ate - Ingreso Central",
                     "hora", horaActual,
                     "visitasNuevas", 19
             ));
@@ -108,7 +108,7 @@ public class MembresiaController {
                     "mensaje", "Membres√≠a no vigente o suspendida. Por favor ac√©rquese a recepci√≥n.",
                     "socio", nombreSocio,
                     "dni", dniSocio,
-                    "sede", "Sede Lince"
+                    "sede", "Sede Las AmÈricas, Ate"
             ));
         }
     }

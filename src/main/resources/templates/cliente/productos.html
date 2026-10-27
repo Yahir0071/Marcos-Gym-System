@@ -75,13 +75,13 @@
                             <p class="text-muted text-xs mb-3" th:text="${prod.descripcion}">24g proteína aislada por porción.</p>
                             <h4 class="font-anton text-primary mb-4 mt-auto" th:text="'S/ ' + ${#numbers.formatDecimal(prod.precio, 1, 'POINT', 0, 'POINT')}">S/ 149</h4>
                             <div class="d-flex gap-2">
-                                <a th:href="@{/cliente/detalle-producto(id=${prod.id})}" class="btn btn-outline flex-grow-1">VER DETALLE</a>
-                                <button type="button" class="btn btn-outline px-3 btn-quick-add-cart" title="Agregar al carrito"
+                                <a th:href="@{/cliente/detalle-producto(id=${prod.id})}" class="btn btn-outline flex-grow-1 text-nowrap text-2xs py-2 px-2 d-flex align-items-center justify-content-center">VER DETALLE</a>
+                                <button type="button" class="btn btn-outline px-3 py-2 btn-quick-add-cart" title="Agregar al carrito"
                                         th:disabled="${prod.stock == null or prod.stock <= 0}"
                                         th:attr="data-id=${prod.id}, data-name=${prod.nombre}, data-price=${prod.precio}, data-img=${prod.imagenUrl != null ? prod.imagenUrl : '/img/whey.jpg'}, data-category=${prod.nombre != null and (prod.nombre.toUpperCase().contains('SHAKER') or prod.nombre.toUpperCase().contains('BOTELLA')) ? 'Botellas' : 'Suplementos'}">
                                     <i class="fa-solid fa-cart-plus text-primary"></i>
                                 </button>
-                                <button type="button" class="btn btn-primary px-3 btn-quick-reserve"
+                                <button type="button" class="btn btn-primary px-3 py-2 btn-quick-reserve text-nowrap text-2xs d-flex align-items-center justify-content-center gap-1"
                                         th:disabled="${prod.stock == null or prod.stock <= 0}"
                                         th:attr="data-product=${prod.nombre}, data-price=${prod.precio}, data-id=${prod.id}">
                                     <i class="fa-solid fa-plus"></i> RESERVAR
