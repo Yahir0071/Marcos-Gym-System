@@ -34,7 +34,7 @@
 
         <div class="flex-grow-1 d-flex flex-column gap-1 px-3 py-3">
             <div class="text-muted text-2xs fw-bold px-3 py-1 tracking-wider">PRINCIPAL</div>
-            <a th:href="@{/admin/dashboard}" th:class="'sidebar-link ' + (${activeItem == 'dashboard'} ? 'active' : '')">
+            <a sec:authorize="hasRole('ADMINISTRACION')" th:href="@{/admin/dashboard}" th:class="'sidebar-link ' + (${activeItem == 'dashboard'} ? 'active' : '')">
                 <i class="fa-solid fa-chart-pie"></i> <span>DASHBOARD</span>
             </a>
             <a th:href="@{/admin/socios}" th:class="'sidebar-link ' + (${activeItem == 'socios'} ? 'active' : '')">
@@ -65,13 +65,13 @@
             <a th:href="@{/admin/afluencia}" th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')">
                 <i class="fa-solid fa-people-group"></i> <span>AFLUENCIA</span>
             </a>
-            <a th:href="@{/admin/equipos}" th:class="'sidebar-link ' + (${activeItem == 'equipos'} ? 'active' : '')">
+            <a sec:authorize="hasRole('ADMINISTRACION')" th:href="@{/admin/equipos}" th:class="'sidebar-link ' + (${activeItem == 'equipos'} ? 'active' : '')">
                 <i class="fa-solid fa-dumbbell"></i> <span>EQUIPOS</span>
             </a>
-            <a th:href="@{/admin/mantenimientos}" th:class="'sidebar-link ' + (${activeItem == 'mantenimientos'} ? 'active' : '')">
+            <a sec:authorize="hasRole('ADMINISTRACION')" th:href="@{/admin/mantenimientos}" th:class="'sidebar-link ' + (${activeItem == 'mantenimientos'} ? 'active' : '')">
                 <i class="fa-solid fa-screwdriver-wrench"></i> <span>MANTENIMIENTO</span>
             </a>
-            <a th:href="@{/admin/reporte-mantenimiento}" th:class="'sidebar-link ' + (${activeItem == 'reporte'} ? 'active' : '')">
+            <a sec:authorize="hasRole('ADMINISTRACION')" th:href="@{/admin/reporte-mantenimiento}" th:class="'sidebar-link ' + (${activeItem == 'reporte'} ? 'active' : '')">
                 <i class="fa-solid fa-clipboard-check"></i> <span>REPORTE TÉCNICO</span>
             </a>
         </div>
@@ -111,8 +111,9 @@
                         AD
                     </div>
                     <div class="d-none d-sm-block text-start">
-                        <div class="font-anton text-light text-xs tracking-wide leading-none" th:text="${#authentication != null ? #authentication.name : 'ADMINISTRADOR'}">ADMIN</div>
-                        <small class="text-primary text-2xs fw-bold">ADMINISTRADOR</small>
+                        <div class="font-anton text-light text-xs tracking-wide leading-none" th:text="${#authentication != null ? #authentication.name : 'USUARIO'}">ADMIN</div>
+                        <small class="text-primary text-2xs fw-bold" sec:authorize="hasRole('ADMINISTRACION')">ADMINISTRACIÓN</small>
+                        <small class="text-primary text-2xs fw-bold" sec:authorize="hasRole('RECEPCION')">RECEPCIÓN</small>
                     </div>
                 </div>
             </div>

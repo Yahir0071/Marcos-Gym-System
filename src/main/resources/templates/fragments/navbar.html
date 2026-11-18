@@ -40,9 +40,23 @@
                 </li>
 
                 <!-- Si es Administrador autenticado -->
-                <li class="nav-item ms-lg-3" sec:authorize="hasRole('ADMINISTRADOR')">
+                <li class="nav-item ms-lg-3" sec:authorize="hasRole('ADMINISTRACION')">
                     <a class="nav-link nav-btn-login" th:href="@{/admin/dashboard}">
                         <i class="fa-solid fa-chart-pie me-1"></i> PANEL ADMIN
+                    </a>
+                </li>
+
+                <!-- Si es Recepción autenticado -->
+                <li class="nav-item ms-lg-3" sec:authorize="hasRole('RECEPCION')">
+                    <a class="nav-link nav-btn-login" th:href="@{/admin/socios}">
+                        <i class="fa-solid fa-users me-1"></i> RECEPCIÓN
+                    </a>
+                </li>
+
+                <!-- Si es Gestor Técnico autenticado -->
+                <li class="nav-item ms-lg-3" sec:authorize="hasRole('GESTOR_TECNICO')">
+                    <a class="nav-link nav-btn-login" th:href="@{/tecnico/cuentas}">
+                        <i class="fa-solid fa-users-gear me-1"></i> GESTOR TÉCNICO
                     </a>
                 </li>
 
