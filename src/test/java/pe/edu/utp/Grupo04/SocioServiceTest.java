@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pe.edu.utp.Grupo04.dto.SocioActualizarDTO;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
 import pe.edu.utp.Grupo04.model.Socio;
 import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.model.enums.Rol;
@@ -38,10 +40,17 @@ public class SocioServiceTest {
     @BeforeEach
     void setUp() {
         socioNuevo = new Socio();
+        socioNuevo.setId(1L);
         socioNuevo.setDni("75849302");
         socioNuevo.setNombres("Valeria");
         socioNuevo.setApellidos("Castro");
         socioNuevo.setTelefono("912345678");
+
+        Usuario u = new Usuario();
+        u.setId(5L);
+        u.setUsername("valeria@energygym.pe");
+        u.setActivo(true);
+        socioNuevo.setUsuario(u);
     }
 
     @Test
@@ -86,5 +95,44 @@ public class SocioServiceTest {
         assertTrue(ex.getMessage().contains("Ya existe un socio registrado"));
         verify(usuarioService, never()).registrarUsuario(any(), any(), any());
         verify(socioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("C08 - Debe actualizar los datos del socio y persistirlos en base de datos")
+    void testActualizarSocio_PersistenciaExitosa() {
+        when(socioRepository.findById(1L)).thenReturn(Optional.of(socioNuevo));
+        when(socioRepository.save(any(Socio.class))).thenAnswer(i -> i.getArgument(0));
+
+        SocioActualizarDTO dto = new SocioActualizarDTO("Valeria Nicole", "Castro Peña", "987654321", true);
+        Socio actualizado = socioService.actualizarSocio(1L, dto);
+
+        assertEquals("Valeria Nicole", actualizado.getNombres());
+        assertEquals("Castro Peña", actualizado.getApellidos());
+        assertEquals("987654321", actualizado.getTelefono());
+        assertTrue(actualizado.getUsuario().getActivo());
+        verify(socioRepository, times(1)).save(socioNuevo);
+    }
+
+    @Test
+    @DisplayName("C08 - Debe cambiar el estado activo a falso al desactivar un socio")
+    void testCambiarEstadoSocio_Desactivacion() {
+        when(socioRepository.findById(1L)).thenReturn(Optional.of(socioNuevo));
+        when(socioRepository.save(any(Socio.class))).thenAnswer(i -> i.getArgument(0));
+
+        socioService.cambiarEstado(1L, false);
+
+        assertFalse(socioNuevo.getUsuario().getActivo());
+        verify(socioRepository, times(1)).save(socioNuevo);
+    }
+
+    @Test
+    @DisplayName("M04 - Actualizar socio con ID inexistente debe lanzar RecursoNoEncontradoException")
+    void testActualizarSocio_Inexistente() {
+        when(socioRepository.findById(999L)).thenReturn(Optional.empty());
+
+        SocioActualizarDTO dto = new SocioActualizarDTO("Nombre", "Apellido", "999888777", true);
+        assertThrows(RecursoNoEncontradoException.class, () -> {
+            socioService.actualizarSocio(999L, dto);
+        });
     }
 }

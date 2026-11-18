@@ -14,7 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.CompraRequestDTO;
 import pe.edu.utp.Grupo04.dto.ProductoDTO;
 import pe.edu.utp.Grupo04.model.Producto;
-import pe.edu.utp.Grupo04.model.Socio;
 import pe.edu.utp.Grupo04.service.OrdenCompraService;
 import pe.edu.utp.Grupo04.service.ProductoService;
 import pe.edu.utp.Grupo04.service.SocioService;
@@ -49,7 +48,7 @@ public class ProductoController {
         return "public/productos";
     }
 
-    // --- DETALLE DE PRODUCTO PÚBLICO (CON PASARELA Y PRELLENADO DE SOCIO SI ESTÁ AUTENTICADO) ---
+    // --- DETALLE DE PRODUCTO PÚBLICO ---
     @GetMapping({"/detalle-producto", "/public/detalle-producto"})
     public String detalleProductoPublico(@RequestParam(required = false) Long id, Model model, Authentication auth) {
         if (id != null) {
@@ -140,7 +139,7 @@ public class ProductoController {
         sb.append(String.format("I.G.V. (18%%)       : S/ %s\n", orden.get("igvFormatted")));
         sb.append(String.format("IMPORTE TOTAL      : S/ %s\n", orden.get("totalFormatted")));
         sb.append("========================================================================\n");
-        sb.append("Lugar de Recojo    : Recepción Central Energy Gym (Sede Las Am�ricas, Ate)\n");
+        sb.append("Lugar de Recojo    : Recepción Central Energy Gym (Sede Las Américas, Ate)\n");
         sb.append("Aviso Legal        : Comprobante generado para entorno de evaluación académica.\n");
         sb.append("========================================================================\n");
 
@@ -173,11 +172,11 @@ public class ProductoController {
         if (productoDTO.getId() != null) {
             producto.setId(productoDTO.getId());
         }
-        producto.setNombre(productoDTO.getNombre());
-        producto.setDescripcion(productoDTO.getDescripcion());
+        producto.setNombre(productoDTO.getNombre().trim());
+        producto.setDescripcion(productoDTO.getDescripcion() != null ? productoDTO.getDescripcion().trim() : null);
         producto.setPrecio(productoDTO.getPrecio());
         producto.setStock(productoDTO.getStock());
-        producto.setImagenUrl(productoDTO.getImagenUrl());
+        producto.setImagenUrl(productoDTO.getImagenUrl() != null ? productoDTO.getImagenUrl().trim() : null);
         producto.setActivo(productoDTO.getActivo() != null ? productoDTO.getActivo() : true);
 
         productoService.guardar(producto);

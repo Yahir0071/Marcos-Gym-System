@@ -13,5 +13,6 @@ public interface ReservaService {
     Optional<Reserva> buscarPorId(Long id);
     Reserva crearReserva(String username, Long productoId, int cantidad);
     Reserva actualizarEstado(Long reservaId, EstadoReserva nuevoEstado);
+    Reserva cancelarReservaPorCliente(Long reservaId, String username);
     long contarPendientes();
 }

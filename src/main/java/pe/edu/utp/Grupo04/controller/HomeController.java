@@ -3,6 +3,7 @@ package pe.edu.utp.Grupo04.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
@@ -111,7 +112,7 @@ public class HomeController {
         double ahorroEstimado = subtotalSinDescuento - precioCalculado;
 
         LocalDate hoy = LocalDate.now();
-        LocalDate finEstimada = hoy.plusDays((long) m * 30);
+        LocalDate finEstimada = "ANUAL".equalsIgnoreCase(per) ? hoy.plusYears(1) : hoy.plusMonths(m);
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         model.addAttribute("selectedPlan", selectedPlan);
@@ -130,15 +131,18 @@ public class HomeController {
     }
 
     /**
-     * Procesa la contratación completa de membresía con validaciones, opciones de facturación y pago.
+     * Procesa la contratación completa de membresía con validaciones estrictas y persistencia (M01 / C09).
      */
     @PostMapping({"/registrarse", "/registro"})
     public String procesarRegistro(@RequestParam String nombres,
                                    @RequestParam String apellidos,
                                    @RequestParam String dni,
                                    @RequestParam(required = false) String telefono,
+                                   @RequestParam(required = false) String genero,
+                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaNacimiento,
                                    @RequestParam String email,
                                    @RequestParam String password,
+                                   @RequestParam(required = false) String confirmPassword,
                                    @RequestParam(required = false) Long planId,
                                    @RequestParam(required = false, defaultValue = "MENSUAL") String periodo,
                                    @RequestParam(required = false, defaultValue = "1") Integer meses,
@@ -160,34 +164,69 @@ public class HomeController {
         model.addAttribute("meses", meses);
         model.addAttribute("precioTotal", precioTotal);
 
-        // Validación de DNI
-        if (dni == null || !dni.matches("^\\d{8}$")) {
+        // M01: Validación de Nombres y Apellidos no vacíos ni solo espacios
+        if (nombres == null || nombres.trim().isEmpty()) {
+            model.addAttribute("mensajeError", "Los nombres son obligatorios y no pueden contener solo espacios.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+        if (apellidos == null || apellidos.trim().isEmpty()) {
+            model.addAttribute("mensajeError", "Los apellidos son obligatorios y no pueden contener solo espacios.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de DNI (8 dígitos exactos)
+        if (dni == null || !dni.trim().matches("^\\d{8}$")) {
             model.addAttribute("mensajeError", "El DNI del socio debe contener exactamente 8 dígitos numéricos.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email);
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de Email
+        if (email == null || !email.trim().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            model.addAttribute("mensajeError", "El formato del correo electrónico ingresado no es válido.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de Teléfono (9 dígitos numéricos si se envía)
+        if (telefono != null && !telefono.trim().isEmpty() && !telefono.trim().matches("^\\d{9}$")) {
+            model.addAttribute("mensajeError", "El teléfono celular debe contener exactamente 9 dígitos numéricos.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de Contraseña (mínimo 6 caracteres y no solo espacios)
+        if (password == null || password.trim().length() < 6) {
+            model.addAttribute("mensajeError", "La contraseña debe tener al menos 6 caracteres y no puede consistir únicamente en espacios.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de Confirmación de Contraseña
+        if (confirmPassword != null && !password.equals(confirmPassword)) {
+            model.addAttribute("mensajeError", "La confirmación de la contraseña no coincide con la contraseña ingresada.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
             return "register";
         }
 
         // Validación de Factura si corresponde
-        if ("FACTURA".equalsIgnoreCase(tipoComprobante) && (rucFactura == null || !rucFactura.matches("^\\d{11}$"))) {
+        if ("FACTURA".equalsIgnoreCase(tipoComprobante) && (rucFactura == null || !rucFactura.trim().matches("^\\d{11}$"))) {
             model.addAttribute("mensajeError", "Para emitir factura electrónica se requiere un RUC válido de 11 dígitos.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email);
-            return "register";
-        }
-
-        // Validación de Contraseña
-        if (password == null || password.length() < 6) {
-            model.addAttribute("mensajeError", "La contraseña de acceso debe tener al menos 6 caracteres.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email);
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
             return "register";
         }
 
         try {
-            // 1. Crear nuevo Socio y Usuario (Rol CLIENTE con BCrypt)
+            // 1. Crear nuevo Socio y Usuario (Rol CLIENTE forzoso por seguridad)
             Socio nuevo = new Socio();
             nuevo.setNombres(nombres.trim());
             nuevo.setApellidos(apellidos.trim());
             nuevo.setDni(dni.trim());
-            nuevo.setTelefono(telefono != null ? telefono.trim() : null);
+            nuevo.setTelefono(telefono != null && !telefono.trim().isEmpty() ? telefono.trim() : null);
+            nuevo.setGenero(genero != null && !genero.trim().isEmpty() ? genero.trim() : null);
+            nuevo.setFechaNacimiento(fechaNacimiento);
 
             Socio savedSocio = socioService.registrarSocio(nuevo, email.trim(), password);
             log.info("Nuevo socio registrado exitosamente: id={}, email={}", savedSocio.getId(), email);
@@ -207,10 +246,10 @@ public class HomeController {
 
             // 2. Manejo según Forma de Pago (ONLINE vs RECEPCION)
             if ("ONLINE".equalsIgnoreCase(metodoPago)) {
-                // Pago Online: Activación inmediata y generación de boleta/factura electrónica
+                // C09: Asignar plan respetando duración contratada (ANUAL = 12 meses)
                 if (planId != null) {
                     try {
-                        membresiaService.asignarPlanASocio(savedSocio.getId(), planId, hoy);
+                        membresiaService.asignarPlanASocio(savedSocio.getId(), planId, hoy, periodo, meses);
                     } catch (Exception ex) {
                         log.warn("Asignación de plan online en PostgreSQL: {}", ex.getMessage());
                     }
@@ -260,17 +299,19 @@ public class HomeController {
         } catch (Exception e) {
             log.warn("Fallo al registrar contratación de socio: {}", e.getMessage());
             model.addAttribute("mensajeError", e.getMessage());
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email);
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
             return "register";
         }
     }
 
-    private void rellenarCamposModel(Model model, String nombres, String apellidos, String dni, String telefono, String email) {
+    private void rellenarCamposModel(Model model, String nombres, String apellidos, String dni, String telefono, String email, String genero, LocalDate fechaNacimiento) {
         model.addAttribute("nombres", nombres);
         model.addAttribute("apellidos", apellidos);
         model.addAttribute("dni", dni);
         model.addAttribute("telefono", telefono);
         model.addAttribute("email", email);
+        model.addAttribute("genero", genero);
+        model.addAttribute("fechaNacimiento", fechaNacimiento);
     }
 
     @GetMapping("/logout")

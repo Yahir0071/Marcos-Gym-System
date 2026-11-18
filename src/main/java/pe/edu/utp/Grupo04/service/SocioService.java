@@ -1,5 +1,6 @@
 package pe.edu.utp.Grupo04.service;
 
+import pe.edu.utp.Grupo04.dto.SocioActualizarDTO;
 import pe.edu.utp.Grupo04.model.Socio;
 
 import java.util.List;
@@ -12,5 +13,7 @@ public interface SocioService {
     Optional<Socio> buscarPorUsername(String username);
     Socio registrarSocio(Socio socio, String email, String rawPassword);
     Socio actualizarSocio(Long id, Socio socioDatos);
+    Socio actualizarSocio(Long id, SocioActualizarDTO dto);
+    void cambiarEstado(Long id, boolean activo);
     long contarTotalSocios();
 }
