@@ -9,7 +9,7 @@
             <h1>PRODUCTOS</h1>
             <p>SUPLEMENTOS, ACCESORIOS, INDUMENTARIA Y STOCK</p>
         </div>
-        <div>
+        <div sec:authorize="hasRole('ADMINISTRACION')">
             <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">+ NUEVO PRODUCTO</button>
         </div>
     </div>

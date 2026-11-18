@@ -9,7 +9,7 @@
             <h1>SOCIOS</h1>
             <p>ADMINISTRA TUS SOCIOS, REVISA SU ESTADO Y MEMBRESÍAS</p>
         </div>
-        <div>
+        <div sec:authorize="hasRole('RECEPCION')">
             <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarSocio">+ REGISTRAR SOCIO</button>
         </div>
     </div>

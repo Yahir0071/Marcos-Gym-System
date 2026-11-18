@@ -9,7 +9,7 @@
             <h1>GESTIÓN DE PAGOS Y BOLETAS</h1>
             <p>PAGOS PRESENCIALES EN CAJA Y AUDITORÍA DE TRANSACCIONES EN LÍNEA (RF11 / RF22)</p>
         </div>
-        <div>
+        <div sec:authorize="hasRole('RECEPCION')">
             <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">+ REGISTRAR PAGO EN CAJA</button>
         </div>
     </div>

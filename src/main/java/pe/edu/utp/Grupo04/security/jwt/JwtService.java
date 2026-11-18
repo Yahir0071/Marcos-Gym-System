@@ -17,20 +17,28 @@ import java.util.function.Function;
 @Component
 public class JwtService {
 
-    @Value("${app.jwt.secret:ClaveSecretaSuperSeguraParaEnergyGymUTPSemana15TokenFirmado2026!}")
+    @Value("${app.jwt.secret:}")
     private String jwtSecret;
 
-    @Value("${app.jwt.expiration-ms:86400000}") // 24 horas por defecto
+    @Value("${app.jwt.expiration-ms:86400000}")
     private long jwtExpirationMs;
 
     private SecretKey getSigningKey() {
+        if (jwtSecret == null || jwtSecret.trim().length() < 32) {
+            throw new IllegalStateException("JWT Secret no está configurado o no cumple con la longitud mínima de seguridad (al menos 256 bits). Configure app.jwt.secret / JWT_SECRET.");
+        }
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generarToken(String username, String rol) {
+        return generarToken(username, rol, 1L);
+    }
+
+    public String generarToken(String username, String rol, long tokenVersion) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("rol", rol);
+        claims.put("tokenVersion", tokenVersion);
         return generarTokenConClaims(claims, username);
     }
 
@@ -55,6 +63,15 @@ public class JwtService {
         Claims claims = extraerTodosLosClaims(token);
         Object rol = claims.get("rol");
         return rol != null ? rol.toString() : null;
+    }
+
+    public Long extraerTokenVersion(String token) {
+        Claims claims = extraerTodosLosClaims(token);
+        Object ver = claims.get("tokenVersion");
+        if (ver instanceof Number number) {
+            return number.longValue();
+        }
+        return null;
     }
 
     public Date extraerExpiracion(String token) {

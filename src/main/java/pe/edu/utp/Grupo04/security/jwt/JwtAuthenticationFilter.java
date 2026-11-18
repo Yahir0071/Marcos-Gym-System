@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import pe.edu.utp.Grupo04.security.SecurityTokenRevocationManager;
 import pe.edu.utp.Grupo04.service.impl.CustomUserDetailsService;
 
 import java.io.IOException;
@@ -22,10 +23,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
+    private final SecurityTokenRevocationManager revocationManager;
 
-    public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService,
+                                   CustomUserDetailsService userDetailsService,
+                                   SecurityTokenRevocationManager revocationManager) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.revocationManager = revocationManager;
     }
 
     @Override
@@ -35,7 +40,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        // Si la solicitud no tiene header Authorization Bearer, continuar con la cadena normal (sesión Thymeleaf)
+        // Si la petición va dirigida a una API REST protegida por JWT (ej. /api/auth/me o /api/protegida/**)
+        // debe aislarse de la sesión web: si no viene con Bearer, no se debe heredar la sesión de cookies.
+        String path = request.getRequestURI();
+        boolean esEndpointJwtExclusivo = path.startsWith("/api/auth/me") || path.startsWith("/api/jwt/");
+
+        if (esEndpointJwtExclusivo && (authHeader == null || !authHeader.startsWith("Bearer "))) {
+            // Forzar contexto limpio sin heredar sesión HTTP previa
+            SecurityContextHolder.clearContext();
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Si la solicitud normal web no tiene header Authorization Bearer, continuar con la cadena normal (sesión Thymeleaf)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -46,17 +63,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtService.validarToken(jwt)) {
                 String username = jwtService.extraerUsername(jwt);
                 String rol = jwtService.extraerRol(jwt);
+                Long tokenVersion = jwtService.extraerTokenVersion(jwt);
 
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // Feedback #4: Revocar acceso si la versión del token no coincide con el estado actual del usuario
+                if (tokenVersion != null && !revocationManager.esTokenValidoParaVersion(username, tokenVersion)) {
+                    logger.warn("Token JWT revocado por cambio de rol o desactivación para el usuario: " + username);
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                if (username != null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                    List<SimpleGrantedAuthority> authorities;
-                    if (rol != null && !rol.isBlank()) {
-                        String authRole = rol.startsWith("ROLE_") ? rol : "ROLE_" + rol;
-                        authorities = Collections.singletonList(new SimpleGrantedAuthority(authRole));
-                    } else {
-                        authorities = (List<SimpleGrantedAuthority>) userDetails.getAuthorities();
+                    // Verificar además que el rol en BD coincida con el rol del token (evitar rol desactualizado)
+                    String rolActualBd = userDetails.getAuthorities().stream()
+                            .findFirst()
+                            .map(a -> a.getAuthority().replace("ROLE_", ""))
+                            .orElse("");
+
+                    if (rol != null && !rol.equalsIgnoreCase(rolActualBd)) {
+                        logger.warn("El rol del token (" + rol + ") no coincide con el rol actual en BD (" + rolActualBd + "). Token rechazado.");
+                        SecurityContextHolder.clearContext();
+                        filterChain.doFilter(request, response);
+                        return;
                     }
+
+                    List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+                            new SimpleGrantedAuthority("ROLE_" + rolActualBd)
+                    );
 
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
@@ -64,12 +99,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    // Establecer autenticación por JWT para este request
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
+            } else {
+                SecurityContextHolder.clearContext();
             }
         } catch (Exception e) {
-            // Token alterado, vencido o usuario inactivo -> no autenticar
             logger.warn("Fallo de autenticación JWT: " + e.getMessage());
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

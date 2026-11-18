@@ -1,8 +1,11 @@
 package pe.edu.utp.Grupo04.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -10,9 +13,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import pe.edu.utp.Grupo04.security.SessionValidityFilter;
 import pe.edu.utp.Grupo04.security.jwt.JwtAuthenticationFilter;
 
 @Configuration
@@ -21,9 +28,12 @@ import pe.edu.utp.Grupo04.security.jwt.JwtAuthenticationFilter;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final SessionValidityFilter sessionValidityFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          SessionValidityFilter sessionValidityFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.sessionValidityFilter = sessionValidityFilter;
     }
 
     @Bean
@@ -66,9 +76,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf
-                // M10: Proteger con CSRF todas las operaciones con sesión web.
-                // Excluir únicamente los endpoints de la API REST protegidos por JWT (/api/auth/** y /api/** stateless)
-                .ignoringRequestMatchers("/api/**")
+                // Feedback #5 / M10: Las operaciones con cookies mantienen CSRF obligatorio.
+                // Excluir únicamente los endpoints de la API REST que usan autenticación JWT (/api/auth/** y endpoints stateless)
+                .ignoringRequestMatchers("/api/auth/**", "/api/jwt/**")
             )
             .authorizeHttpRequests(auth -> auth
                 // 1. Recursos estáticos públicos y ruta de error
@@ -77,15 +87,19 @@ public class SecurityConfig {
                 // 2. Vistas públicas y catálogo público
                 .requestMatchers("/", "/inicio", "/planes", "/promociones", "/productos", "/afluencia", "/detalle-producto").permitAll()
 
-                // 3. Autenticación pública y API de autenticación JWT
-                .requestMatchers("/login", "/registrarse", "/registro", "/register", "/api/auth/**").permitAll()
+                // 3. Autenticación pública y login JWT
+                .requestMatchers("/login", "/registrarse", "/registro", "/register", "/api/auth/login").permitAll()
 
-                // 4. API delimitada JWT demostrable (S15 Sesión 30)
-                .requestMatchers("/api/auth/me").authenticated()
+                // 4. API delimitada JWT demostrable (S15 Sesión 30) - Requiere token JWT
+                .requestMatchers("/api/auth/me", "/api/jwt/**").authenticated()
 
                 // 5. Módulo exclusivo del GESTOR TÉCNICO (Cuentas y roles - RBAC)
-                // Criterio de aislamiento: No accede a datos de negocio
+                // Criterio de aislamiento estricto: El Gestor Técnico NO accede a compras ni datos de negocio
                 .requestMatchers("/tecnico/**").hasRole("GESTOR_TECNICO")
+
+                // Feedback #3: Bloquear al Gestor Técnico de realizar compras ficticias y módulos operativos
+                .requestMatchers("/api/compras/**", "/cliente/api/compras/**").hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
+                .requestMatchers("/boleta-venta/descargar", "/cliente/boleta-venta/**").hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
 
                 // 6. Módulo de CLIENTE (Socios)
                 .requestMatchers("/cliente/**").hasRole("CLIENTE")
@@ -136,6 +150,29 @@ public class SecurityConfig {
                 // 8. Cualquier otra solicitud requiere autenticación
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    String uri = request.getRequestURI();
+                    if (uri.startsWith("/api/")) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"No autorizado\",\"mensaje\":\"" + authException.getMessage() + "\"}");
+                    } else {
+                        response.sendRedirect("/login");
+                    }
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    String uri = request.getRequestURI();
+                    if (uri.startsWith("/api/") || uri.contains("/api/")) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"Acceso denegado\",\"mensaje\":\"" + accessDeniedException.getMessage() + "\"}");
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.sendRedirect("/error");
+                    }
+                })
+            )
             .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
@@ -153,7 +190,10 @@ public class SecurityConfig {
                 .permitAll()
             );
 
-        // Añadir filtro JWT antes del filtro de usuario y contraseña para procesar tokens Bearer en peticiones a la API
+        // Filtro de validación activa de sesión (verifica revocación inmediata por cambio de rol o desactivación)
+        http.addFilterAfter(sessionValidityFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // Filtro JWT para peticiones con token Bearer
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

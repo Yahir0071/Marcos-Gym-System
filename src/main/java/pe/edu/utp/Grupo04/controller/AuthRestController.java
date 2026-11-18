@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pe.edu.utp.Grupo04.dto.AuthRequestDTO;
 import pe.edu.utp.Grupo04.dto.AuthResponseDTO;
+import pe.edu.utp.Grupo04.security.SecurityTokenRevocationManager;
 import pe.edu.utp.Grupo04.security.jwt.JwtService;
 
 import java.util.HashMap;
@@ -27,13 +28,17 @@ public class AuthRestController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final SecurityTokenRevocationManager revocationManager;
 
     @Value("${app.jwt.expiration-ms:86400000}")
     private long jwtExpirationMs;
 
-    public AuthRestController(AuthenticationManager authenticationManager, JwtService jwtService) {
+    public AuthRestController(AuthenticationManager authenticationManager,
+                              JwtService jwtService,
+                              SecurityTokenRevocationManager revocationManager) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.revocationManager = revocationManager;
     }
 
     @PostMapping("/login")
@@ -49,7 +54,8 @@ public class AuthRestController {
                     .orElse("ROLE_CLIENTE")
                     .replace("ROLE_", "");
 
-            String token = jwtService.generarToken(authentication.getName(), rol);
+            long tokenVersion = revocationManager.getTokenVersion(authentication.getName());
+            String token = jwtService.generarToken(authentication.getName(), rol, tokenVersion);
 
             return ResponseEntity.ok(new AuthResponseDTO(token, authentication.getName(), rol, jwtExpirationMs));
         } catch (BadCredentialsException e) {

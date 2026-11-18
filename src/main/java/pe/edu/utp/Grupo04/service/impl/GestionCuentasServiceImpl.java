@@ -9,10 +9,10 @@ import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.model.enums.Rol;
 import pe.edu.utp.Grupo04.repository.AuditoriaCuentaRepository;
 import pe.edu.utp.Grupo04.repository.UsuarioRepository;
+import pe.edu.utp.Grupo04.security.SecurityTokenRevocationManager;
 import pe.edu.utp.Grupo04.service.GestionCuentasService;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -22,13 +22,16 @@ public class GestionCuentasServiceImpl implements GestionCuentasService {
     private final UsuarioRepository usuarioRepository;
     private final AuditoriaCuentaRepository auditoriaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityTokenRevocationManager revocationManager;
 
     public GestionCuentasServiceImpl(UsuarioRepository usuarioRepository,
                                      AuditoriaCuentaRepository auditoriaRepository,
-                                     PasswordEncoder passwordEncoder) {
+                                     PasswordEncoder passwordEncoder,
+                                     SecurityTokenRevocationManager revocationManager) {
         this.usuarioRepository = usuarioRepository;
         this.auditoriaRepository = auditoriaRepository;
         this.passwordEncoder = passwordEncoder;
+        this.revocationManager = revocationManager;
     }
 
     @Override
@@ -78,6 +81,9 @@ public class GestionCuentasServiceImpl implements GestionCuentasService {
         usuario.setRol(nuevoRol);
         Usuario actualizado = usuarioRepository.save(usuario);
 
+        // Feedback #4: Revocar inmediatamente tokens JWT y sesiones previas
+        revocationManager.revocarAccesoUsuario(actualizado.getUsername());
+
         registrarAuditoria(autorUsername, "CAMBIO_ROL", actualizado.getUsername(),
                 "Rol modificado de " + rolAnterior + " a " + nuevoRol);
 
@@ -96,6 +102,9 @@ public class GestionCuentasServiceImpl implements GestionCuentasService {
         boolean nuevoEstado = usuario.getActivo() == null || !usuario.getActivo();
         usuario.setActivo(nuevoEstado);
         Usuario actualizado = usuarioRepository.save(usuario);
+
+        // Feedback #4: Revocar inmediatamente tokens JWT y sesiones previas
+        revocationManager.revocarAccesoUsuario(actualizado.getUsername());
 
         registrarAuditoria(autorUsername, nuevoEstado ? "ACTIVACION" : "DESACTIVACION", actualizado.getUsername(),
                 "Estado de cuenta cambiado a " + (nuevoEstado ? "ACTIVO" : "INACTIVO"));
