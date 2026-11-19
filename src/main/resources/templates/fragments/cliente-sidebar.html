@@ -55,8 +55,8 @@
     </div>
 
     <div class="p-3 border-top border-secondary">
-        <a sec:authorize="hasRole('ADMINISTRADOR')" th:href="@{/admin/dashboard}" class="sidebar-link mb-1">
-            <i class="fa-solid fa-user-shield text-primary"></i> <span>CAMBIAR A ADMIN</span>
+        <a sec:authorize="hasAnyRole('ADMINISTRACION', 'RECEPCION')" th:href="@{/admin/socios}" class="sidebar-link mb-1">
+            <i class="fa-solid fa-user-shield text-primary"></i> <span>PANEL DE GESTIÓN</span>
         </a>
         <form th:action="@{/logout}" method="post" class="m-0 p-0">
             <button type="submit" class="sidebar-link text-danger border-0 bg-transparent w-100 text-start" style="cursor: pointer;">

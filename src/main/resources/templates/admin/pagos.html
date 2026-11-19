@@ -9,7 +9,7 @@
             <h1>GESTIÓN DE PAGOS Y BOLETAS</h1>
             <p>PAGOS PRESENCIALES EN CAJA Y AUDITORÍA DE TRANSACCIONES EN LÍNEA (RF11 / RF22)</p>
         </div>
-        <div>
+        <div sec:authorize="hasRole('RECEPCION')">
             <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarPago">+ REGISTRAR PAGO EN CAJA</button>
         </div>
     </div>
@@ -182,6 +182,7 @@
                                     <i class="fa-solid fa-download"></i>
                                 </a>
                                 <button th:if="${ord.estadoEntrega == 'POR RECOGER EN GIMNASIO'}"
+                                        sec:authorize="hasRole('RECEPCION')"
                                         type="button"
                                         class="btn btn-sm btn-primary text-nowrap btn-entregar-pedido"
                                         th:data-codigo="${ord.codigo}">

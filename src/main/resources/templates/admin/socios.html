@@ -9,7 +9,7 @@
             <h1>SOCIOS</h1>
             <p>ADMINISTRA TUS SOCIOS, REVISA SU ESTADO Y MEMBRESÍAS</p>
         </div>
-        <div>
+        <div sec:authorize="hasRole('RECEPCION')">
             <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarSocio">+ REGISTRAR SOCIO</button>
         </div>
     </div>
@@ -72,7 +72,14 @@
                     <span th:class="${socio.usuario != null and socio.usuario.activo ? '' : 'status-inactive'}"
                           th:text="${socio.usuario != null and socio.usuario.activo ? 'ACTIVO' : 'INACTIVO'}">ACTIVO</span>
                 </td>
-                <td><a href="#" class="btn-edit-row">VER / EDITAR</a></td>
+                <td>
+                    <div sec:authorize="hasRole('RECEPCION')">
+                        <a href="#" class="btn-edit-row">VER / EDITAR</a>
+                    </div>
+                    <div sec:authorize="!hasRole('RECEPCION')">
+                        <span class="text-muted text-xs">SOLO LECTURA</span>
+                    </div>
+                </td>
             </tr>
             <tr th:if="${#lists.isEmpty(socios)}">
                 <td colspan="7" class="text-center text-muted py-4">No hay socios registrados en el gimnasio.</td>

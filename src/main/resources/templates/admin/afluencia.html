@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'afluencia', ~{::main})}">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{admin/fragments :: layout(~{::title}, 'afluencia', ~{::main})}">
 <head><title>Registro de Afluencia - Energy Gym</title></head>
 <body>
 <main class="admin-page">
@@ -10,7 +10,7 @@
             <p>DATOS APROXIMADOS DE VISITAS AL GIMNASIO POR FRANJA HORARIA</p>
         </div>
         <div>
-            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoRegistroAfluencia">+ NUEVO REGISTRO</button>
+            <button sec:authorize="hasRole('RECEPCION')" type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoRegistroAfluencia">+ NUEVO REGISTRO</button>
         </div>
     </div>
 

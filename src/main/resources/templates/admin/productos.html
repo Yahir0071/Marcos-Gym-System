@@ -9,7 +9,7 @@
             <h1>PRODUCTOS</h1>
             <p>SUPLEMENTOS, ACCESORIOS, INDUMENTARIA Y STOCK</p>
         </div>
-        <div>
+        <div sec:authorize="hasRole('ADMINISTRACION')">
             <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">+ NUEVO PRODUCTO</button>
         </div>
     </div>
@@ -76,7 +76,7 @@
                     <span th:if="${prod.activo and prod.stock > 5}">ACTIVO</span>
                 </td>
                 <td>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2" sec:authorize="hasRole('ADMINISTRACION')">
                         <button type="button" class="btn-edit-row btn-edit-producto"
                                 th:data-id="${prod.id}"
                                 th:data-nombre="${prod.nombre}"
@@ -92,6 +92,9 @@
                             <button type="submit" class="btn-outline py-0 px-2 text-xs"
                                     th:text="${prod.activo ? 'DESACTIVAR' : 'ACTIVAR'}">DESACTIVAR</button>
                         </form>
+                    </div>
+                    <div sec:authorize="!hasRole('ADMINISTRACION')">
+                        <span class="text-muted text-xs">SOLO LECTURA</span>
                     </div>
                 </td>
             </tr>
