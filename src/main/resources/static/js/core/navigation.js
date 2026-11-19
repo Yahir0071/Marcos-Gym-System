@@ -191,7 +191,7 @@ Verificado por: torniquete.energygym.pe`;
 
                         <!-- Botón Principal: Simular Validación en Torniquete -->
                         <button type="button" class="btn btn-primary w-100 py-3 font-anton tracking-wide mb-2" id="btnSimulateTorniquete">
-                            <i class="fa-solid fa-bolt me-1"></i> SIMULAR VALIDACIÓN EN TORNIQUETE
+                            <i class="fa-solid fa-bolt me-1"></i> VALIDACIÓN EN TORNIQUETE
                         </button>
                     </div>
 
