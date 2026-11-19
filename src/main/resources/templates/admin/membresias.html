@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'membresias', ~{::main})}">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{admin/fragments :: layout(~{::title}, 'membresias', ~{::main})}">
 <head><title>Membresías Asignadas - Energy Gym</title></head>
 <body>
 <main class="admin-page">
@@ -11,7 +11,7 @@
         </div>
         <div class="d-flex gap-2">
             <a class="btn btn-outline" th:href="@{/admin/planes}">VER PLANES</a>
-            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalAsignarMembresia">+ ASIGNAR MEMBRESÍA</button>
+            <button sec:authorize="hasRole('RECEPCION')" type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalAsignarMembresia">+ ASIGNAR MEMBRESÍA</button>
         </div>
     </header>
 

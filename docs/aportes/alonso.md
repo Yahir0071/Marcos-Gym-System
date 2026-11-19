@@ -1,7 +1,7 @@
 # Documentación de Aportes - Jeferson Alonso Almerco Ramírez
-**Rol:** Seguridad, Autenticación y Autorización, Control de Cuentas, JWT y Configuración (Semana 15 - Sesión 30)  
-**Rama:** `LaRamitaDeAlonso`  
-**Fecha de Actualización:** 18 de Noviembre de 2026  
+**Rol:** Seguridad, Autenticación y Autorización, Control de Cuentas, JWT y Configuración (Semana 15 - Sesión 30)
+**Rama:** `LaRamitaDeAlonso`
+**Fecha de Actualización:** 18 de Noviembre de 2026
 
 ---
 
@@ -13,7 +13,7 @@ A continuación se detalla la resolución técnica de los 4 puntos requeridos pa
 * **Problema:** En el esquema previo de la rama `main`, la tabla `usuarios` contaba con la restricción `CHECK (rol IN ('ADMINISTRADOR', 'CLIENTE'))`. Al intentar insertar un `GESTOR_TECNICO` o iniciar la aplicación con cuentas heredadas con `rol = 'ADMINISTRADOR'`, el motor PostgreSQL/H2 generaba violaciones de integridad `JdbcSQLIntegrityConstraintViolationException`.
 * **Solución Implementada (`DataInitializerConfig.java`):**
   1. Se agregó un runner con `@Order(1)` que elimina la restricción check previa (`ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_rol_check`).
-  2. Se ejecuta la migración nativa de datos: `UPDATE usuarios SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR' OR rol IS NULL`.
+  2. Se ejecuta la migración nativa de datos: `UPDATE usuarios SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR'`.
   3. Se asegura la columna `token_version` con valor por defecto `1`.
   4. Se crea la nueva restricción con los 4 roles del sistema: `ALTER TABLE usuarios ADD CONSTRAINT usuarios_rol_check CHECK (rol IN ('CLIENTE', 'RECEPCION', 'ADMINISTRACION', 'GESTOR_TECNICO'))`.
 * **Verificación de prueba:** En `SecurityAlonsoTests.testMigracionSqlEsquemaMain`, se replica exactamente la estructura de `main` con la restricción heredada, se comprueba que `GESTOR_TECNICO` no podía crearse bajo `main`, se ejecuta la migración, y se valida que la cuenta pasa a `ADMINISTRACION` y la creación de `GESTOR_TECNICO` se realiza con éxito.
@@ -73,12 +73,12 @@ export DB_USERNAME="<usuario>"
 export DB_PASSWORD="<password>"
 
 # Clave Secreta JWT (Semana 15 - M11: Sin contraseñas de respaldo en código)
-export JWT_SECRET="ClaveSecretaSuperLargaYSeguraParaEnergyGym2026AlonsoMinimo256Bits!"
+export JWT_SECRET="<clave aleatoria privada>"
 export JWT_EXPIRATION_MS="86400000"
 
 # Aprovisionamiento Opcional del Gestor Técnico Inicial
-export TECNICO_INITIAL_USERNAME="tecnico@energygym.pe"
-export TECNICO_INITIAL_PASSWORD="PasswordSeguro2026!"
+export TECNICO_INITIAL_USERNAME="<correo de la cuenta inicial>"
+export TECNICO_INITIAL_PASSWORD="<contraseña privada>"
 ```
 
 ### Ejecución de Pruebas
@@ -92,3 +92,7 @@ $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot"
 .\mvnw.cmd spring-boot:run
 ```
 Acceso web: `http://localhost:8080/inicio`
+
+### Actualizar una base existente con el perfil prod
+
+Ejecuta `database/migrar_roles_alonso.sql` en PostgreSQL antes del primer arranque con `ddl-auto=validate`. En desarrollo con `ddl-auto=update`, la migración se ejecuta durante el arranque. El aprovisionamiento inicial solo crea una cuenta si no hay un gestor activo y el correo configurado está libre.

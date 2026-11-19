@@ -15,7 +15,6 @@ import pe.edu.utp.Grupo04.repository.UsuarioRepository;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 /**
  * Filtro de verificación activa de sesión HTTP:
@@ -48,40 +47,35 @@ public class SessionValidityFilter extends OncePerRequestFilter {
 
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName()) && !esPeticionJwt) {
             String username = auth.getName();
-            Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(username);
+            Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
+            boolean esInactivo = usuario == null || !Boolean.TRUE.equals(usuario.getActivo());
+            boolean tieneRolValido = !esInactivo && auth.getAuthorities().stream()
+                    .anyMatch(ga -> ga.getAuthority().equals("ROLE_" + usuario.getRol().name()));
 
-            if (usuarioOpt.isPresent()) {
-                Usuario usuario = usuarioOpt.get();
-                boolean esInactivo = usuario.getActivo() != null && !usuario.getActivo();
-                String rolEsperado = "ROLE_" + usuario.getRol().name();
-                boolean tieneRolValido = auth.getAuthorities().stream()
-                        .anyMatch(ga -> ga.getAuthority().equals(rolEsperado));
+            if (esInactivo || !tieneRolValido) {
+                // Invalidar sesión y limpiar contexto de seguridad
+                SecurityContextHolder.clearContext();
+                HttpSession session = request.getSession(false);
+                if (session != null) {
+                    session.invalidate();
+                }
 
-                if (esInactivo || !tieneRolValido) {
-                    // Invalidar sesión y limpiar contexto de seguridad
-                    SecurityContextHolder.clearContext();
-                    HttpSession session = request.getSession(false);
-                    if (session != null) {
-                        session.invalidate();
-                    }
+                String uri = request.getRequestURI();
+                String acceptHeader = request.getHeader("Accept");
+                boolean esApi = uri.startsWith("/api/") || uri.contains("/api/") ||
+                        (acceptHeader != null && acceptHeader.contains(MediaType.APPLICATION_JSON_VALUE));
 
-                    String uri = request.getRequestURI();
-                    String acceptHeader = request.getHeader("Accept");
-                    boolean esApi = uri.startsWith("/api/") || uri.contains("/api/") ||
-                            (acceptHeader != null && acceptHeader.contains(MediaType.APPLICATION_JSON_VALUE));
-
-                    if (esApi) {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-                        String mensaje = esInactivo ? "La cuenta ha sido desactivada." : "El rol del usuario ha sido modificado. Sesión revocada.";
-                        response.getWriter().write("{\"error\":\"UNAUTHORIZED\",\"mensaje\":\"" + mensaje + "\"}");
-                        return;
-                    } else {
-                        String redirectUrl = esInactivo ? "/login?error=inactivo" : "/login?error=rol_actualizado";
-                        response.sendRedirect(redirectUrl);
-                        return;
-                    }
+                if (esApi) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                    String mensaje = esInactivo ? "La cuenta ha sido desactivada." : "El rol del usuario ha sido modificado. Sesión revocada.";
+                    response.getWriter().write("{\"error\":\"UNAUTHORIZED\",\"mensaje\":\"" + mensaje + "\"}");
+                    return;
+                } else {
+                    String redirectUrl = esInactivo ? "/login?error=inactivo" : "/login?error=rol_actualizado";
+                    response.sendRedirect(redirectUrl);
+                    return;
                 }
             }
         }

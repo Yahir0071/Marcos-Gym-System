@@ -100,7 +100,9 @@ public class SecurityConfig {
                 // Feedback #3: Bloquear al Gestor Técnico de realizar compras ficticias y módulos operativos
                 .requestMatchers(HttpMethod.POST, "/api/compras/**", "/cliente/api/compras/**").hasRole("CLIENTE")
                 .requestMatchers(HttpMethod.GET, "/api/compras/**", "/cliente/api/compras/**").hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
-                .requestMatchers("/boleta-venta/**", "/cliente/boleta-venta/**", "/boleta-venta/descargar", "/cliente/boleta-venta/descargar").hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
+                .requestMatchers(HttpMethod.GET, "/api/boleta-venta/descargar", "/boleta-venta/**",
+                        "/cliente/boleta-venta/**", "/cliente/boleta/descargar")
+                        .hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
 
                 // 6. Módulo de CLIENTE (Socios)
                 .requestMatchers("/cliente/**").hasRole("CLIENTE")

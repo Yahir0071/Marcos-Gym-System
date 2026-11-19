@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'reservas', ~{::main})}">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{admin/fragments :: layout(~{::title}, 'reservas', ~{::main})}">
 <head><title>Reservas - Energy Gym</title></head>
 <body>
 <main class="admin-page">
@@ -72,7 +72,7 @@
                     <span th:text="${res.producto.stock + ' un.'}">12 un.</span>
                 </td>
                 <td>
-                    <form th:action="@{/admin/reservas/cambiar-estado}" method="post" class="d-flex gap-1 align-items-center">
+                    <form sec:authorize="hasRole('RECEPCION')" th:action="@{/admin/reservas/cambiar-estado}" method="post" class="d-flex gap-1 align-items-center">
                         <input type="hidden" name="reservaId" th:value="${res.id}">
                         <select name="nuevoEstado" class="form-select form-select-sm py-1 bg-dark text-light border-secondary">
                             <option value="PENDIENTE" th:selected="${res.estado.name() == 'PENDIENTE'}">PENDIENTE</option>

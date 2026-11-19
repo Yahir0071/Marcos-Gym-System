@@ -58,10 +58,26 @@ class SecurityAlonsoTests {
 
     @BeforeEach
     void setUp() {
+        prepararUsuarioDePrueba("recep@energygym.pe", Rol.RECEPCION);
+        prepararUsuarioDePrueba("admin@energygym.pe", Rol.ADMINISTRACION);
+        prepararUsuarioDePrueba("tecnico@energygym.pe", Rol.GESTOR_TECNICO);
+        prepararUsuarioDePrueba("cliente@energygym.pe", Rol.CLIENTE);
+
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
+    }
+
+    private void prepararUsuarioDePrueba(String username, Rol rol) {
+        if (usuarioRepository.findByUsername(username).isPresent()) {
+            return;
+        }
+        Usuario usuario = new Usuario();
+        usuario.setUsername(username);
+        usuario.setPassword("sin-inicio-de-sesion-en-pruebas-mock");
+        usuario.setRol(rol);
+        usuarioRepository.save(usuario);
     }
 
     @Test
@@ -174,7 +190,7 @@ class SecurityAlonsoTests {
 
             // 3. Ejecutar la rutina de migración de Alonso
             stmt.execute("ALTER TABLE usuarios_test_main DROP CONSTRAINT usuarios_test_rol_check");
-            int migrados = stmt.executeUpdate("UPDATE usuarios_test_main SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR' OR rol IS NULL");
+            int migrados = stmt.executeUpdate("UPDATE usuarios_test_main SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR'");
             assertEquals(1, migrados);
 
             stmt.execute("ALTER TABLE usuarios_test_main ADD CONSTRAINT usuarios_test_rol_check CHECK (rol IN ('CLIENTE', 'RECEPCION', 'ADMINISTRACION', 'GESTOR_TECNICO'))");
@@ -228,6 +244,10 @@ class SecurityAlonsoTests {
 
         // 2. Gestor Técnico NO puede descargar boletas (403 Forbidden)
         mockMvc.perform(get("/cliente/boleta-venta/descargar")
+                        .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO")))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/boleta-venta/descargar")
                         .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO")))
                 .andExpect(status().isForbidden());
 
