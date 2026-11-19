@@ -2,15 +2,15 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'reporte', ~{::main})}">
 <head><title>Reporte de Mantenimiento - Energy Gym</title></head>
 <body>
-<main class="admin-page">
+<main class="admin-page" id="main-content">
     <div class="page-header">
         <div>
             <small class="subtitle">RESUMEN DEL ESTADO DE LOS EQUIPOS</small>
             <h1>REPORTE DE MANTENIMIENTO</h1>
             <p>VISUALIZA EL ESTADO GENERAL Y PRÓXIMAS REVISIONES PROGRAMADAS</p>
         </div>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print text-primary"></i> IMPRIMIR REPORTE</button>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline" onclick="window.print()"><i class="fa-solid fa-print text-primary" aria-hidden="true"></i> IMPRIMIR REPORTE</button>
             <a th:href="@{/admin/mantenimientos}" class="btn-primary">+ REGISTRAR INTERVENCIÓN</a>
         </div>
     </div>
@@ -19,7 +19,7 @@
     <div class="status-cards-grid mb-4">
         <div class="card-metric operational">
             <div>
-                <h2 class="counter-value" th:text="${#lists.size(equipos) - #lists.size(equiposEnMantenimiento) - #lists.size(equiposFueraDeServicio)}">18</h2>
+                <h2 class="counter-value" th:text="${#lists.size(equipos) - #lists.size(equiposEnMantenimiento) - #lists.size(equiposFueraDeServicio)}">0</h2>
             </div>
             <div>
                 <span>OPERATIVOS</span>
@@ -27,7 +27,7 @@
         </div>
         <div class="card-metric maintenance">
             <div>
-                <h2 class="counter-value" th:text="${#lists.size(equiposEnMantenimiento)}">6</h2>
+                <h2 class="counter-value" th:text="${#lists.size(equiposEnMantenimiento)}">0</h2>
             </div>
             <div>
                 <span>EN MANTENIMIENTO</span>
@@ -35,7 +35,7 @@
         </div>
         <div class="card-metric out-of-service">
             <div>
-                <h2 class="counter-value" th:text="${#lists.size(equiposFueraDeServicio)}">4</h2>
+                <h2 class="counter-value" th:text="${#lists.size(equiposFueraDeServicio)}">0</h2>
             </div>
             <div>
                 <span>FUERA DE SERVICIO</span>
@@ -43,7 +43,7 @@
         </div>
         <div class="card-metric pending">
             <div>
-                <h2 class="counter-value" th:text="${#lists.size(mantenimientos)}">2</h2>
+                <h2 class="counter-value" th:text="${#lists.size(mantenimientos)}">0</h2>
             </div>
             <div>
                 <span>TOTAL INTERVENCIONES</span>
@@ -54,12 +54,12 @@
     <!-- Filters -->
     <div class="filters-bar">
         <div class="filter-group filter-large">
-            <label>BUSCAR EQUIPO EN REPORTE</label>
-            <input type="text" class="table-search-input" placeholder="Buscar por código o nombre...">
+            <label for="buscarEquipoReporte">BUSCAR EQUIPO EN REPORTE</label>
+            <input type="text" id="buscarEquipoReporte" class="table-search-input" placeholder="Buscar por código o nombre...">
         </div>
         <div class="filter-group">
-            <label>ESTADO</label>
-            <select class="table-filter-select" data-filter-col="2">
+            <label for="filtroEstadoReporte">ESTADO</label>
+            <select id="filtroEstadoReporte" class="table-filter-select" data-filter-col="2">
                 <option value="">TODOS LOS ESTADOS</option>
                 <option value="OPERATIVO">OPERATIVO</option>
                 <option value="EN MANTENIMIENTO">EN MANTENIMIENTO</option>
@@ -82,7 +82,7 @@
             <tbody>
             <tr th:each="equipo : ${equipos}">
                 <td class="code-cell" th:text="${equipo.codigo}">EQP-001</td>
-                <td class="fw-bold" th:text="${equipo.nombre}">Cinta de Correr</td>
+                <td class="fw-bold" th:text="${equipo.nombre}">Equipo</td>
                 <td>
                     <span th:if="${equipo.estado != null and equipo.estado.name() == 'OPERATIVO'}">OPERATIVO</span>
                     <span th:if="${equipo.estado != null and equipo.estado.name() == 'EN_MANTENIMIENTO'}" class="status-warning">EN MANTENIMIENTO</span>
@@ -90,7 +90,7 @@
                     <span th:if="${equipo.estado == null}" class="text-muted">-</span>
                 </td>
                 <td>
-                    <a th:href="@{/admin/mantenimientos}" class="btn-edit-row">VER HISTORIAL</a>
+                    <a th:href="@{/admin/mantenimientos}" class="btn-table-action">VER HISTORIAL</a>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(equipos)}">

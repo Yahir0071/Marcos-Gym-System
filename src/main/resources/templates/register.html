@@ -45,7 +45,7 @@
 
                         <!-- Selector Interactivo de Duración (1 Mes, 3 Meses -10%, 1 Año -20%) -->
                         <div class="mb-3">
-                            <label class="form-label text-2xs text-muted fw-bold mb-1">DURACIÓN Y FACTURACIÓN</label>
+                            <span class="form-label text-2xs text-muted fw-bold mb-1 d-block">DURACIÓN Y MODALIDAD</span>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-sm flex-grow-1 duration-btn py-2" data-mode="MENSUAL" data-mult="1" data-disc="1"
                                         th:classappend="${periodo == 'MENSUAL'} ? 'btn-primary' : 'btn-outline'">
@@ -98,7 +98,7 @@
 
                         <!-- Cupón con Validación en Vivo -->
                         <div class="p-2 p-xl-3 rounded bg-elevated border border-secondary mb-3">
-                            <label class="form-label text-2xs text-muted fw-bold mb-1">¿TIENES UN CUPÓN?</label>
+                            <label for="inputPromoCode" class="form-label text-2xs text-muted fw-bold mb-1">¿TIENES UN CUPÓN?</label>
                             <div class="input-group input-group-sm">
                                 <input type="text" class="form-control text-uppercase text-xs" id="inputPromoCode" placeholder="Ej. ENERGY2X1, APERTURA10">
                                 <button class="btn btn-outline px-3 font-anton text-xs" type="button" id="btnApplyCoupon">APLICAR</button>
@@ -233,15 +233,15 @@
                                 <h3 class="font-anton text-light text-2xl m-0">2. CUENTA &amp; FACTURACIÓN</h3>
                                 <span class="badge bg-elevated text-muted border border-secondary">PASO 2 DE 4</span>
                             </div>
-                            <p class="text-muted text-xs mb-4">Crea tus credenciales de acceso al Portal del Socio y define el tipo de comprobante legal:</p>
+                            <p class="text-muted text-xs mb-4">Crea tus credenciales de acceso al Portal del Cliente y define los datos para tu constancia académica de demostración:</p>
 
                             <!-- Credenciales del Portal -->
                             <div class="card p-3 bg-elevated border-secondary mb-4">
-                                <div class="text-light font-anton text-xs mb-3 tracking-wide"><i class="fa-solid fa-key text-primary me-2"></i>CREDENCIALES PARA EL PORTAL</div>
+                                <div class="text-light font-anton text-xs mb-3 tracking-wide"><i class="fa-solid fa-key text-primary me-2" aria-hidden="true"></i>CREDENCIALES PARA EL PORTAL</div>
                                 <div class="mb-3">
                                     <label for="email" class="form-label text-xs">CORREO ELECTRÓNICO *</label>
                                     <input type="email" class="form-control" id="email" name="email" placeholder="socio@energygym.pe" required autocomplete="email">
-                                    <small class="text-muted text-2xs">Aquí recibirás tu código de acceso QR y comprobante de pago.</small>
+                                    <small class="text-muted text-2xs">Este correo será tu usuario de acceso al portal de socio.</small>
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-md-6">
@@ -255,20 +255,21 @@
                                 </div>
                             </div>
 
-                            <!-- Facturación Separada (Socio vs Titular Pagador) -->
+                            <!-- Datos de Constancia Académica (M15) -->
                             <div class="card p-3 bg-elevated border-secondary mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="text-light font-anton text-xs tracking-wide"><i class="fa-solid fa-file-invoice text-primary me-2"></i>DATOS DE FACTURACIÓN ELECTRÓNICA</div>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                    <div class="text-light font-anton text-xs tracking-wide"><i class="fa-solid fa-file-invoice text-primary me-2" aria-hidden="true"></i>DATOS PARA CONSTANCIA ACADÉMICA (DEMO)</div>
                                     <button type="button" class="btn btn-sm btn-outline text-2xs py-1" id="btnCopySocioData">
-                                        <i class="fa-solid fa-copy me-1"></i> USAR MIS MISMOS DATOS
+                                        <i class="fa-solid fa-copy me-1" aria-hidden="true"></i> USAR MIS MISMOS DATOS
                                     </button>
                                 </div>
+                                <p class="text-warning text-2xs mb-2">Prototipo académico: no emite comprobantes tributarios ante SUNAT.</p>
 
                                 <div class="mb-3">
-                                    <label for="tipoComprobante" class="form-label text-xs">TIPO DE COMPROBANTE *</label>
+                                    <label for="tipoComprobante" class="form-label text-xs">TIPO DE CONSTANCIA DE DEMOSTRACIÓN *</label>
                                     <select class="form-select" id="tipoComprobante" name="tipoComprobante">
-                                        <option value="BOLETA" selected>Boleta de Venta Electrónica (DNI)</option>
-                                        <option value="FACTURA">Factura Comercial (RUC 20 / 10)</option>
+                                        <option value="BOLETA" selected>Constancia tipo Boleta (DNI — Demo académica)</option>
+                                        <option value="FACTURA">Constancia tipo Factura (RUC — Demo académica)</option>
                                     </select>
                                 </div>
 
@@ -330,16 +331,17 @@
                                 </div>
                             </div>
 
-                            <!-- Formulario de Tarjeta Simulado (Estilo Pasarela Segura) -->
+                            <!-- Formulario de Tarjeta Simulado (Entorno Académico M15) -->
                             <div class="card p-4 bg-elevated border-secondary mb-4" id="cardPaymentBox">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="text-light font-anton text-xs tracking-wide"><i class="fa-solid fa-lock text-success me-2"></i>PASARELA SEGURA SSL 256-BIT</span>
-                                    <div class="d-flex gap-2 text-muted fs-5">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                    <span class="text-warning font-anton text-xs tracking-wide"><i class="fa-solid fa-graduation-cap me-2" aria-hidden="true"></i>PASARELA SIMULADA (ENTORNO ACADÉMICO — SIN COBRO REAL)</span>
+                                    <div class="d-flex gap-2 text-muted fs-5" aria-hidden="true">
                                         <i class="fa-brands fa-cc-visa text-light"></i>
                                         <i class="fa-brands fa-cc-mastercard text-light"></i>
                                         <i class="fa-brands fa-cc-amex text-light"></i>
                                     </div>
                                 </div>
+                                <p class="text-muted text-2xs mb-3">Usa datos ficticios de prueba. Este prototipo no realiza cargos bancarios reales ni almacena tarjetas.</p>
                                 <div class="mb-3">
                                     <label for="numeroTarjeta" class="form-label text-xs">NÚMERO DE TARJETA</label>
                                     <div class="input-group">
@@ -369,9 +371,9 @@
                                     <i class="fa-solid fa-circle-info fs-5"></i> CONDICIONES DE RESERVA EN RECEPCIÓN
                                 </div>
                                 <ul class="text-muted text-xs mb-0 ps-3">
-                                    <li class="mb-1">Se generará un número de preinscripción garantizado con tarifa congelada por <strong>72 horas</strong>.</li>
-                                    <li class="mb-1">Puedes pagar en recepción de sede Las Américas, Ate con Efectivo, Tarjeta física o Yape/Plin.</li>
-                                    <li>Tu carnet QR de acceso se activará en recepción una vez validado el pago.</li>
+                                    <li class="mb-1">Se generará un código referencial de preinscripción válido por <strong>72 horas</strong> (demostración académica).</li>
+                                    <li class="mb-1">Puedes completar el registro en recepción de sede Av. Las Américas, Ate — Lima.</li>
+                                    <li>Tu acceso se activará en recepción una vez confirmado el registro.</li>
                                 </ul>
                             </div>
 

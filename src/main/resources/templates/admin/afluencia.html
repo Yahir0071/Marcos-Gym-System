@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'afluencia', ~{::main})}">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{admin/fragments :: layout(~{::title}, 'afluencia', ~{::main})}">
 <head><title>Registro de Afluencia - Energy Gym</title></head>
 <body>
-<main class="admin-page">
+<main class="admin-page" id="main-content">
     <div class="page-header">
         <div>
             <small class="subtitle">CONSULTA LOS REGISTROS DE AFLUENCIA</small>
@@ -10,29 +10,32 @@
             <p>DATOS APROXIMADOS DE VISITAS AL GIMNASIO POR FRANJA HORARIA</p>
         </div>
         <div>
-            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoRegistroAfluencia">+ NUEVO REGISTRO</button>
+            <button type="button" sec:authorize="hasAnyRole('RECEPCION', 'ADMINISTRADOR')"
+                    class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoRegistroAfluencia">+ NUEVO REGISTRO</button>
+            <span sec:authorize="hasRole('ADMINISTRACION')"
+                  class="badge bg-dark text-muted border border-secondary px-3 py-2 font-anton text-xs">MODO SOLO LECTURA</span>
         </div>
     </div>
 
     <!-- Flash Messages -->
     <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
-        <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        <i class="fa-solid fa-circle-check me-2" aria-hidden="true"></i> <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
     </div>
     <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show bg-dark text-danger border border-danger mb-4" role="alert">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${mensajeError}"></span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i> <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
     </div>
 
     <!-- Filters -->
     <div class="filters-bar">
         <div class="filter-group">
-            <label>BUSCAR FECHA</label>
-            <input type="text" class="table-search-input" placeholder="Ej. 20 Ene 2025...">
+            <label for="buscarFechaAfluencia">BUSCAR FECHA</label>
+            <input type="text" id="buscarFechaAfluencia" class="table-search-input" placeholder="Ej. 20 Nov 2026...">
         </div>
         <div class="filter-group">
-            <label>FRANJA HORARIA</label>
-            <select class="table-filter-select" data-filter-col="1">
+            <label for="filtroFranjaAfluencia">FRANJA HORARIA</label>
+            <select id="filtroFranjaAfluencia" class="table-filter-select" data-filter-col="1">
                 <option value="">TODOS LOS HORARIOS</option>
                 <option value="MAÑANA">MAÑANA (06:00–11:00)</option>
                 <option value="MEDIODÍA">MEDIODÍA (11:00–16:00)</option>
@@ -55,15 +58,15 @@
             </thead>
             <tbody>
             <tr th:each="reg : ${registros}">
-                <td class="fw-bold" th:text="${reg.fecha != null ? #temporals.format(reg.fecha, 'dd MMM yyyy') : 'Hoy'}">20 Ene 2025</td>
+                <td class="fw-bold" th:text="${reg.fecha != null ? #temporals.format(reg.fecha, 'dd MMM yyyy') : '—'}">Fecha</td>
                 <td class="fw-bold text-primary">
                     <span th:if="${reg.franjaHoraria.name() == 'MANANA'}">MAÑANA (06:00 – 11:00)</span>
                     <span th:if="${reg.franjaHoraria.name() == 'MEDIODIA'}">MEDIODÍA (11:00 – 16:00)</span>
                     <span th:if="${reg.franjaHoraria.name() == 'TARDE_NOCHE'}">TARDE-NOCHE (16:00 – 23:00)</span>
                 </td>
-                <td class="text-primary fw-bold" th:text="${reg.concurrenciaAprox + ' personas'}">42 personas</td>
+                <td class="text-primary fw-bold" th:text="${reg.concurrenciaAprox + ' personas'}">0 personas</td>
                 <td><span>REGISTRADO</span></td>
-                <td class="text-muted text-xs" th:text="${reg.fechaRegistro != null ? #temporals.format(reg.fechaRegistro, 'dd/MM/yyyy HH:mm') : '—'}">20/01/2025 09:15</td>
+                <td class="text-muted text-xs" th:text="${reg.fechaRegistro != null ? #temporals.format(reg.fechaRegistro, 'dd/MM/yyyy HH:mm') : '—'}">—</td>
             </tr>
             <tr th:if="${#lists.isEmpty(registros)}">
                 <td colspan="5" class="text-center text-muted py-4">No hay registros manuales de afluencia guardados aún.</td>
@@ -74,39 +77,39 @@
 
     <!-- Footer Note -->
     <div class="info-note mt-3">
-        <span class="info-icon text-primary fs-5">ⓘ</span>
-        <span>LA AFLUENCIA ES UNA CIFRA APROXIMADA REGISTRADA MANUALMENTE POR EL ADMINISTRADOR PARA ORIENTAR A LOS SOCIOS EN TIEMPO REAL.</span>
+        <span class="info-icon text-primary fs-5" aria-hidden="true">ⓘ</span>
+        <span>LA AFLUENCIA ES UNA CIFRA APROXIMADA REGISTRADA POR RECEPCIÓN EN SEDE AV. LAS AMÉRICAS, ATE PARA ORIENTAR A LOS SOCIOS.</span>
     </div>
 
     <!-- Modal Registrar Afluencia -->
-    <div class="modal fade" id="modalNuevoRegistroAfluencia" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalNuevoRegistroAfluencia" tabindex="-1" aria-labelledby="modalAfluenciaTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content gym-modal">
                 <div class="modal-header">
-                    <h5 class="modal-title font-anton text-primary tracking-wide">REGISTRAR AFLUENCIA ESTIMADA</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title font-anton text-primary tracking-wide" id="modalAfluenciaTitle">REGISTRAR AFLUENCIA ESTIMADA</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar ventana"></button>
                 </div>
                 <form th:action="@{/admin/afluencia/registrar}" method="post">
                     <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label class="form-label">FECHA DE CONTROL</label>
-                            <input type="date" name="fecha" class="form-control"
+                            <label for="afluenciaFechaInput" class="form-label">FECHA DE CONTROL</label>
+                            <input type="date" id="afluenciaFechaInput" name="fecha" class="form-control"
                                    th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">FRANJA HORARIA</label>
-                            <select name="franjaHoraria" class="form-select" required>
+                            <label for="afluenciaFranjaSelect" class="form-label">FRANJA HORARIA</label>
+                            <select id="afluenciaFranjaSelect" name="franjaHoraria" class="form-select" required>
                                 <option value="MANANA">MAÑANA (06:00 – 11:00)</option>
                                 <option value="MEDIODIA">MEDIODÍA (11:00 – 16:00)</option>
-                                <option value="TARDE_NOCHE" selected>TARDE - NOCHE (16:00 – 23:00)</option>
+                                <option value="TARDE_NOCHE" selected>TARDE-NOCHE (16:00 – 23:00)</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">CONCURRENCIA ESTIMADA (CANTIDAD DE PERSONAS)</label>
-                            <input type="number" name="concurrenciaAprox" min="0" max="250" class="form-control" placeholder="Ej. 45" required>
+                            <label for="afluenciaConcurrenciaInput" class="form-label">CONCURRENCIA ESTIMADA (CANTIDAD DE PERSONAS)</label>
+                            <input type="number" id="afluenciaConcurrenciaInput" name="concurrenciaAprox" min="0" max="250" class="form-control" placeholder="Ej. 45" required>
                         </div>
                         <div class="alert alert-secondary bg-dark text-muted border-secondary p-2 mb-0">
-                            <small><i class="fa-solid fa-users me-1"></i> Esta cifra actualizará automáticamente la visualización pública y del portal de clientes.</small>
+                            <small><i class="fa-solid fa-users me-1" aria-hidden="true"></i> Esta cifra actualizará la visualización pública y del portal de clientes con fecha real de registro.</small>
                         </div>
                     </div>
                     <div class="modal-footer border-secondary">

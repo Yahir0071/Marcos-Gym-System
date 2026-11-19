@@ -42,8 +42,50 @@ export function initSidebars() {
         const openBtn = document.getElementById(openBtnId);
         const closeBtn = document.getElementById(closeBtnId);
         const sidebar = document.getElementById(sidebarId);
-        if (openBtn && sidebar) openBtn.addEventListener("click", () => sidebar.classList.add("show"));
-        if (closeBtn && sidebar) closeBtn.addEventListener("click", () => sidebar.classList.remove("show"));
+        if (!sidebar) return;
+
+        const openSidebar = () => {
+            sidebar.classList.add("show");
+            if (openBtn) openBtn.setAttribute("aria-expanded", "true");
+            if (closeBtn) {
+                closeBtn.focus();
+            } else {
+                const firstLink = sidebar.querySelector("a, button");
+                if (firstLink) firstLink.focus();
+            }
+        };
+
+        const closeSidebar = (returnFocus = false) => {
+            if (!sidebar.classList.contains("show")) return;
+            sidebar.classList.remove("show");
+            if (openBtn) {
+                openBtn.setAttribute("aria-expanded", "false");
+                if (returnFocus) openBtn.focus();
+            }
+        };
+
+        if (openBtn) {
+            openBtn.setAttribute("aria-controls", sidebarId);
+            openBtn.setAttribute("aria-expanded", "false");
+            openBtn.addEventListener("click", openSidebar);
+        }
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => closeSidebar(true));
+        }
+
+        document.addEventListener("keydown", (ev) => {
+            if (ev.key === "Escape" && sidebar.classList.contains("show")) {
+                closeSidebar(true);
+            }
+        });
+
+        document.addEventListener("click", (ev) => {
+            if (!sidebar.classList.contains("show")) return;
+            const target = ev.target;
+            if (target instanceof Node && !sidebar.contains(target) && (!openBtn || !openBtn.contains(target))) {
+                closeSidebar(false);
+            }
+        });
     };
     bindSidebar("openSidebarBtn", "closeSidebarBtn", "adminSidebar");
     bindSidebar("openClientSidebarBtn", "closeClientSidebarBtn", "clientSidebar");

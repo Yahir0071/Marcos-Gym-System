@@ -1,46 +1,56 @@
-<div th:fragment="sidebar(activeItem)" class="client-sidebar" id="clientSidebar">
+<aside th:fragment="sidebar(activeItem)" class="client-sidebar" id="clientSidebar" aria-label="Menú del portal del cliente">
     <div class="p-4 border-bottom border-secondary d-flex align-items-center justify-content-between">
         <a class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/inicio}">
-            <span class="text-primary fs-4">⚡</span>
+            <span class="text-primary fs-4" aria-hidden="true">⚡</span>
             <div>
                 <div class="font-anton text-lg tracking-wide leading-none">ENERGY GYM</div>
-                <small class="text-primary text-2xs fw-bold tracking-wider">PORTAL DEL SOCIO</small>
+                <small class="text-primary text-2xs fw-bold tracking-wider">PORTAL DEL CLIENTE</small>
             </div>
         </a>
-        <button class="btn btn-sm btn-outline d-lg-none px-2 py-1" id="closeClientSidebarBtn">
-            <i class="fa-solid fa-xmark"></i>
+        <button type="button" class="btn btn-sm btn-outline d-lg-none px-2 py-1" id="closeClientSidebarBtn" aria-label="Cerrar menú lateral">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
     </div>
 
-    <div class="flex-grow-1 d-flex flex-column gap-2 px-3 mt-4">
-        <a th:href="@{/cliente/mi-membresia}" th:class="'sidebar-link ' + (${activeItem == 'membresia'} ? 'active' : '')">
-            <i class="fa-solid fa-id-card"></i> <span>MI MEMBRESÍA</span>
+    <nav class="flex-grow-1 d-flex flex-column gap-2 px-3 mt-4" aria-label="Secciones de cliente">
+        <a th:href="@{/cliente/mi-membresia}"
+           th:class="'sidebar-link ' + (${activeItem == 'membresia'} ? 'active' : '')"
+           th:attr="aria-current=${activeItem == 'membresia' ? 'page' : null}">
+            <i class="fa-solid fa-id-card" aria-hidden="true"></i> <span>MI MEMBRESÍA</span>
         </a>
-        <a th:href="@{/cliente/productos}" th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')">
-            <i class="fa-solid fa-jar"></i> <span>PRODUCTOS</span>
+        <a th:href="@{/cliente/productos}"
+           th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')"
+           th:attr="aria-current=${activeItem == 'productos' ? 'page' : null}">
+            <i class="fa-solid fa-jar" aria-hidden="true"></i> <span>PRODUCTOS</span>
         </a>
-        <a th:href="@{/cliente/mis-reservas}" th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')">
-            <i class="fa-solid fa-bag-shopping"></i> <span>MIS RESERVAS</span>
-            <span class="badge bg-dark text-primary border border-secondary ms-auto" id="sidebarReservaCount">4</span>
+        <a th:href="@{/cliente/mis-reservas}"
+           th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')"
+           th:attr="aria-current=${activeItem == 'reservas' ? 'page' : null}">
+            <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> <span>MIS RESERVAS</span>
         </a>
-        <a th:href="@{/cliente/mis-compras}" th:class="'sidebar-link ' + (${activeItem == 'compras'} ? 'active' : '')">
-            <i class="fa-solid fa-credit-card"></i> <span>MIS COMPRAS</span>
+        <a th:href="@{/cliente/mis-compras}"
+           th:class="'sidebar-link ' + (${activeItem == 'compras'} ? 'active' : '')"
+           th:attr="aria-current=${activeItem == 'compras' ? 'page' : null}">
+            <i class="fa-solid fa-credit-card" aria-hidden="true"></i> <span>MIS COMPRAS</span>
         </a>
-        <a th:href="@{/cliente/afluencia}" th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')">
-            <i class="fa-solid fa-people-group"></i> <span>AFLUENCIA</span>
+        <a th:href="@{/cliente/afluencia}"
+           th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')"
+           th:attr="aria-current=${activeItem == 'afluencia' ? 'page' : null}">
+            <i class="fa-solid fa-people-group" aria-hidden="true"></i> <span>AFLUENCIA</span>
         </a>
-        <a th:href="@{/cliente/notificaciones}" th:class="'sidebar-link ' + (${activeItem == 'notificaciones'} ? 'active' : '')">
-            <i class="fa-solid fa-bell"></i> <span>NOTIFICACIONES</span>
-            <span class="badge bg-danger text-light ms-auto" id="sidebarNotifCount">3</span>
+        <a th:href="@{/cliente/notificaciones}"
+           th:class="'sidebar-link ' + (${activeItem == 'notificaciones'} ? 'active' : '')"
+           th:attr="aria-current=${activeItem == 'notificaciones' ? 'page' : null}">
+            <i class="fa-solid fa-bell" aria-hidden="true"></i> <span>NOTIFICACIONES</span>
         </a>
-    </div>
+    </nav>
 
     <div class="p-3 mx-3 mb-3 rounded border border-secondary bg-elevated">
         <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="fa-solid fa-qrcode text-primary"></i>
-            <span class="font-anton text-xs tracking-wide text-light">PASE DIGITAL ACTIVO</span>
+            <i class="fa-solid fa-qrcode text-primary" aria-hidden="true"></i>
+            <span class="font-anton text-xs tracking-wide text-light">PASE DIGITAL DE SOCIO</span>
         </div>
-        <p class="text-muted text-2xs mb-2">Muestra tu código QR en recepción para ingresar rápidamente.</p>
+        <p class="text-muted text-2xs mb-2">Muestra tu código QR en recepción para validar tu ingreso.</p>
         <button type="button" class="btn btn-primary w-100 py-2 text-2xs" id="btnOpenQrPass"
                 th:attr="data-socio-name=${socio != null ? socio.nombre + ' ' + socio.apellido : (#authentication != null ? #authentication.name : 'Socio')},
                          data-socio-dni=${socio != null ? socio.dni : '—'},
@@ -55,13 +65,10 @@
     </div>
 
     <div class="p-3 border-top border-secondary">
-        <a sec:authorize="hasRole('ADMINISTRADOR')" th:href="@{/admin/dashboard}" class="sidebar-link mb-1">
-            <i class="fa-solid fa-user-shield text-primary"></i> <span>CAMBIAR A ADMIN</span>
-        </a>
         <form th:action="@{/logout}" method="post" class="m-0 p-0">
             <button type="submit" class="sidebar-link text-danger border-0 bg-transparent w-100 text-start" style="cursor: pointer;">
-                <i class="fa-solid fa-right-from-bracket"></i> <span>CERRAR SESIÓN</span>
+                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> <span>CERRAR SESIÓN</span>
             </button>
         </form>
     </div>
-</div>
+</aside>

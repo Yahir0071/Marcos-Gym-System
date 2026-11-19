@@ -4,9 +4,9 @@
 <body>
     <section class="d-flex flex-column min-vh-100 bg-dark">
         <div th:replace="~{fragments/navbar :: navbar}"></div>
-        <div class="row g-0 flex-grow-1">
+        <main class="row g-0 flex-grow-1" id="main-content">
             <!-- LADO IZQUIERDO: Imagen y mensaje motivacional -->
-            <div class="col-lg-7 d-flex flex-column justify-content-center p-5 login-split-left position-relative">
+            <div class="col-lg-7 d-flex flex-column justify-content-center p-4 p-lg-5 login-split-left position-relative">
                 <div class="login-split-divider"></div>
 
                 <div class="w-100 ms-auto pe-lg-5 mw-550px z-index-2 mr-2rem mt-5">
@@ -50,12 +50,12 @@
                     </div>
 
                     <!-- Alertas de Spring Security -->
-                    <div th:if="${param.error}" class="alert alert-danger py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;">
-                        <i class="fa-solid fa-triangle-exclamation fs-6"></i>
+                    <div th:if="${param.error}" class="alert alert-danger py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" role="alert" style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;">
+                        <i class="fa-solid fa-triangle-exclamation fs-6" aria-hidden="true"></i>
                         <span>Correo o contraseña incorrectos. Por favor, verifica tus credenciales.</span>
                     </div>
-                    <div th:if="${param.logout}" class="alert alert-info py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" style="background-color: rgba(0, 230, 118, 0.2); color: #00e676;">
-                        <i class="fa-solid fa-circle-check fs-6"></i>
+                    <div th:if="${param.logout}" class="alert alert-info py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" role="status" style="background-color: rgba(0, 230, 118, 0.2); color: #00e676;">
+                        <i class="fa-solid fa-circle-check fs-6" aria-hidden="true"></i>
                         <span>Has cerrado sesión correctamente. ¡Vuelve pronto a entrenar!</span>
                     </div>
 
@@ -69,8 +69,8 @@
                             <label for="password" class="form-label text-xs">CONTRASEÑA</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="password" name="password" placeholder="••••••••••" autocomplete="current-password" required>
-                                <button class="btn btn-outline px-3" type="button" id="togglePasswordBtn" title="Mostrar/Ocultar contraseña">
-                                    <i class="fa-regular fa-eye"></i>
+                                <button class="btn btn-outline px-3" type="button" id="togglePasswordBtn" title="Mostrar/Ocultar contraseña" aria-label="Mostrar contraseña" aria-pressed="false">
+                                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
@@ -103,7 +103,7 @@
                     </form>
                 </div>
             </div>
-        </div>
+        </main>
     </section>
 </body>
 </html>

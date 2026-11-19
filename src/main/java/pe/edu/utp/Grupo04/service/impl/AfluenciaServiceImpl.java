@@ -27,7 +27,7 @@ public class AfluenciaServiceImpl implements AfluenciaService {
     @Override
     @Transactional(readOnly = true)
     public List<RegistroAfluencia> listarTodos() {
-        return afluenciaRepository.findAll();
+        return afluenciaRepository.findAllByOrderByFechaDescFechaRegistroDesc();
     }
 
     @Override
@@ -67,17 +67,19 @@ public class AfluenciaServiceImpl implements AfluenciaService {
         mapa.put(FranjaHoraria.TARDE_NOCHE, 0);
 
         LocalDate hoy = LocalDate.now();
-        List<RegistroAfluencia> registrosHoy = afluenciaRepository.findByFecha(hoy);
+        List<RegistroAfluencia> registrosVigentes = afluenciaRepository.findByFecha(hoy);
 
-        if (!registrosHoy.isEmpty()) {
-            for (RegistroAfluencia r : registrosHoy) {
-                mapa.put(r.getFranjaHoraria(), r.getConcurrenciaAprox());
+        if (registrosVigentes.isEmpty()) {
+            // M13: Consultar únicamente los registros de la fecha más reciente en vez de cargar toda la tabla con findAll()
+            Optional<LocalDate> ultimaFecha = afluenciaRepository.findUltimaFechaRegistrada();
+            if (ultimaFecha.isPresent()) {
+                registrosVigentes = afluenciaRepository.findByFecha(ultimaFecha.get());
             }
-        } else {
-            // Si hoy aún no hay registros, tomar los más recientes de la base de datos
-            List<RegistroAfluencia> todos = afluenciaRepository.findAll();
-            for (RegistroAfluencia r : todos) {
-                mapa.put(r.getFranjaHoraria(), r.getConcurrenciaAprox());
+        }
+
+        for (RegistroAfluencia r : registrosVigentes) {
+            if (r.getFranjaHoraria() != null && r.getConcurrenciaAprox() != null) {
+                mapa.put(r.getFranjaHoraria(), Math.max(0, r.getConcurrenciaAprox()));
             }
         }
 
@@ -87,8 +89,9 @@ public class AfluenciaServiceImpl implements AfluenciaService {
     @Override
     @Transactional(readOnly = true)
     public LocalDateTime obtenerUltimaFechaActualizacion() {
+        // M07: Usar fecha real de la base de datos; si no existen registros devolver null (sin inventar fecha actual)
         return afluenciaRepository.findTopByOrderByFechaRegistroDesc()
                 .map(RegistroAfluencia::getFechaRegistro)
-                .orElse(LocalDateTime.now());
+                .orElse(null);
     }
 }
