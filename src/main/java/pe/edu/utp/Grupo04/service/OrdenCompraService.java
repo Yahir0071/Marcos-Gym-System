@@ -7,53 +7,34 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Contrato de servicio para la gestión del ciclo de vida de compras, pedidos y boletas electrónicas de prueba.
- * Cumple con los principios SOLID (Single Responsibility, Dependency Inversion e Interface Segregation).
+ * Contrato del servicio de compras SIMULADAS (proyecto académico, sin cobros reales).
  */
 public interface OrdenCompraService {
 
-    /**
-     * Procesa y registra una orden de compra (producto o membresía) generando su boleta del prototipo.
-     */
+    /** Registra una compra. El comprador sale de la sesión; precios y stock, de la BD. */
     Map<String, Object> registrarCompra(CompraRequestDTO request, String usernameAutenticado);
 
-    /**
-     * Busca una orden por su código identificador único (#PED-XXXXX).
-     */
+    /** Búsqueda exacta por código (uso administrativo). Nunca devuelve "otro" pedido. */
     Optional<Map<String, Object>> buscarPorCodigo(String codigo);
 
-    /**
-     * Busca una orden por su código o devuelve la orden más reciente por defecto.
-     */
-    Map<String, Object> buscarPorCodigoODefault(String codigo);
+    /** Búsqueda por código Y propietario. Vacío si no existe o es de otra persona. */
+    Optional<Map<String, Object>> buscarPorCodigoYPropietario(String codigo, String username);
 
-    /**
-     * Lista todas las órdenes registradas en el sistema (utilizado por el Módulo Administrador - RF22).
-     */
     List<Map<String, Object>> listarTodas();
 
-    /**
-     * Lista las órdenes filtradas por un socio específico (utilizado por el Módulo Cliente - RF20).
-     */
-    List<Map<String, Object>> listarPorCliente(String usernameOEmailODni);
+    /** Filtro libre por correo, DNI o nombre (uso administrativo). */
+    List<Map<String, Object>> listarPorCliente(String filtro);
 
-    /**
-     * Aprueba una orden que se encontraba en estado EN_PROCESO.
-     */
-    boolean aprobarCompra(String codigo);
+    /** Pedidos del socio que inició sesión. */
+    List<Map<String, Object>> listarDeSocio(String username);
 
-    /**
-     * Cambia el estado de entrega a ENTREGADO cuando el cliente recoge el producto (RF14 / RF22).
-     */
+    Map<String, Object> aprobarCompra(String codigo, String username);
+
+    Map<String, Object> cancelarCompra(String codigo, String username);
+
     boolean marcarEntregado(String codigo);
 
-    /**
-     * Genera la previsualización del siguiente código correlativo de pedido (#PED-XXXXX).
-     */
     String obtenerProximoCodigo();
 
-    /**
-     * Retorna la cantidad total de pedidos registrados.
-     */
     int contarTotalOrdenes();
 }
