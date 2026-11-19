@@ -6,8 +6,7 @@
 // Core Modules
 import { showGymToast, initDataToastTriggers } from "./core/toast.js";
 import { openGymModal, closeGymModal } from "./core/modal.js";
-import { initNavbar, initLiveClock, initSidebars } from "./core/navigation.js";
-import { initQrPass } from "./cliente/qr-pass.js";
+import { initNavbar, initLiveClock, initSidebars, initQrPass } from "./core/navigation.js";
 
 // Public Modules
 import { initBmiCalculator } from "./public/calculator.js";
