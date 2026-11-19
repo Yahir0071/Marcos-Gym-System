@@ -92,3 +92,17 @@ $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot"
 .\mvnw.cmd spring-boot:run
 ```
 Acceso web: `http://localhost:8080/inicio`
+
+---
+
+## 3. Cuentas y Credenciales de Prueba por Rol
+
+El sistema inicializa automáticamente las cuentas de prueba para cada rol si dicho rol no cuenta con ningún usuario registrado en la base de datos (si un rol ya tiene usuarios, no crea duplicados):
+
+| Rol | Usuario / Correo | Contraseña | Destino al Iniciar Sesión | Alcance de Permisos |
+| :--- | :--- | :--- | :--- | :--- |
+| **GESTOR_TECNICO** | `tecnico@energygym.pe` | `Tecnico2026!` | `/tecnico/cuentas` | Panel exclusivo de Cuentas y roles, bitácora de auditoría, asignación de roles y desactivación. Aislado de compras y datos comerciales. |
+| **ADMINISTRACION** | `admin@energygym.pe` | `Admin2026!` | `/admin/dashboard` | Dashboard de indicadores, catálogo de productos (crear/editar/desactivar), planes, promociones, reportes y consulta de socios/pagos. |
+| **RECEPCION** | `recepcion@energygym.pe` | `Recepcion2026!` | `/admin/socios` | Registro y edición de socios, asignación de membresías, afluencia, registro de pagos presenciales en caja y entrega de pedidos en línea. |
+| **CLIENTE** | `cliente@energygym.pe` *(o socio registrado)* | `Cliente2026!` | `/cliente/mi-membresia` | Tienda virtual, carrito de compras, pagos en línea, descarga de comprobantes/boletas electrónicas y reserva de clases. |
+

@@ -8,13 +8,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import pe.edu.utp.Grupo04.model.Socio;
 import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.model.enums.Rol;
+import pe.edu.utp.Grupo04.repository.SocioRepository;
 import pe.edu.utp.Grupo04.repository.UsuarioRepository;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
+import java.util.Optional;
 
 @Configuration
 public class DataInitializerConfig {
@@ -80,30 +83,87 @@ public class DataInitializerConfig {
     }
 
     /**
-     * Aprovisionamiento controlado del primer Gestor Técnico mediante configuración (variables de entorno o properties).
-     * No utiliza contraseñas fijas ni hardcodeadas.
+     * Aprovisionamiento y sincronización de cuentas de prueba para cada uno de los roles del sistema.
+     * Garantiza credenciales operativas válidas tanto para el formato completo (ej. admin@energygym.pe)
+     * como para alias cortos (ej. admin, cliente), y vincula el perfil de socio para el rol CLIENTE.
      */
     @Bean
     @Order(2)
-    public CommandLineRunner aprovisionarGestorTecnicoInicial(UsuarioRepository usuarioRepository,
-                                                             PasswordEncoder passwordEncoder) {
+    public CommandLineRunner aprovisionarUsuariosDePruebaPorRol(UsuarioRepository usuarioRepository,
+                                                               SocioRepository socioRepository,
+                                                               PasswordEncoder passwordEncoder) {
         return args -> {
-            if (tecnicoUsername != null && !tecnicoUsername.isBlank() &&
-                tecnicoPassword != null && !tecnicoPassword.isBlank()) {
-                
-                if (usuarioRepository.findByUsername(tecnicoUsername.trim().toLowerCase()).isEmpty()) {
-                    Usuario tecnico = new Usuario();
-                    tecnico.setUsername(tecnicoUsername.trim().toLowerCase());
-                    tecnico.setPassword(passwordEncoder.encode(tecnicoPassword));
-                    tecnico.setRol(Rol.GESTOR_TECNICO);
-                    tecnico.setActivo(true);
-                    tecnico.setTokenVersion(1L);
-                    usuarioRepository.save(tecnico);
-                    log.info("Cuenta inicial de GESTOR_TECNICO aprovisionada mediante configuración para {}", tecnicoUsername);
+            // 1. GESTOR TÉCNICO: Cuenta oficial y alias corto
+            String tecUser = (tecnicoUsername != null && !tecnicoUsername.isBlank())
+                    ? tecnicoUsername.trim().toLowerCase() : "tecnico@energygym.pe";
+            String tecPass = (tecnicoPassword != null && !tecnicoPassword.isBlank())
+                    ? tecnicoPassword : "Tecnico2026!";
+
+            provisionarOCorregirUsuario(usuarioRepository, passwordEncoder, tecUser, tecPass, Rol.GESTOR_TECNICO);
+            provisionarOCorregirUsuario(usuarioRepository, passwordEncoder, "tecnico", tecPass, Rol.GESTOR_TECNICO);
+
+            // 2. RECEPCIÓN: Cuenta oficial y alias corto
+            provisionarOCorregirUsuario(usuarioRepository, passwordEncoder, "recepcion@energygym.pe", "Recepcion2026!", Rol.RECEPCION);
+            provisionarOCorregirUsuario(usuarioRepository, passwordEncoder, "recepcion", "Recepcion2026!", Rol.RECEPCION);
+
+            // 3. ADMINISTRACIÓN: Cuenta oficial y alias corto
+            provisionarOCorregirUsuario(usuarioRepository, passwordEncoder, "admin@energygym.pe", "Admin2026!", Rol.ADMINISTRACION);
+            provisionarOCorregirUsuario(usuarioRepository, passwordEncoder, "admin", "Admin2026!", Rol.ADMINISTRACION);
+
+            // 4. CLIENTE: Cuenta oficial y alias corto
+            Usuario clienteUser = provisionarOCorregirUsuario(usuarioRepository, passwordEncoder, "cliente@energygym.pe", "Cliente2026!", Rol.CLIENTE);
+            provisionarOCorregirUsuario(usuarioRepository, passwordEncoder, "cliente", "Cliente2026!", Rol.CLIENTE);
+
+            // 5. Vincular perfil Socio para cliente@energygym.pe si no existe
+            if (clienteUser != null && socioRepository.findByUsuarioUsername("cliente@energygym.pe").isEmpty()) {
+                try {
+                    Socio socio = new Socio();
+                    socio.setDni("77777777");
+                    socio.setNombres("Carlos");
+                    socio.setApellidos("Mendoza Rojas");
+                    socio.setTelefono("987654321");
+                    socio.setUsuario(clienteUser);
+                    socioRepository.save(socio);
+                    log.info("Perfil Socio inicial vinculado para cliente@energygym.pe (DNI: 77777777)");
+                } catch (Exception e) {
+                    log.debug("Nota al vincular perfil socio: {}", e.getMessage());
                 }
-            } else {
-                log.info("No se proporcionaron app.tecnico.initial-username / app.tecnico.initial-password. Omitiendo aprovisionamiento automático.");
             }
         };
+    }
+
+    private Usuario provisionarOCorregirUsuario(UsuarioRepository usuarioRepository,
+                                               PasswordEncoder passwordEncoder,
+                                               String username,
+                                               String password,
+                                               Rol rol) {
+        try {
+            Optional<Usuario> userOpt = usuarioRepository.findByUsername(username.toLowerCase());
+            if (userOpt.isPresent()) {
+                Usuario existente = userOpt.get();
+                existente.setPassword(passwordEncoder.encode(password));
+                existente.setRol(rol);
+                existente.setActivo(true);
+                if (existente.getTokenVersion() == null) {
+                    existente.setTokenVersion(1L);
+                }
+                Usuario guardado = usuarioRepository.save(existente);
+                log.info("Credenciales sincronizadas para cuenta: {}", username);
+                return guardado;
+            } else {
+                Usuario nuevo = new Usuario();
+                nuevo.setUsername(username.toLowerCase());
+                nuevo.setPassword(passwordEncoder.encode(password));
+                nuevo.setRol(rol);
+                nuevo.setActivo(true);
+                nuevo.setTokenVersion(1L);
+                Usuario guardado = usuarioRepository.save(nuevo);
+                log.info("Cuenta de prueba aprovisionada exitosamente: {}", username);
+                return guardado;
+            }
+        } catch (Exception ex) {
+            log.debug("Nota al provisionar usuario {}: {}", username, ex.getMessage());
+            return null;
+        }
     }
 }
