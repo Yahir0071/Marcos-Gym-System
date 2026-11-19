@@ -83,4 +83,19 @@ public class CompraValidatorTest {
 
         assertTrue(errors.hasFieldErrors("planId"));
     }
+
+        @Test
+    @DisplayName("Validador - items:[null] se rechaza con error claro, sin lanzar excepción")
+    void testValidate_ItemNulo() {
+        CompraRequestDTO dto = new CompraRequestDTO();
+        dto.setTipoConcepto("PRODUCTO");
+        List<CompraItemDTO> lista = new java.util.ArrayList<>();
+        lista.add(null);
+        dto.setItems(lista);
+
+        Errors errors = new BeanPropertyBindingResult(dto, "compraRequestDTO");
+
+        assertDoesNotThrow(() -> validator.validate(dto, errors));
+        assertTrue(errors.hasFieldErrors("items"));
+    }
 }
