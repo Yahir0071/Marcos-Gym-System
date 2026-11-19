@@ -35,6 +35,17 @@ public class Usuario {
 
     private Boolean activo = true;
 
+    @Column(name = "token_version")
+    private Long tokenVersion = 1L;
+
+    public Long getTokenVersion() {
+        return tokenVersion != null ? tokenVersion : 1L;
+    }
+
+    public void setTokenVersion(Long tokenVersion) {
+        this.tokenVersion = tokenVersion != null ? tokenVersion : 1L;
+    }
+
     public Rol getRolEnum() {
         if (rol == null) return Rol.CLIENTE;
         try {

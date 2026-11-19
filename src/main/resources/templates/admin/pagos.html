@@ -182,6 +182,7 @@
                                     <i class="fa-solid fa-download"></i>
                                 </a>
                                 <button th:if="${ord.estadoEntrega == 'POR RECOGER EN GIMNASIO'}"
+                                        sec:authorize="hasRole('RECEPCION')"
                                         type="button"
                                         class="btn btn-sm btn-primary text-nowrap btn-entregar-pedido"
                                         th:data-codigo="${ord.codigo}">

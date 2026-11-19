@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -13,14 +14,17 @@ import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.repository.UsuarioRepository;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
  * Filtro de verificación activa de sesión HTTP:
- * Valida en cada petición web que el usuario autenticado por sesión de cookies:
+ * Valida en cada petición (incluyendo APIs que usan sesión) que el usuario autenticado por cookies:
  * 1. Continúe existiendo y activo en la base de datos (Feedback #4).
  * 2. Su rol en la sesión coincida con el rol actual en la BD (Feedback #4).
- * Si la cuenta fue desactivada o cambió de rol, la sesión se invalida de inmediato.
+ * Si la cuenta fue desactivada o cambió de rol, la sesión se invalida de inmediato:
+ * - Para APIs (AJAX/JSON/REST): responde con HTTP 401 Unauthorized JSON.
+ * - Para navegación web normal: redirige a /login.
  */
 @Component
 public class SessionValidityFilter extends OncePerRequestFilter {
@@ -38,14 +42,7 @@ public class SessionValidityFilter extends OncePerRequestFilter {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        String uri = request.getRequestURI();
-        // No interceptar peticiones a la API REST (se manejan vía JWT y exceptionHandling JSON)
-        if (uri.startsWith("/api/") || uri.contains("/api/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // Solo verificar si hay usuario autenticado en sesión web
+        // Solo verificar si hay usuario autenticado en sesión web (no JWT)
         String authHeader = request.getHeader("Authorization");
         boolean esPeticionJwt = authHeader != null && authHeader.startsWith("Bearer ");
 
@@ -53,32 +50,39 @@ public class SessionValidityFilter extends OncePerRequestFilter {
             String username = auth.getName();
             Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(username);
 
-            if (usuarioOpt.isEmpty() || (usuarioOpt.get().getActivo() != null && !usuarioOpt.get().getActivo())) {
-                // Cuenta eliminada o desactivada -> Cerrar sesión inmediatamente
-                SecurityContextHolder.clearContext();
-                HttpSession session = request.getSession(false);
-                if (session != null) {
-                    session.invalidate();
-                }
-                response.sendRedirect("/login?error=inactivo");
-                return;
-            }
+            if (usuarioOpt.isPresent()) {
+                Usuario usuario = usuarioOpt.get();
+                boolean esInactivo = usuario.getActivo() != null && !usuario.getActivo();
+                String rolEsperado = "ROLE_" + usuario.getRol().name();
+                boolean tieneRolValido = auth.getAuthorities().stream()
+                        .anyMatch(ga -> ga.getAuthority().equals(rolEsperado));
 
-            // Comprobar si su rol cambió en la BD respecto al rol de su sesión
-            Usuario usuario = usuarioOpt.get();
-            String rolEsperado = "ROLE_" + usuario.getRol().name();
-            boolean tieneRolValido = auth.getAuthorities().stream()
-                    .anyMatch(ga -> ga.getAuthority().equals(rolEsperado));
+                if (esInactivo || !tieneRolValido) {
+                    // Invalidar sesión y limpiar contexto de seguridad
+                    SecurityContextHolder.clearContext();
+                    HttpSession session = request.getSession(false);
+                    if (session != null) {
+                        session.invalidate();
+                    }
 
-            if (!tieneRolValido) {
-                // El rol del usuario fue modificado por el Gestor Técnico -> invalidar sesión actual
-                SecurityContextHolder.clearContext();
-                HttpSession session = request.getSession(false);
-                if (session != null) {
-                    session.invalidate();
+                    String uri = request.getRequestURI();
+                    String acceptHeader = request.getHeader("Accept");
+                    boolean esApi = uri.startsWith("/api/") || uri.contains("/api/") ||
+                            (acceptHeader != null && acceptHeader.contains(MediaType.APPLICATION_JSON_VALUE));
+
+                    if (esApi) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                        String mensaje = esInactivo ? "La cuenta ha sido desactivada." : "El rol del usuario ha sido modificado. Sesión revocada.";
+                        response.getWriter().write("{\"error\":\"UNAUTHORIZED\",\"mensaje\":\"" + mensaje + "\"}");
+                        return;
+                    } else {
+                        String redirectUrl = esInactivo ? "/login?error=inactivo" : "/login?error=rol_actualizado";
+                        response.sendRedirect(redirectUrl);
+                        return;
+                    }
                 }
-                response.sendRedirect("/login?error=rol_actualizado");
-                return;
             }
         }
 

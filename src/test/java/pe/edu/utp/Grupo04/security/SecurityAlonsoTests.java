@@ -13,6 +13,7 @@ import org.springframework.web.context.WebApplicationContext;
 import pe.edu.utp.Grupo04.dto.CuentaInternaDTO;
 import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.model.enums.Rol;
+import pe.edu.utp.Grupo04.repository.UsuarioRepository;
 import pe.edu.utp.Grupo04.security.jwt.JwtService;
 import pe.edu.utp.Grupo04.service.GestionCuentasService;
 
@@ -26,6 +27,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -47,6 +49,9 @@ class SecurityAlonsoTests {
 
     @Autowired
     private SecurityTokenRevocationManager revocationManager;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private DataSource dataSource;
@@ -140,41 +145,109 @@ class SecurityAlonsoTests {
     }
 
     @Test
-    @DisplayName("Feedback 1: Migración SQL de cuentas obsoletas con rol ADMINISTRADOR a ADMINISTRACION")
-    void testMigracionSqlCuentasAntiguas() throws Exception {
+    @DisplayName("Punto 1 (Feedback): Migración sobre el esquema de main (usuarios_rol_check, ADMINISTRADOR a ADMINISTRACION y creación de Gestor Técnico)")
+    void testMigracionSqlEsquemaMain() throws Exception {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
 
-            // Insertar directamente un usuario con el texto literal 'ADMINISTRADOR' como en la BD anterior
-            String userAntiguo = "antiguo." + System.currentTimeMillis() + "@energygym.pe";
-            stmt.executeUpdate("INSERT INTO usuarios (username, password, rol, activo) VALUES ('" +
-                    userAntiguo + "', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'ADMINISTRADOR', true)");
+            // 1. Crear una tabla de prueba con la estructura exacta de 'main' y su restricción usuarios_rol_check
+            stmt.execute("DROP TABLE IF EXISTS usuarios_test_main");
+            stmt.execute("CREATE TABLE usuarios_test_main (" +
+                    "id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, " +
+                    "username VARCHAR(100) NOT NULL UNIQUE, " +
+                    "password VARCHAR(255) NOT NULL, " +
+                    "rol VARCHAR(50) NOT NULL, " +
+                    "activo BOOLEAN DEFAULT TRUE, " +
+                    "CONSTRAINT usuarios_test_rol_check CHECK (rol IN ('ADMINISTRADOR', 'CLIENTE')))");
 
-            // Ejecutar la sentencia de migración explícita que corre en el arranque
-            stmt.executeUpdate("UPDATE usuarios SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR'");
+            // 2. Insertar cuenta de prueba con rol histórico 'ADMINISTRADOR'
+            stmt.executeUpdate("INSERT INTO usuarios_test_main (username, password, rol, activo) VALUES (" +
+                    "'admin.main@energygym.pe', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'ADMINISTRADOR', true)");
 
-            // Verificar que ahora sea ADMINISTRACION en la tabla
-            try (ResultSet rs = stmt.executeQuery("SELECT rol FROM usuarios WHERE username = '" + userAntiguo + "'")) {
+            // Verificar que bajo el esquema anterior de main NO se podía crear GESTOR_TECNICO (falla por check constraint)
+            assertThrows(Exception.class, () -> {
+                try (Statement s2 = conn.createStatement()) {
+                    s2.executeUpdate("INSERT INTO usuarios_test_main (username, password, rol, activo) VALUES (" +
+                            "'tecnico.main@energygym.pe', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'GESTOR_TECNICO', true)");
+                }
+            });
+
+            // 3. Ejecutar la rutina de migración de Alonso
+            stmt.execute("ALTER TABLE usuarios_test_main DROP CONSTRAINT usuarios_test_rol_check");
+            int migrados = stmt.executeUpdate("UPDATE usuarios_test_main SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR' OR rol IS NULL");
+            assertEquals(1, migrados);
+
+            stmt.execute("ALTER TABLE usuarios_test_main ADD CONSTRAINT usuarios_test_rol_check CHECK (rol IN ('CLIENTE', 'RECEPCION', 'ADMINISTRACION', 'GESTOR_TECNICO'))");
+
+            // 4. Verificar que la cuenta de prueba pasó a ADMINISTRACION
+            try (ResultSet rs = stmt.executeQuery("SELECT rol FROM usuarios_test_main WHERE username = 'admin.main@energygym.pe'")) {
                 assertTrue(rs.next());
                 assertEquals("ADMINISTRACION", rs.getString("rol"));
             }
+
+            // 5. Verificar que tras la migración SÍ se puede crear un Gestor Técnico
+            int tecnicoCreado = stmt.executeUpdate("INSERT INTO usuarios_test_main (username, password, rol, activo) VALUES (" +
+                    "'tecnico.main@energygym.pe', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'GESTOR_TECNICO', true)");
+            assertEquals(1, tecnicoCreado);
+
+            stmt.execute("DROP TABLE IF EXISTS usuarios_test_main");
         }
     }
 
     @Test
-    @DisplayName("Feedback 3: Aislamiento del Gestor Técnico: Prohibido de realizar compras ficticias")
-    @WithMockUser(username = "tecnico@energygym.pe", roles = {"GESTOR_TECNICO"})
-    void testGestorTecnicoProhibidoDeCompras() throws Exception {
-        // Al intentar enviar una compra ficticia como GESTOR_TECNICO debe ser rechazado con 403 Forbidden
-        mockMvc.perform(post("/api/compras")
+    @DisplayName("Punto 2 (Feedback): Restricciones operativas (Recepción no edita productos, Administración no entrega pedidos)")
+    void testRestriccionesOperativasPorRol() throws Exception {
+        // Recepción no puede editar o guardar productos (POST /admin/productos/guardar -> 403)
+        mockMvc.perform(post("/admin/productos/guardar")
                         .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"items\":[],\"buyerName\":\"Gestor Técnico\",\"buyerEmail\":\"tecnico@energygym.pe\"}"))
+                        .with(user("recep@energygym.pe").roles("RECEPCION")))
+                .andExpect(status().isForbidden());
+
+        // Administración no puede registrar socios ni entregar pedidos (POST -> 403)
+        mockMvc.perform(post("/admin/socios/guardar")
+                        .with(csrf())
+                        .with(user("admin@energygym.pe").roles("ADMINISTRACION")))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/admin/api/compras/PED-00521/entregar")
+                        .with(csrf())
+                        .with(user("admin@energygym.pe").roles("ADMINISTRACION")))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("Feedback 4: Revocación de acceso JWT por cambio de rol")
+    @DisplayName("Punto 3 (Feedback): Aislamiento del Gestor Técnico y permisos de compras y boletas por rol")
+    void testPermisosComprasYBoletasPorRol() throws Exception {
+        // 1. Gestor Técnico NO puede realizar compras ficticias (403 Forbidden)
+        mockMvc.perform(post("/cliente/api/compras")
+                        .with(csrf())
+                        .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\":[],\"buyerName\":\"Gestor Técnico\",\"buyerEmail\":\"tecnico@energygym.pe\"}"))
+                .andExpect(status().isForbidden());
+
+        // 2. Gestor Técnico NO puede descargar boletas (403 Forbidden)
+        mockMvc.perform(get("/cliente/boleta-venta/descargar")
+                        .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO")))
+                .andExpect(status().isForbidden());
+
+        // 3. Cliente sí puede descargar su boleta de venta
+        mockMvc.perform(get("/cliente/boleta-venta/descargar")
+                        .with(user("cliente@energygym.pe").roles("CLIENTE")))
+                .andExpect(status().isOk());
+
+        // 4. Recepción y Administración sí pueden auditar y descargar boletas
+        mockMvc.perform(get("/cliente/boleta-venta/descargar")
+                        .with(user("recep@energygym.pe").roles("RECEPCION")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/cliente/boleta-venta/descargar")
+                        .with(user("admin@energygym.pe").roles("ADMINISTRACION")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Punto 3 (Feedback): Revocación de acceso JWT por cambio de rol")
     void testRevocacionJwtPorCambioDeRol() throws Exception {
         String correo = "admin.cambio." + System.currentTimeMillis() + "@energygym.pe";
         CuentaInternaDTO dto = new CuentaInternaDTO();
@@ -203,7 +276,52 @@ class SecurityAlonsoTests {
     }
 
     @Test
-    @DisplayName("Feedback 5: API delimitada exige JWT y no hereda sesión web abierta sin Bearer")
+    @DisplayName("Punto 3 (Feedback): JWT revocado debe seguir inválido tras reinicio (simulado limpiando caché de memoria)")
+    void testJwtRevocadoSigueInvalidoTrasReinicio() throws Exception {
+        String correo = "reinicio." + System.currentTimeMillis() + "@energygym.pe";
+        CuentaInternaDTO dto = new CuentaInternaDTO();
+        dto.setUsername(correo);
+        dto.setPassword("Secret123!");
+        dto.setRol(Rol.ADMINISTRACION);
+
+        Usuario user = gestionCuentasService.crearCuentaInterna(dto, "tecnico@energygym.pe");
+        long versionOriginal = revocationManager.getTokenVersion(correo);
+        String tokenOriginal = jwtService.generarToken(correo, "ADMINISTRACION", versionOriginal);
+
+        // El token es válido inicialmente
+        assertTrue(revocationManager.esTokenValidoParaVersion(correo, versionOriginal));
+
+        // Se revoca el acceso modificando el rol o estado
+        gestionCuentasService.cambiarRol(user.getId(), Rol.RECEPCION, "tecnico@energygym.pe");
+
+        // Simular reinicio de la aplicación limpiando la memoria caché
+        revocationManager.limpiarCacheMemoria();
+
+        // Tras el reinicio, la versión en la base de datos persiste incrementada, por lo que el token viejo sigue siendo inválido
+        assertFalse(revocationManager.esTokenValidoParaVersion(correo, versionOriginal));
+    }
+
+    @Test
+    @DisplayName("Punto 3 (Feedback): Revocación en APIs que usan sesión (usuario desactivado o con rol cambiado recibe 401)")
+    void testRevocacionEnApisQueUsanSesion() throws Exception {
+        String correo = "sesion.inactiva." + System.currentTimeMillis() + "@energygym.pe";
+
+        Usuario usuario = new Usuario();
+        usuario.setUsername(correo);
+        usuario.setPassword("$2a$10$abcdefghijklmnopqrstuvwxyz123456");
+        usuario.setRol(Rol.CLIENTE);
+        usuario.setActivo(false); // Desactivado
+        usuarioRepository.save(usuario);
+
+        // Petición a endpoint que usa sesión HTTP (sin Bearer) de un usuario desactivado en BD -> 401 JSON
+        mockMvc.perform(get("/cliente/api/compras")
+                        .with(user(correo).roles("CLIENTE")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    @DisplayName("Punto 5 (Feedback): API delimitada exige JWT y no hereda sesión web abierta sin Bearer")
     @WithMockUser(username = "usuario.sesion@energygym.pe", roles = {"CLIENTE"})
     void testApiExigeJwtYNoHeredaSesionWeb() throws Exception {
         // Petición a /api/auth/me con sesión web pero SIN header Bearer -> Rechazado con 401 Unauthorized
@@ -212,11 +330,11 @@ class SecurityAlonsoTests {
     }
 
     @Test
-    @DisplayName("Feedback 5: Operaciones web de compras requieren protección CSRF obligatoria")
+    @DisplayName("Punto 5 (Feedback): Operaciones web de compras requieren protección CSRF obligatoria")
     @WithMockUser(username = "cliente@energygym.pe", roles = {"CLIENTE"})
     void testOperacionComprasExigeCsrf() throws Exception {
-        // Petición POST a /api/compras sin token CSRF -> Rechazado con 403 Forbidden
-        mockMvc.perform(post("/api/compras")
+        // Petición POST a /cliente/api/compras sin token CSRF -> Rechazado con 403 Forbidden
+        mockMvc.perform(post("/cliente/api/compras")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"items\":[]}"))
                 .andExpect(status().isForbidden());

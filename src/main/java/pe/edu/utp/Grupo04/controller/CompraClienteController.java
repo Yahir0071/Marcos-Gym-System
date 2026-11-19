@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -76,6 +77,7 @@ public class CompraClienteController {
     }
 
     // --- API REST PARA CREAR COMPRAS / BOLETAS Y DESCONTAR STOCK CON VALIDACIÓN SPRING ---
+    @PreAuthorize("hasRole('CLIENTE')")
     @PostMapping("/api/compras")
     @ResponseBody
     public ResponseEntity<?> registrarCompraApi(@Valid @RequestBody CompraRequestDTO request,
@@ -127,7 +129,8 @@ public class CompraClienteController {
     }
 
     // --- ENDPOINT DESCARGA BOLETA ELECTRÓNICA (RF21) ---
-    @GetMapping("/boleta-venta/descargar")
+    @PreAuthorize("hasAnyRole('CLIENTE', 'RECEPCION', 'ADMINISTRACION')")
+    @GetMapping({"/boleta-venta/descargar", "/boleta/descargar"})
     public ResponseEntity<byte[]> descargarBoletaVenta(@RequestParam(required = false) String codigo) {
         Map<String, Object> orden = ordenCompraService.buscarPorCodigoODefault(codigo);
 
@@ -248,6 +251,7 @@ public class CompraClienteController {
     }
 
     // 9. Boleta de venta
+    @PreAuthorize("hasAnyRole('CLIENTE', 'RECEPCION', 'ADMINISTRACION')")
     @GetMapping("/boleta-venta")
     public String boletaVenta(@RequestParam(required = false) String codigo,
                               Authentication auth, Model model) {

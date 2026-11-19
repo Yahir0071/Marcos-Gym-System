@@ -35,5 +35,9 @@ graphify-out/
 _docs/
 *.docx
 *.txt
+data/
+*.md
+!README.md
+!docs/**/data/
 *.md
 HELP.md

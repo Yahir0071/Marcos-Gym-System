@@ -98,8 +98,9 @@ public class SecurityConfig {
                 .requestMatchers("/tecnico/**").hasRole("GESTOR_TECNICO")
 
                 // Feedback #3: Bloquear al Gestor Técnico de realizar compras ficticias y módulos operativos
-                .requestMatchers("/api/compras/**", "/cliente/api/compras/**").hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
-                .requestMatchers("/boleta-venta/descargar", "/cliente/boleta-venta/**").hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
+                .requestMatchers(HttpMethod.POST, "/api/compras/**", "/cliente/api/compras/**").hasRole("CLIENTE")
+                .requestMatchers(HttpMethod.GET, "/api/compras/**", "/cliente/api/compras/**").hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
+                .requestMatchers("/boleta-venta/**", "/cliente/boleta-venta/**", "/boleta-venta/descargar", "/cliente/boleta-venta/descargar").hasAnyRole("CLIENTE", "RECEPCION", "ADMINISTRACION")
 
                 // 6. Módulo de CLIENTE (Socios)
                 .requestMatchers("/cliente/**").hasRole("CLIENTE")
@@ -168,8 +169,7 @@ public class SecurityConfig {
                         response.setContentType("application/json");
                         response.getWriter().write("{\"error\":\"Acceso denegado\",\"mensaje\":\"" + accessDeniedException.getMessage() + "\"}");
                     } else {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        response.sendRedirect("/error");
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());
                     }
                 })
             )
