@@ -152,7 +152,7 @@
                             <i class="fa-solid fa-shield-halved text-success fs-3"></i>
                             <div>
                                 <div class="text-light font-anton text-xs tracking-wide">PAGO 100% SEGURO Y EMISI脫N DE BOLETA ELECTR脫NICA</div>
-                                <small class="text-muted text-2xs">Pasarela con encriptaci贸n SSL de 256 bits. Aceptamos Visa, Mastercard y Amex. Emisi贸n instant谩nea de comprobante para recojo inmediato en sede Las Am閞icas, Ate.</small>
+                                <small class="text-muted text-2xs">Pasarela con encriptaci贸n SSL de 256 bits. Aceptamos Visa, Mastercard y Amex. Emisi贸n instant谩nea de comprobante para recojo inmediato en sede Las Am锟絩icas, Ate.</small>
                             </div>
                         </div>
                     </div>
@@ -307,7 +307,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between text-xs">
                                     <span class="text-muted">Lugar de Recojo:</span>
-                                    <span class="text-light">Recepci贸n sede Las Am閞icas, Ate</span>
+                                    <span class="text-light">Recepci贸n sede Las Am锟絩icas, Ate</span>
                                 </div>
                             </div>
 
@@ -489,27 +489,13 @@
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> PROCESANDO EN PASARELA SSL...`;
 
-                    const payload = {
+                                        const payload = {
+                        referencia: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()),
                         tipoConcepto: "PRODUCTO",
-                        paymentMethod: "TARJETA",
-                        buyerName: buyerName,
-                        buyerDocType: "DNI",
-                        buyerDocNum: buyerDni,
-                        buyerEmail: buyerEmail,
-                        cardNumber: cardNumber,
+                        estado: "PAGADO",
                         cardBrand: cardNumber.startsWith("4") ? "VISA" : (cardNumber.startsWith("5") ? "MASTERCARD" : "AMEX"),
                         cardLast4: cardNumber.slice(-4),
-                        cardExpiry: cardExpiry,
-                        cardHolder: cardHolder,
-                        items: [
-                            {
-                                id: prodId,
-                                name: prodName,
-                                category: "Suplementos",
-                                price: unitPrice,
-                                qty: qty
-                            }
-                        ]
+                        items: [{ id: Number(prodId), qty: qty }]
                     };
 
                     try {
@@ -525,19 +511,20 @@
                             body: JSON.stringify(payload)
                         });
 
-                        const data = await resp.json();
+                        const data = await resp.json().catch(() => ({}));
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origBtnText;
+                        if (resp.status === 401) { window.location.href = "/login"; return; }
 
                         if (resp.ok && data.success) {
                             // Mostrar pantalla de 茅xito
                             document.getElementById("modalPaymentFormSection").classList.add("d-none");
                             document.getElementById("modalPaymentSuccessSection").classList.remove("d-none");
 
-                            document.getElementById("succModalCode").textContent = data.codigo || "#PED-00522";
-                            document.getElementById("succModalBoleta").textContent = data.boleta || "B001-00000843";
-                            document.getElementById("succModalOperacion").textContent = data.orden?.operacion || "OP-" + Math.floor(100000 + Math.random() * 900000);
-                            document.getElementById("succModalTotal").textContent = `S/ ${total.toFixed(2)}`;
+                            document.getElementById("succModalCode").textContent = data.codigo;
+                            document.getElementById("succModalBoleta").textContent = data.boleta;
+                            document.getElementById("succModalOperacion").textContent = data.orden?.operacion ?? "";
+                            document.getElementById("succModalTotal").textContent = `S/ ${data.orden?.totalFormatted}`;
 
                             const btnDown = document.getElementById("btnDownloadBoletaModal");
                             if (btnDown) {
@@ -609,7 +596,7 @@
                                     </div>
                                     <div class="d-flex justify-content-between text-xs">
                                         <span class="text-muted">Lugar de pago:</span>
-                                        <span class="text-light">Recepci贸n sede Las Am閞icas, Ate (Efectivo / POS / Yape)</span>
+                                        <span class="text-light">Recepci贸n sede Las Am锟絩icas, Ate (Efectivo / POS / Yape)</span>
                                     </div>
                                 </div>
                                 <button type="button" class="btn btn-primary px-4 py-2 font-anton text-xs" data-bs-dismiss="modal">
@@ -618,7 +605,7 @@
                             </div>`
                         );
                     } else {
-                        alert(`隆Reserva registrada con 茅xito!\nC贸digo: ${code}\nTotal: S/ ${total.toFixed(2)}\nAc茅rcate a recepci贸n de sede Las Am閞icas, Ate para abonar y retirar tus productos.`);
+                        alert(`隆Reserva registrada con 茅xito!\nC贸digo: ${code}\nTotal: S/ ${total.toFixed(2)}\nAc茅rcate a recepci贸n de sede Las Am锟絩icas, Ate para abonar y retirar tus productos.`);
                     }
                 });
             }
