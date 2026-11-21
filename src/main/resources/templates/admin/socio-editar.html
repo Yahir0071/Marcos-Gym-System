@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments :: layout(~{::title}, 'socios', ~{::main})}">
+<head><title>Editar socio - Energy Gym</title></head>
+<body>
+<main class="admin-page">
+    <h1 class="font-anton text-light fs-2 mb-3">Editar socio</h1>
+    <div class="card p-4" style="max-width: 36rem">
+        <p class="text-muted" th:text="|DNI ${socio.dni}|"></p>
+        <form th:action="@{/admin/socios/editar/{id}(id=${socio.id})}" th:object="${socioEditDTO}" method="post">
+            <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger" role="alert">
+                Revisa los campos indicados antes de guardar.
+            </div>
+            <div class="mb-3">
+                <label for="nombres" class="form-label">Nombres (obligatorio)</label>
+                <input th:field="*{nombres}" class="form-control" autocomplete="given-name" required maxlength="100"
+                       th:aria-invalid="${#fields.hasErrors('nombres')}" aria-describedby="error-nombres">
+                <div id="error-nombres" class="text-danger" th:errors="*{nombres}"></div>
+            </div>
+            <div class="mb-3">
+                <label for="apellidos" class="form-label">Apellidos (obligatorio)</label>
+                <input th:field="*{apellidos}" class="form-control" autocomplete="family-name" required maxlength="100"
+                       th:aria-invalid="${#fields.hasErrors('apellidos')}" aria-describedby="error-apellidos">
+                <div id="error-apellidos" class="text-danger" th:errors="*{apellidos}"></div>
+            </div>
+            <div class="mb-3">
+                <label for="telefono" class="form-label">Teléfono (9 dígitos)</label>
+                <input th:field="*{telefono}" type="tel" inputmode="numeric" autocomplete="tel-national" class="form-control"
+                       pattern="[0-9]{9}" maxlength="9" th:aria-invalid="${#fields.hasErrors('telefono')}"
+                       aria-describedby="error-telefono">
+                <div id="error-telefono" class="text-danger" th:errors="*{telefono}"></div>
+            </div>
+            <div th:if="${socio.usuario != null}" class="mb-3">
+                <label for="activo" class="form-label">Estado de la cuenta</label>
+                <select th:field="*{activo}" class="form-select">
+                    <option value="true">Activa</option>
+                    <option value="false">Inactiva</option>
+                </select>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <a th:href="@{/admin/socios}" class="btn btn-outline">Volver a Socios</a>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

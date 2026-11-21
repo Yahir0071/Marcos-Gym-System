@@ -48,7 +48,7 @@
     </div>
 
     <!-- Table -->
-    <div class="table-container">
+    <div class="table-container" tabindex="0" role="region" aria-label="Tabla de socios desplazable">
         <table class="custom-table filterable-table" id="tablaSocios">
             <thead>
             <tr>
@@ -74,7 +74,7 @@
                 </td>
                 <td>
                     <div sec:authorize="hasRole('RECEPCION')">
-                        <a href="#" class="btn-edit-row">VER / EDITAR</a>
+                        <a th:href="@{/admin/socios/{id}/editar(id=${socio.id})}">VER / EDITAR</a>
                     </div>
                     <div sec:authorize="!hasRole('RECEPCION')">
                         <span class="text-muted text-xs">SOLO LECTURA</span>

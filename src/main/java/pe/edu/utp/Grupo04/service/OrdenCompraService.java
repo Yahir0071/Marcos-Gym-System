@@ -17,6 +17,8 @@ public interface OrdenCompraService {
      */
     Map<String, Object> registrarCompra(CompraRequestDTO request, String usernameAutenticado);
 
+    Map<String, Object> registrarCompraDeInscripcion(CompraRequestDTO request, String username, double importe);
+
     /**
      * Busca una orden por su código identificador único (#PED-XXXXX).
      */

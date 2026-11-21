@@ -133,7 +133,7 @@ Verificado por: torniquete.energygym.pe`;
                             </div>
                             <div class="d-flex align-items-center gap-2 text-2xs">
                                 <span class="pulse-green"></span>
-                                <span class="text-success fw-bold">MEMBRESÍA ACTIVA (AL DÍA)</span>
+                                <span class="fw-bold" id="qrMembershipStatus"></span>
                                 <span class="text-muted">· DNI ${passData.socioDni}</span>
                             </div>
                         </div>
@@ -161,11 +161,11 @@ Verificado por: torniquete.energygym.pe`;
                         </div>
                         <h3 class="font-anton text-success mb-1 tracking-wide">¡ACCESO CONCEDIDO!</h3>
                         <div class="badge bg-dark text-success border border-success font-anton px-3 py-1 mb-2 text-xs">
-                            TORNIQUETE 01 DESBLOQUEADO
+                            SIMULACIÓN ACADÉMICA
                         </div>
                         <p class="text-light text-xs mb-2">¡Buen entrenamiento, <strong>${passData.socioName}</strong>!</p>
                         <div class="p-2 px-3 rounded bg-elevated border border-secondary d-inline-block text-2xs text-muted mb-3">
-                            <i class="fa-solid fa-clock text-primary me-1"></i> <span id="grantedTimeText">Hoy a las 07:15 AM</span> &bull; Visitas del mes: <strong class="text-primary" id="grantedVisitsText">19</strong> (+1 hoy)
+                            <i class="fa-solid fa-clock text-primary me-1"></i> <span id="grantedTimeText"></span>
                         </div>
                         <div>
                             <button type="button" class="btn btn-outline btn-sm font-anton text-xs py-2 px-3" id="btnReturnToQr">
@@ -193,6 +193,7 @@ Verificado por: torniquete.energygym.pe`;
                         <button type="button" class="btn btn-primary w-100 py-3 font-anton tracking-wide mb-2" id="btnSimulateTorniquete">
                             <i class="fa-solid fa-bolt me-1"></i> SIMULAR VALIDACIÓN EN TORNIQUETE
                         </button>
+                        <p id="qrValidationStatus" role="status" class="text-warning text-xs mb-1"></p>
                     </div>
 
                     <!-- Barra de Herramientas del Carnet -->
@@ -274,9 +275,18 @@ Verificado por: torniquete.energygym.pe`;
                 });
             }
 
-            // Simular Validación en Torniquete con llamada a API
+            const membershipStatus = document.getElementById("qrMembershipStatus");
+            if (membershipStatus) {
+                const activa = passData.planEstado === "ACTIVA";
+                membershipStatus.textContent = activa ? "MEMBRESÍA ACTIVA" : "SIN MEMBRESÍA ACTIVA";
+                membershipStatus.classList.add(activa ? "text-success" : "text-warning");
+            }
+
+            // Simular validación y mostrar el resultado que confirma el servidor.
             if (simBtn) {
+                const validationStatus = document.getElementById("qrValidationStatus");
                 simBtn.addEventListener("click", async () => {
+                    validationStatus.textContent = "";
                     simBtn.disabled = true;
                     simBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> LEYENDO EN TORNIQUETE 01...`;
 
@@ -286,14 +296,16 @@ Verificado por: torniquete.energygym.pe`;
 
                         const resp = await fetch("/cliente/api/torniquete/validar", {
                             method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded",
-                                [csrfHeader]: csrfToken
-                            },
-                            body: `dni=${encodeURIComponent(passData.socioDni)}&token=${encodeURIComponent(passData.token)}`
+                            headers: { [csrfHeader]: csrfToken }
                         });
 
                         const res = await resp.json().catch(() => ({}));
+                        if (!resp.ok || res.success !== true || res.status !== "CONCEDIDO") {
+                            validationStatus.textContent = res.mensaje || "No se pudo validar el acceso.";
+                            simBtn.disabled = false;
+                            simBtn.textContent = "SIMULAR VALIDACIÓN EN TORNIQUETE";
+                            return;
+                        }
                         
                         setTimeout(() => {
                             if (cardEl) cardEl.classList.add("pass-granted");
@@ -302,26 +314,14 @@ Verificado por: torniquete.energygym.pe`;
                             if (grantedArea) grantedArea.classList.remove("d-none");
 
                             const timeEl = document.getElementById("grantedTimeText");
-                            const visitEl = document.getElementById("grantedVisitsText");
                             if (timeEl && res.hora) timeEl.textContent = `Hoy a las ${res.hora}`;
-                            if (visitEl && res.visitasNuevas) visitEl.textContent = res.visitasNuevas;
 
-                            // Actualizar visitas en la pantalla de fondo si existe
-                            const visitsCard = document.querySelector(".card-metric h2");
-                            if (visitsCard && res.visitasNuevas) {
-                                visitsCard.textContent = `${res.visitasNuevas} VISITAS`;
-                            }
-
-                            showGymToast("¡Acceso concedido en Torniquete Las Am�ricas, Ate!", "fa-door-open");
+                            showGymToast("Acceso concedido en la simulación.", "fa-door-open");
                         }, 600);
                     } catch (err) {
-                        setTimeout(() => {
-                            if (cardEl) cardEl.classList.add("pass-granted");
-                            if (visualArea) visualArea.classList.add("d-none");
-                            if (antifraudArea) antifraudArea.classList.add("d-none");
-                            if (grantedArea) grantedArea.classList.remove("d-none");
-                            showGymToast("¡Acceso concedido en Torniquete Las Am�ricas, Ate!", "fa-door-open");
-                        }, 600);
+                        validationStatus.textContent = "Error de conexión. Vuelve a intentar la validación.";
+                        simBtn.disabled = false;
+                        simBtn.textContent = "SIMULAR VALIDACIÓN EN TORNIQUETE";
                     }
                 });
             }

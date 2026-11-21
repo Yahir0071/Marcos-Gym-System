@@ -114,6 +114,15 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
 
     @Override
     public Map<String, Object> registrarCompra(CompraRequestDTO request, String usernameAutenticado) {
+        return registrarCompra(request, usernameAutenticado, null);
+    }
+
+    @Override
+    public Map<String, Object> registrarCompraDeInscripcion(CompraRequestDTO request, String username, double importe) {
+        return registrarCompra(request, username, importe);
+    }
+
+    private Map<String, Object> registrarCompra(CompraRequestDTO request, String usernameAutenticado, Double importeInscripcion) {
         String estadoPago = request.getEstado() != null ? request.getEstado().toUpperCase() : "PAGADO";
         String tipoConcepto = request.getTipoConcepto() != null ? request.getTipoConcepto().toUpperCase() : "PRODUCTO";
 
@@ -133,12 +142,14 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
         if ("MEMBRESIA".equals(tipoConcepto) && request.getPlanId() != null) {
             // Caso compra/renovación de membresía online (RF18)
             Plan plan = planService.buscarPorId(request.getPlanId()).orElse(null);
-            double precioPlan = (plan != null && plan.getPrecio() != null) ? plan.getPrecio() : 120.00;
-            String nombrePlan = (plan != null) ? ("Membresía " + plan.getNombre() + " (" + plan.getDuracionDias() + " días)") : "Membresía Plan Estándar";
+            double precioPlan = importeInscripcion != null ? importeInscripcion
+                    : (plan != null && plan.getPrecio() != null) ? plan.getPrecio() : 120.00;
+            String nombrePlan = importeInscripcion != null ? request.getItems().getFirst().getName()
+                    : (plan != null) ? ("Membresía " + plan.getNombre() + " (" + plan.getDuracionDias() + " días)") : "Membresía Plan Estándar";
             itemsProcesados.add(crearItemMapa(request.getPlanId(), nombrePlan, "Membresías", "/img/login-bg.jpg", precioPlan, 1));
 
             // Si el pago es exitoso y el socio existe, activar membresía en PostgreSQL
-            if ("PAGADO".equals(estadoPago) && socio != null && plan != null) {
+            if (importeInscripcion == null && "PAGADO".equals(estadoPago) && socio != null && plan != null) {
                 try {
                     membresiaService.asignarPlanASocio(socio.getId(), plan.getId(), LocalDate.now());
                     log.info("Membresía {} asignada exitosamente al socio {} tras pago online", plan.getNombre(), socio.getDni());

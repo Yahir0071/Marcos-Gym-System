@@ -2,6 +2,8 @@ package pe.edu.utp.Grupo04.service.impl;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
+import pe.edu.utp.Grupo04.exception.ValidacionNegocioException;
 import pe.edu.utp.Grupo04.model.Promocion;
 import pe.edu.utp.Grupo04.repository.PromocionRepository;
 import pe.edu.utp.Grupo04.service.PromocionService;
@@ -40,19 +42,30 @@ public class PromocionServiceImpl implements PromocionService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Promocion> buscarPorId(Long id) {
+        if (id == null) return Optional.empty();
         return promocionRepository.findById(id);
     }
 
     @Override
     public Promocion guardar(Promocion promocion) {
+        if (promocion.getFechaInicio() != null && promocion.getFechaFin() != null) {
+            if (promocion.getFechaFin().isBefore(promocion.getFechaInicio())) {
+                throw new ValidacionNegocioException("La fecha de fin de la promoción debe ser posterior o igual a la fecha de inicio.");
+            }
+        }
+        if (promocion.getPorcentajeDescuento() != null) {
+            if (promocion.getPorcentajeDescuento() <= 0 || promocion.getPorcentajeDescuento() > 100) {
+                throw new ValidacionNegocioException("El porcentaje de descuento debe encontrarse estrictamente entre 1% y 100%.");
+            }
+        }
         return promocionRepository.save(promocion);
     }
 
     @Override
     public void cambiarEstado(Long id, boolean activa) {
-        promocionRepository.findById(id).ifPresent(p -> {
-            p.setActiva(activa);
-            promocionRepository.save(p);
-        });
+        Promocion p = promocionRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Promoción no encontrada con ID: " + id));
+        p.setActiva(activa);
+        promocionRepository.save(p);
     }
 }

@@ -2,6 +2,7 @@ package pe.edu.utp.Grupo04.service.impl;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
 import pe.edu.utp.Grupo04.model.Membresia;
 import pe.edu.utp.Grupo04.model.Plan;
 import pe.edu.utp.Grupo04.model.Socio;
@@ -65,26 +66,60 @@ public class MembresiaServiceImpl implements MembresiaService {
 
         // Retornar la primera membresía activa más reciente
         return membresias.stream()
-                .filter(m -> m.getEstado() == EstadoMembresia.ACTIVA)
+                .filter(m -> m.getEstado() == EstadoMembresia.ACTIVA && m.getFechaFin() != null && !m.getFechaFin().isBefore(hoy))
                 .findFirst();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Membresia> buscarPorId(Long id) {
+        if (id == null) return Optional.empty();
         return membresiaRepository.findById(id);
     }
 
     @Override
     public Membresia asignarPlanASocio(Long socioId, Long planId, LocalDate fechaInicio) {
+        return asignarPlanASocio(socioId, planId, fechaInicio, "MENSUAL", 1);
+    }
+
+    @Override
+    public Membresia asignarPlanASocio(Long socioId, Long planId, LocalDate fechaInicio, String periodo, Integer meses) {
         Socio socio = socioRepository.findById(socioId)
-                .orElseThrow(() -> new IllegalArgumentException("Socio no encontrado con ID: " + socioId));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + socioId));
 
         Plan plan = planRepository.findById(planId)
-                .orElseThrow(() -> new IllegalArgumentException("Plan no encontrado con ID: " + planId));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Plan no encontrado con ID: " + planId));
 
-        LocalDate inicio = (fechaInicio != null) ? fechaInicio : LocalDate.now();
-        LocalDate fin = inicio.plusDays(plan.getDuracionDias());
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicio = (fechaInicio != null) ? fechaInicio : hoy;
+
+        // C09: Considerar renovación sobre membresía activa existente sin perder vigencia
+        List<Membresia> existentes = membresiaRepository.findBySocioId(socioId);
+        Optional<Membresia> activaOpt = existentes.stream()
+                .filter(m -> m.getEstado() == EstadoMembresia.ACTIVA && m.getFechaFin() != null && !m.getFechaFin().isBefore(hoy))
+                .findFirst();
+
+        if (activaOpt.isPresent()) {
+            LocalDate finActual = activaOpt.get().getFechaFin();
+            if (finActual.isAfter(inicio) || finActual.isEqual(inicio)) {
+                inicio = finActual.plusDays(1);
+            }
+        }
+
+        // C09: Cálculo de vigencia contratada (ANUAL = 12 meses / 1 año)
+        LocalDate fin;
+        if ("ANUAL".equalsIgnoreCase(periodo) || (meses != null && meses >= 12)) {
+            fin = inicio.plusYears(1);
+        } else if ("SEMESTRAL".equalsIgnoreCase(periodo) || (meses != null && meses == 6)) {
+            fin = inicio.plusMonths(6);
+        } else if ("TRIMESTRAL".equalsIgnoreCase(periodo) || (meses != null && meses == 3)) {
+            fin = inicio.plusMonths(3);
+        } else if (meses != null && meses > 1) {
+            fin = inicio.plusMonths(meses);
+        } else {
+            int duracion = (plan.getDuracionDias() != null && plan.getDuracionDias() > 0) ? plan.getDuracionDias() : 30;
+            fin = inicio.plusDays(duracion);
+        }
 
         Membresia membresia = new Membresia();
         membresia.setSocio(socio);
@@ -92,7 +127,6 @@ public class MembresiaServiceImpl implements MembresiaService {
         membresia.setFechaInicio(inicio);
         membresia.setFechaFin(fin);
 
-        LocalDate hoy = LocalDate.now();
         if (fin.isBefore(hoy)) {
             membresia.setEstado(EstadoMembresia.VENCIDA);
         } else if (inicio.isAfter(hoy)) {

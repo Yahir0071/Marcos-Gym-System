@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "socios")
 @Getter
@@ -28,6 +30,10 @@ public class Socio {
     private String apellidos;
 
     private String telefono;
+
+    private String genero;
+
+    private LocalDate fechaNacimiento;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
