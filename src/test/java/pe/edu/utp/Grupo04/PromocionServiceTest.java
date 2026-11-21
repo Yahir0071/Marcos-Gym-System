@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
+import pe.edu.utp.Grupo04.exception.ValidacionNegocioException;
 import pe.edu.utp.Grupo04.model.Promocion;
 import pe.edu.utp.Grupo04.repository.PromocionRepository;
 import pe.edu.utp.Grupo04.service.impl.PromocionServiceImpl;
@@ -75,5 +77,45 @@ public class PromocionServiceTest {
 
         assertFalse(promoVigente.getActiva(), "El estado debe haber cambiado a false");
         verify(promocionRepository, times(1)).save(promoVigente);
+    }
+
+    @Test
+    @DisplayName("M03 - Debe rechazar promociones con descuentos superiores al 100% (ej. 999%)")
+    void testGuardarPromocion_RechazaDescuentoInvalido() {
+        Promocion promoInvalida = new Promocion();
+        promoInvalida.setTitulo("Descuento Imposible");
+        promoInvalida.setPorcentajeDescuento(999.0);
+        promoInvalida.setFechaInicio(LocalDate.now());
+        promoInvalida.setFechaFin(LocalDate.now().plusDays(5));
+
+        assertThrows(ValidacionNegocioException.class, () -> {
+            promocionService.guardar(promoInvalida);
+        });
+        verify(promocionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("M03 - Debe rechazar promociones con fecha fin anterior a fecha inicio")
+    void testGuardarPromocion_RechazaFechasInconsistentes() {
+        Promocion promoInvalida = new Promocion();
+        promoInvalida.setTitulo("Fechas Invertidas");
+        promoInvalida.setPorcentajeDescuento(20.0);
+        promoInvalida.setFechaInicio(LocalDate.now().plusDays(10));
+        promoInvalida.setFechaFin(LocalDate.now()); // fin anterior a inicio
+
+        assertThrows(ValidacionNegocioException.class, () -> {
+            promocionService.guardar(promoInvalida);
+        });
+        verify(promocionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("M04 - Cambiar estado a una promoción inexistente debe lanzar RecursoNoEncontradoException")
+    void testCambiarEstado_Inexistente() {
+        when(promocionRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNoEncontradoException.class, () -> {
+            promocionService.cambiarEstado(999L, true);
+        });
     }
 }

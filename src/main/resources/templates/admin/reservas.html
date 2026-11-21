@@ -40,7 +40,7 @@
     </div>
 
     <!-- Table -->
-    <div class="table-container">
+    <div class="table-container" tabindex="0" role="region" aria-label="Tabla de reservas desplazable">
         <table class="custom-table filterable-table" id="tablaReservasAdmin">
             <thead>
             <tr>
@@ -72,9 +72,11 @@
                     <span th:text="${res.producto.stock + ' un.'}">12 un.</span>
                 </td>
                 <td>
-                    <form sec:authorize="hasRole('RECEPCION')" th:action="@{/admin/reservas/cambiar-estado}" method="post" class="d-flex gap-1 align-items-center">
+                    <form sec:authorize="hasRole('RECEPCION')" th:unless="${res.estado.name() == 'CANCELADA' or res.estado.name() == 'ENTREGADA'}"
+                          th:action="@{/admin/reservas/cambiar-estado}" method="post" class="d-flex gap-1 align-items-center">
                         <input type="hidden" name="reservaId" th:value="${res.id}">
-                        <select name="nuevoEstado" class="form-select form-select-sm py-1 bg-dark text-light border-secondary">
+                        <label class="visually-hidden" th:for="'reserva-estado-' + ${res.id}">Nuevo estado de la reserva</label>
+                        <select name="nuevoEstado" th:id="'reserva-estado-' + ${res.id}" class="form-select form-select-sm py-1 bg-dark text-light border-secondary">
                             <option value="PENDIENTE" th:selected="${res.estado.name() == 'PENDIENTE'}">PENDIENTE</option>
                             <option value="CONFIRMADA" th:selected="${res.estado.name() == 'CONFIRMADA'}">CONFIRMADA</option>
                             <option value="ENTREGADA" th:selected="${res.estado.name() == 'ENTREGADA'}">ENTREGADA</option>

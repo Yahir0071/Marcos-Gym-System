@@ -2,6 +2,7 @@ package pe.edu.utp.Grupo04.service.impl;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
 import pe.edu.utp.Grupo04.model.Plan;
 import pe.edu.utp.Grupo04.repository.PlanRepository;
 import pe.edu.utp.Grupo04.service.PlanService;
@@ -34,6 +35,7 @@ public class PlanServiceImpl implements PlanService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Plan> buscarPorId(Long id) {
+        if (id == null) return Optional.empty();
         return planRepository.findById(id);
     }
 
@@ -44,9 +46,9 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     public void cambiarEstado(Long id, boolean activo) {
-        planRepository.findById(id).ifPresent(plan -> {
-            plan.setActivo(activo);
-            planRepository.save(plan);
-        });
+        Plan plan = planRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Plan no encontrado con ID: " + id));
+        plan.setActivo(activo);
+        planRepository.save(plan);
     }
 }

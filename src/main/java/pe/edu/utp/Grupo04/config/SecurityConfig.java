@@ -115,6 +115,8 @@ public class SecurityConfig {
 
                 // 7.2 SOCIOS: Recepción registra, consulta y actualiza datos; Administración solo consulta
                 .requestMatchers(HttpMethod.POST, "/admin/socios/**").hasRole("RECEPCION")
+                .requestMatchers(HttpMethod.GET, "/admin/socios/*/editar").hasRole("RECEPCION")
+                .requestMatchers("/api/admin/socios/**").hasRole("RECEPCION")
                 .requestMatchers(HttpMethod.GET, "/admin/socios/**").hasAnyRole("ADMINISTRACION", "RECEPCION")
 
                 // 7.3 MEMBRESÍAS: Recepción asigna/gestiona; Administración solo consulta
@@ -126,6 +128,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/admin/pagos/**", "/admin/api/compras/**").hasAnyRole("ADMINISTRACION", "RECEPCION")
 
                 // 7.5 RESERVAS: Recepción atiende reservas y gestiona estado; Administración solo consulta
+                .requestMatchers(HttpMethod.POST, "/api/reservas").hasRole("CLIENTE")
                 .requestMatchers(HttpMethod.POST, "/admin/reservas/**").hasRole("RECEPCION")
                 .requestMatchers(HttpMethod.GET, "/admin/reservas/**").hasAnyRole("ADMINISTRACION", "RECEPCION")
 

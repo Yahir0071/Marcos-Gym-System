@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
 import pe.edu.utp.Grupo04.model.Producto;
 import pe.edu.utp.Grupo04.repository.ProductoRepository;
 import pe.edu.utp.Grupo04.service.impl.ProductoServiceImpl;
@@ -69,39 +70,50 @@ public class ProductoServiceTest {
     }
 
     @Test
-    @DisplayName("RF13 - Debe descontar stock exitosamente al realizar una reserva")
+    @DisplayName("M12 - Debe descontar stock atómicamente de manera exitosa")
     void testDescontarStock_Exitoso() {
-        when(productoRepository.findById(10L)).thenReturn(Optional.of(productoConStock));
-        when(productoRepository.save(any(Producto.class))).thenAnswer(i -> i.getArgument(0));
+        when(productoRepository.descontarStockAtomico(10L, 3)).thenReturn(1);
 
-        productoService.descontarStock(10L, 3);
+        assertDoesNotThrow(() -> {
+            productoService.descontarStock(10L, 3);
+        });
 
-        assertEquals(12, productoConStock.getStock(), "El stock debió reducirse de 15 a 12");
-        verify(productoRepository, times(1)).save(productoConStock);
+        verify(productoRepository, times(1)).descontarStockAtomico(10L, 3);
     }
 
     @Test
-    @DisplayName("RF13 - Debe lanzar IllegalStateException si se intenta descontar más stock del disponible")
+    @DisplayName("M12 - Debe lanzar IllegalStateException si se intenta descontar más stock del disponible")
     void testDescontarStock_LanzaExcepcion() {
+        when(productoRepository.descontarStockAtomico(10L, 20)).thenReturn(0);
         when(productoRepository.findById(10L)).thenReturn(Optional.of(productoConStock));
 
         IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
-            productoService.descontarStock(10L, 20); // Solicita 20 pero solo hay 15
+            productoService.descontarStock(10L, 20);
         });
 
         assertTrue(ex.getMessage().contains("Stock insuficiente"));
-        verify(productoRepository, never()).save(any(Producto.class));
+        verify(productoRepository, times(1)).descontarStockAtomico(10L, 20);
     }
 
     @Test
-    @DisplayName("RF13/RF14 - Debe restaurar stock correctamente al cancelar una reserva")
+    @DisplayName("M12 - Debe restaurar stock atómicamente con éxito")
     void testRestaurarStock_Exitoso() {
-        when(productoRepository.findById(10L)).thenReturn(Optional.of(productoConStock));
-        when(productoRepository.save(any(Producto.class))).thenAnswer(i -> i.getArgument(0));
+        when(productoRepository.restaurarStockAtomico(10L, 5)).thenReturn(1);
 
-        productoService.restaurarStock(10L, 5);
+        assertDoesNotThrow(() -> {
+            productoService.restaurarStock(10L, 5);
+        });
 
-        assertEquals(20, productoConStock.getStock(), "El stock debió aumentar de 15 a 20 tras la restitución");
-        verify(productoRepository, times(1)).save(productoConStock);
+        verify(productoRepository, times(1)).restaurarStockAtomico(10L, 5);
+    }
+
+    @Test
+    @DisplayName("M04 - Cambiar estado a un producto inexistente debe lanzar RecursoNoEncontradoException")
+    void testCambiarEstado_Inexistente() {
+        when(productoRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNoEncontradoException.class, () -> {
+            productoService.cambiarEstado(999L, true);
+        });
     }
 }

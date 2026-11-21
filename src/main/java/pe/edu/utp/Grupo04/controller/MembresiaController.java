@@ -15,12 +15,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.MembresiaAsignacionDTO;
 import pe.edu.utp.Grupo04.model.Membresia;
 import pe.edu.utp.Grupo04.model.Socio;
+import pe.edu.utp.Grupo04.model.enums.EstadoMembresia;
 import pe.edu.utp.Grupo04.service.MembresiaService;
 import pe.edu.utp.Grupo04.service.PlanService;
 import pe.edu.utp.Grupo04.service.SocioService;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -65,50 +68,62 @@ public class MembresiaController {
         return "cliente/mi-membresia";
     }
 
-    // --- VALIDACIÓN DE TORNIQUETE Y CONTROL DE ACCESO EN VIVO (RF16/RF17) ---
+    // --- C06: VALIDACIÓN DE TORNIQUETE Y CONTROL DE ACCESO (SIMULACIÓN ACADÉMICA) ---
     @PostMapping("/cliente/api/torniquete/validar")
     @ResponseBody
-    public ResponseEntity<?> validarAccesoTorniquete(@RequestParam(required = false) String token,
-                                                     @RequestParam(required = false) String dni,
-                                                     Authentication authentication) {
+    public ResponseEntity<?> validarAccesoTorniquete(Authentication authentication) {
         String username = (authentication != null && authentication.isAuthenticated()) ? authentication.getName() : null;
         Socio socio = null;
         if (username != null && !"anonymousUser".equals(username)) {
             socio = socioService.buscarPorUsername(username).orElse(null);
         }
-        if (socio == null && dni != null && !dni.isBlank()) {
-            socio = socioService.buscarPorDni(dni).orElse(null);
+
+        if (socio == null) {
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "status", "DENEGADO",
+                    "mensaje", "Acceso denegado: Socio no registrado en el sistema.",
+                    "sede", "Sede Las Américas, Ate"
+            ));
         }
 
-        String nombreSocio = (socio != null) ? (socio.getNombre() + " " + socio.getApellido()).trim() : (username != null ? username : "Socio");
-        String dniSocio = (socio != null) ? socio.getDni() : "—";
-        String codigoSocio = (socio != null) ? ("#SOC-00" + socio.getId()) : "—";
+        String nombreSocio = (socio.getNombre() + " " + socio.getApellido()).trim();
+        String dniSocio = socio.getDni();
+        String codigoSocio = "#SOC-00" + socio.getId();
 
-        Optional<Membresia> memOpt = (username != null) ? membresiaService.obtenerMembresiaActivaPorUsername(username) : Optional.empty();
-        boolean activa = memOpt.isPresent() || socio != null;
+        // C06: Verificar membresía estrictamente activa y vigente en el servidor
+        LocalDate hoy = LocalDate.now();
+        List<Membresia> membresias = membresiaService.listarPorSocioId(socio.getId());
+        Optional<Membresia> memOpt = membresias.stream()
+                .filter(m -> m.getEstado() == EstadoMembresia.ACTIVA
+                        && m.getFechaInicio() != null
+                        && !m.getFechaInicio().isAfter(hoy)
+                        && m.getFechaFin() != null
+                        && !m.getFechaFin().isBefore(hoy))
+                .findFirst();
 
+        boolean activa = memOpt.isPresent();
         String horaActual = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"));
 
         if (activa) {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "status", "CONCEDIDO",
-                    "mensaje", "¡Acceso permitido! Torniquete 01 liberado.",
+                    "mensaje", "Acceso concedido (Simulación académica de pase QR).",
                     "socio", nombreSocio,
                     "dni", dniSocio,
                     "codigo", codigoSocio,
-                    "sede", "Sede Las Am�ricas, Ate - Ingreso Central",
-                    "hora", horaActual,
-                    "visitasNuevas", 19
+                    "sede", "Sede Las Américas, Ate - Ingreso Central",
+                    "hora", horaActual
             ));
         } else {
             return ResponseEntity.ok(Map.of(
                     "success", false,
                     "status", "DENEGADO",
-                    "mensaje", "Membresía no vigente o suspendida. Por favor acérquese a recepción.",
+                    "mensaje", "Acceso denegado: El socio no cuenta con una membresía activa y vigente en el gimnasio.",
                     "socio", nombreSocio,
                     "dni", dniSocio,
-                    "sede", "Sede Las Am�ricas, Ate"
+                    "sede", "Sede Las Américas, Ate"
             ));
         }
     }

@@ -3,9 +3,11 @@ package pe.edu.utp.Grupo04.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,19 +36,22 @@ public class HomeController {
     private final SocioService socioService;
     private final MembresiaService membresiaService;
     private final OrdenCompraService ordenCompraService;
+    private final TransactionTemplate transacciones;
 
     public HomeController(PlanService planService,
                           PromocionService promocionService,
                           ProductoService productoService,
                           SocioService socioService,
                           MembresiaService membresiaService,
-                          OrdenCompraService ordenCompraService) {
+                          OrdenCompraService ordenCompraService,
+                          TransactionTemplate transacciones) {
         this.planService = planService;
         this.promocionService = promocionService;
         this.productoService = productoService;
         this.socioService = socioService;
         this.membresiaService = membresiaService;
         this.ordenCompraService = ordenCompraService;
+        this.transacciones = transacciones;
     }
 
     @GetMapping({"/", "/inicio"})
@@ -111,7 +116,7 @@ public class HomeController {
         double ahorroEstimado = subtotalSinDescuento - precioCalculado;
 
         LocalDate hoy = LocalDate.now();
-        LocalDate finEstimada = hoy.plusDays((long) m * 30);
+        LocalDate finEstimada = "ANUAL".equalsIgnoreCase(per) ? hoy.plusYears(1) : hoy.plusMonths(m);
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         model.addAttribute("selectedPlan", selectedPlan);
@@ -130,19 +135,21 @@ public class HomeController {
     }
 
     /**
-     * Procesa la contratación completa de membresía con validaciones, opciones de facturación y pago.
+     * Procesa la contratación completa de membresía con validaciones estrictas y persistencia (M01 / C09).
      */
     @PostMapping({"/registrarse", "/registro"})
     public String procesarRegistro(@RequestParam String nombres,
                                    @RequestParam String apellidos,
                                    @RequestParam String dni,
                                    @RequestParam(required = false) String telefono,
+                                   @RequestParam(required = false) String genero,
+                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaNacimiento,
                                    @RequestParam String email,
                                    @RequestParam String password,
+                                   @RequestParam(required = false) String confirmPassword,
                                    @RequestParam(required = false) Long planId,
                                    @RequestParam(required = false, defaultValue = "MENSUAL") String periodo,
                                    @RequestParam(required = false, defaultValue = "1") Integer meses,
-                                   @RequestParam(required = false) Double precioTotal,
                                    @RequestParam(required = false, defaultValue = "ONLINE") String metodoPago,
                                    @RequestParam(required = false, defaultValue = "BOLETA") String tipoComprobante,
                                    @RequestParam(required = false) String rucFactura,
@@ -151,51 +158,95 @@ public class HomeController {
                                    Model model,
                                    RedirectAttributes flash) {
 
-        var planes = planService.listarActivos();
-        model.addAttribute("planes", planes);
-        Plan selectedPlan = (planId != null) ? planService.buscarPorId(planId).orElse(null) : null;
-        model.addAttribute("selectedPlan", selectedPlan);
-        model.addAttribute("planId", planId);
-        model.addAttribute("periodo", periodo);
-        model.addAttribute("meses", meses);
-        model.addAttribute("precioTotal", precioTotal);
+        int mesesContratados = switch (periodo) {
+            case "ANUAL" -> 12;
+            case "TRIMESTRAL" -> 3;
+            default -> 1;
+        };
+        vistaRegistro(planId, periodo, mesesContratados, null, model);
+        Plan selectedPlan = planId != null ? planService.buscarPorId(planId)
+                .filter(p -> Boolean.TRUE.equals(p.getActivo())).orElse(null) : null;
+        if (selectedPlan == null || selectedPlan.getPrecio() == null || selectedPlan.getPrecio() <= 0) {
+            model.addAttribute("mensajeError", "Selecciona un plan disponible antes de inscribirte.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+        if ((!periodo.equals("MENSUAL") && !periodo.equals("TRIMESTRAL") && !periodo.equals("ANUAL"))
+                || meses != mesesContratados || (!metodoPago.equals("ONLINE") && !metodoPago.equals("RECEPCION"))) {
+            model.addAttribute("mensajeError", "Revisa la duración del plan y la forma de pago.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
 
-        // Validación de DNI
-        if (dni == null || !dni.matches("^\\d{8}$")) {
+        // M01: Validación de Nombres y Apellidos no vacíos ni solo espacios
+        if (nombres == null || nombres.trim().isEmpty()) {
+            model.addAttribute("mensajeError", "Los nombres son obligatorios y no pueden contener solo espacios.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+        if (apellidos == null || apellidos.trim().isEmpty()) {
+            model.addAttribute("mensajeError", "Los apellidos son obligatorios y no pueden contener solo espacios.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de DNI (8 dígitos exactos)
+        if (dni == null || !dni.trim().matches("^\\d{8}$")) {
             model.addAttribute("mensajeError", "El DNI del socio debe contener exactamente 8 dígitos numéricos.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email);
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de Email
+        if (email == null || !email.trim().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            model.addAttribute("mensajeError", "El formato del correo electrónico ingresado no es válido.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de Teléfono (9 dígitos numéricos si se envía)
+        if (telefono != null && !telefono.trim().isEmpty() && !telefono.trim().matches("^\\d{9}$")) {
+            model.addAttribute("mensajeError", "El teléfono celular debe contener exactamente 9 dígitos numéricos.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de Contraseña (mínimo 6 caracteres y no solo espacios)
+        if (password == null || password.trim().length() < 6) {
+            model.addAttribute("mensajeError", "La contraseña debe tener al menos 6 caracteres y no puede consistir únicamente en espacios.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
+            return "register";
+        }
+
+        // M01: Validación de Confirmación de Contraseña
+        if (confirmPassword != null && !password.equals(confirmPassword)) {
+            model.addAttribute("mensajeError", "La confirmación de la contraseña no coincide con la contraseña ingresada.");
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
             return "register";
         }
 
         // Validación de Factura si corresponde
-        if ("FACTURA".equalsIgnoreCase(tipoComprobante) && (rucFactura == null || !rucFactura.matches("^\\d{11}$"))) {
+        if ("FACTURA".equalsIgnoreCase(tipoComprobante) && (rucFactura == null || !rucFactura.trim().matches("^\\d{11}$"))) {
             model.addAttribute("mensajeError", "Para emitir factura electrónica se requiere un RUC válido de 11 dígitos.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email);
-            return "register";
-        }
-
-        // Validación de Contraseña
-        if (password == null || password.length() < 6) {
-            model.addAttribute("mensajeError", "La contraseña de acceso debe tener al menos 6 caracteres.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email);
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
             return "register";
         }
 
         try {
-            // 1. Crear nuevo Socio y Usuario (Rol CLIENTE con BCrypt)
+            // 1. Crear nuevo Socio y Usuario (Rol CLIENTE forzoso por seguridad)
             Socio nuevo = new Socio();
             nuevo.setNombres(nombres.trim());
             nuevo.setApellidos(apellidos.trim());
             nuevo.setDni(dni.trim());
-            nuevo.setTelefono(telefono != null ? telefono.trim() : null);
-
-            Socio savedSocio = socioService.registrarSocio(nuevo, email.trim(), password);
-            log.info("Nuevo socio registrado exitosamente: id={}, email={}", savedSocio.getId(), email);
+            nuevo.setTelefono(telefono != null && !telefono.trim().isEmpty() ? telefono.trim() : null);
+            nuevo.setGenero(genero != null && !genero.trim().isEmpty() ? genero.trim() : null);
+            nuevo.setFechaNacimiento(fechaNacimiento);
 
             String codInscripcion = "#INS-" + (10000 + (int)(Math.random() * 90000));
             LocalDate hoy = LocalDate.now();
-            String planNombre = (selectedPlan != null) ? selectedPlan.getNombre() : "PLAN PLUS";
-            double montoFinal = (precioTotal != null && precioTotal > 0) ? precioTotal : 119.0;
+            String planNombre = selectedPlan.getNombre();
+            double descuento = mesesContratados == 12 ? 0.80 : mesesContratados == 3 ? 0.90 : 1.0;
+            double montoFinal = Math.round(selectedPlan.getPrecio() * mesesContratados * descuento);
 
             // Validación opcional de cupón
             if (cupon != null && !cupon.isBlank()) {
@@ -207,15 +258,6 @@ public class HomeController {
 
             // 2. Manejo según Forma de Pago (ONLINE vs RECEPCION)
             if ("ONLINE".equalsIgnoreCase(metodoPago)) {
-                // Pago Online: Activación inmediata y generación de boleta/factura electrónica
-                if (planId != null) {
-                    try {
-                        membresiaService.asignarPlanASocio(savedSocio.getId(), planId, hoy);
-                    } catch (Exception ex) {
-                        log.warn("Asignación de plan online en PostgreSQL: {}", ex.getMessage());
-                    }
-                }
-
                 CompraRequestDTO req = new CompraRequestDTO();
                 req.setTipoConcepto("MEMBRESIA");
                 req.setPlanId(planId);
@@ -235,8 +277,13 @@ public class HomeController {
                 item.setQty(1);
                 req.getItems().add(item);
 
-                Map<String, Object> orden = ordenCompraService.registrarCompra(req, email.trim());
-                String boleta = (String) orden.getOrDefault("boleta", "B001-" + (10000000 + (int)(Math.random() * 90000000)));
+                String username = transacciones.execute(status -> {
+                    Socio socio = socioService.registrarSocio(nuevo, email.trim(), password);
+                    membresiaService.asignarPlanASocio(socio.getId(), planId, hoy, periodo, mesesContratados);
+                    return socio.getUsuario().getUsername();
+                });
+                Map<String, Object> orden = ordenCompraService.registrarCompraDeInscripcion(req, username, montoFinal);
+                String boleta = (String) orden.get("boleta");
 
                 flash.addFlashAttribute("mensajeExito", "¡Inscripción confirmada! Membresía activada exitosamente con comprobante " + boleta + ".");
                 flash.addFlashAttribute("codigoInscripcion", codInscripcion);
@@ -246,6 +293,7 @@ public class HomeController {
                 return "redirect:/login?activado=true&boleta=" + boleta;
 
             } else {
+                socioService.registrarSocio(nuevo, email.trim(), password);
                 // Pago en Recepción: Preinscripción reservada con fecha límite de 72 horas
                 String fechaLimite = hoy.plusDays(3).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 flash.addFlashAttribute("mensajeExito", "¡Preinscripción generada con éxito! Tu tarifa está reservada por 72 horas.");
@@ -260,17 +308,19 @@ public class HomeController {
         } catch (Exception e) {
             log.warn("Fallo al registrar contratación de socio: {}", e.getMessage());
             model.addAttribute("mensajeError", e.getMessage());
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email);
+            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
             return "register";
         }
     }
 
-    private void rellenarCamposModel(Model model, String nombres, String apellidos, String dni, String telefono, String email) {
+    private void rellenarCamposModel(Model model, String nombres, String apellidos, String dni, String telefono, String email, String genero, LocalDate fechaNacimiento) {
         model.addAttribute("nombres", nombres);
         model.addAttribute("apellidos", apellidos);
         model.addAttribute("dni", dni);
         model.addAttribute("telefono", telefono);
         model.addAttribute("email", email);
+        model.addAttribute("genero", genero);
+        model.addAttribute("fechaNacimiento", fechaNacimiento);
     }
 
     @GetMapping("/logout")

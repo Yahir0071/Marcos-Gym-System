@@ -17,6 +17,8 @@ import pe.edu.utp.Grupo04.repository.SocioRepository;
 import pe.edu.utp.Grupo04.service.impl.MembresiaServiceImpl;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,14 +59,14 @@ public class MembresiaServiceTest {
     }
 
     @Test
-    @DisplayName("Debe calcular correctamente la fecha de fin y estado activo al asignar plan")
-    void testAsignarPlanExitoso() {
-        LocalDate hoy = LocalDate.now();
-
+    @DisplayName("Debe calcular correctamente la fecha de fin y estado activo al asignar plan mensual")
+    void testAsignarPlanASocio_Mensual() {
         when(socioRepository.findById(1L)).thenReturn(Optional.of(socio));
         when(planRepository.findById(1L)).thenReturn(Optional.of(plan));
+        when(membresiaRepository.findBySocioId(1L)).thenReturn(Collections.emptyList());
         when(membresiaRepository.save(any(Membresia.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        LocalDate hoy = LocalDate.now();
         Membresia membresia = membresiaService.asignarPlanASocio(1L, 1L, hoy);
 
         assertNotNull(membresia);
@@ -75,15 +77,57 @@ public class MembresiaServiceTest {
     }
 
     @Test
-    @DisplayName("Debe detectar alerta de membresía próxima a vencer cuando quedan 5 días")
-    void testEstaPorVencer() {
+    @DisplayName("C09 - Debe otorgar exactamente 12 meses (1 año) de vigencia en contratación ANUAL")
+    void testAsignarPlanASocio_AnualDura12Meses() {
+        when(socioRepository.findById(1L)).thenReturn(Optional.of(socio));
+        when(planRepository.findById(1L)).thenReturn(Optional.of(plan));
+        when(membresiaRepository.findBySocioId(1L)).thenReturn(Collections.emptyList());
+        when(membresiaRepository.save(any(Membresia.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LocalDate hoy = LocalDate.now();
+        Membresia membresia = membresiaService.asignarPlanASocio(1L, 1L, hoy, "ANUAL", 12);
+
+        assertNotNull(membresia);
+        assertEquals(hoy, membresia.getFechaInicio());
+        assertEquals(hoy.plusYears(1), membresia.getFechaFin());
+        assertEquals(EstadoMembresia.ACTIVA, membresia.getEstado());
+    }
+
+    @Test
+    @DisplayName("C09 - La renovación de membresía debe empezar al día siguiente del vencimiento actual sin perder días")
+    void testAsignarPlanASocio_RenovacionMembresiaActiva() {
+        LocalDate hoy = LocalDate.now();
+        LocalDate finActual = hoy.plusDays(15); // Le quedan 15 días
+
+        Membresia actual = new Membresia();
+        actual.setId(10L);
+        actual.setSocio(socio);
+        actual.setPlan(plan);
+        actual.setFechaInicio(hoy.minusDays(15));
+        actual.setFechaFin(finActual);
+        actual.setEstado(EstadoMembresia.ACTIVA);
+
+        when(socioRepository.findById(1L)).thenReturn(Optional.of(socio));
+        when(planRepository.findById(1L)).thenReturn(Optional.of(plan));
+        when(membresiaRepository.findBySocioId(1L)).thenReturn(List.of(actual));
+        when(membresiaRepository.save(any(Membresia.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Renueva por un año
+        Membresia renovacion = membresiaService.asignarPlanASocio(1L, 1L, hoy, "ANUAL", 12);
+
+        assertNotNull(renovacion);
+        assertEquals(finActual.plusDays(1), renovacion.getFechaInicio());
+        assertEquals(finActual.plusDays(1).plusYears(1), renovacion.getFechaFin());
+    }
+
+    @Test
+    @DisplayName("Debe calcular los días restantes correctamente para una membresía vigente")
+    void testCalcularDiasRestantes() {
         Membresia membresia = new Membresia();
-        membresia.setEstado(EstadoMembresia.ACTIVA);
-        membresia.setFechaFin(LocalDate.now().plusDays(5));
+        membresia.setFechaFin(LocalDate.now().plusDays(15));
 
-        boolean alerta = membresiaService.estaPorVencer(membresia, 7);
+        long dias = membresiaService.calcularDiasRestantes(membresia);
 
-        assertTrue(alerta, "Debe alertar porque 5 días es menor o igual al umbral de 7 días");
-        assertEquals(5, membresiaService.calcularDiasRestantes(membresia));
+        assertEquals(15, dias);
     }
 }

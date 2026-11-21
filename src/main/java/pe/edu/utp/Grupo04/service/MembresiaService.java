@@ -12,6 +12,7 @@ public interface MembresiaService {
     Optional<Membresia> obtenerMembresiaActivaPorUsername(String username);
     Optional<Membresia> buscarPorId(Long id);
     Membresia asignarPlanASocio(Long socioId, Long planId, LocalDate fechaInicio);
+    Membresia asignarPlanASocio(Long socioId, Long planId, LocalDate fechaInicio, String periodo, Integer meses);
     long calcularDiasRestantes(Membresia membresia);
     boolean estaPorVencer(Membresia membresia, int diasUmbral);
     List<Membresia> listarProximasAVencer(int diasUmbral);

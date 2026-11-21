@@ -2,6 +2,8 @@ package pe.edu.utp.Grupo04.service.impl;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.edu.utp.Grupo04.dto.SocioActualizarDTO;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
 import pe.edu.utp.Grupo04.model.Socio;
 import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.model.enums.Rol;
@@ -63,13 +65,54 @@ public class SocioServiceImpl implements SocioService {
     @Override
     public Socio actualizarSocio(Long id, Socio socioDatos) {
         Socio existente = socioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Socio no encontrado con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + id));
 
-        existente.setNombres(socioDatos.getNombres());
-        existente.setApellidos(socioDatos.getApellidos());
-        existente.setTelefono(socioDatos.getTelefono());
+        existente.setNombres(socioDatos.getNombres().trim());
+        existente.setApellidos(socioDatos.getApellidos().trim());
+        if (socioDatos.getTelefono() != null) {
+            existente.setTelefono(socioDatos.getTelefono().trim());
+        }
 
         return socioRepository.save(existente);
+    }
+
+    @Override
+    public Socio actualizarSocio(Long id, SocioActualizarDTO dto) {
+        Socio existente = socioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + id));
+
+        existente.setNombres(dto.getNombres().trim());
+        existente.setApellidos(dto.getApellidos().trim());
+        if (dto.getTelefono() != null) {
+            existente.setTelefono(dto.getTelefono().trim());
+        }
+
+        if (dto.getActivo() != null && existente.getUsuario() != null) {
+            actualizarEstadoCuenta(existente.getUsuario(), dto.getActivo());
+        }
+
+        return socioRepository.save(existente);
+    }
+
+    @Override
+    public void cambiarEstado(Long id, boolean activo) {
+        Socio existente = socioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado con ID: " + id));
+        if (existente.getUsuario() == null) {
+            throw new IllegalStateException("Este socio no tiene una cuenta de acceso.");
+        }
+        actualizarEstadoCuenta(existente.getUsuario(), activo);
+        socioRepository.save(existente);
+    }
+
+    private void actualizarEstadoCuenta(Usuario usuario, boolean activo) {
+        if (usuario.getRol() != Rol.CLIENTE) {
+            throw new IllegalArgumentException("Las cuentas internas se gestionan desde Cuentas y roles.");
+        }
+        if (!Boolean.valueOf(activo).equals(usuario.getActivo())) {
+            usuario.setActivo(activo);
+            usuario.setTokenVersion(usuario.getTokenVersion() + 1);
+        }
     }
 
     @Override
