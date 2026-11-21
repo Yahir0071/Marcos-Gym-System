@@ -4,7 +4,7 @@
 <body>
     <section>
         <div th:replace="~{fragments/navbar :: navbar}"></div>
-        <div class="container-fluid px-4 px-lg-5 page-container">
+        <main class="container-fluid px-3 px-md-4 px-lg-5 page-container" id="main-content">
             <!-- Encabezado de Página -->
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-4 mb-5">
                 <div>
@@ -14,7 +14,7 @@
                 </div>
 
                 <!-- Selector de Periodos de Facturación Sincronizado -->
-                <div class="d-flex align-items-center gap-2 bg-card p-2 rounded border border-secondary" id="billingSwitcher">
+                <div class="d-flex align-items-center flex-wrap gap-2 bg-card p-2 rounded border border-secondary" id="billingSwitcher" role="group" aria-label="Selector de modalidad de pago">
                     <button type="button" class="btn btn-primary py-2 px-3 text-xs billing-period-btn active" data-multiplier="1" data-discount="1" data-label="AL MES">
                         MENSUAL
                     </button>
@@ -51,7 +51,7 @@
                     <ul class="list-unstyled mb-5 flex-grow-1">
                         <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Acceso completo en horario de <span th:text="${plan.duracionDias}">30</span> días</li>
                         <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Equipos biomecánicos de última generación</li>
-                        <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Horario completo sin restricciones (06:00 a 23:00)</li>
+                        <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Horario vigente: Lun–Vie 06:00–23:00 · Sáb 07:00–20:00 · Dom 08:00–14:00</li>
                         <li th:if="${plan.nombre != null and (plan.nombre.toUpperCase().contains('PLUS') or plan.nombre.toUpperCase().contains('PREMIUM'))}" class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Acceso a Zona Premium y evaluación física mensual</li>
                         <li th:if="${plan.nombre != null and plan.nombre.toUpperCase().contains('PREMIUM')}" class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> 4 pases de invitado + 10% descuento en Suplementos</li>
                         <li th:if="${plan.nombre == null or (!plan.nombre.toUpperCase().contains('PLUS') and !plan.nombre.toUpperCase().contains('PREMIUM'))}" class="mb-3 text-muted text-sm"><i class="fa-solid fa-xmark text-secondary me-2"></i> Acceso a zona VIP y pases de invitado</li>
@@ -83,7 +83,7 @@
                     <i class="fa-solid fa-shield-halved text-primary fs-3"></i>
                     <div>
                         <div class="text-light font-anton text-sm tracking-wide">INSCRIPCIÓN 100% DIGITAL Y TRANSPARENTE</div>
-                        <small class="text-muted text-xs">Sin costos de matrícula ocultos ni permanencia forzada. Carnet con código QR directo en tu celular para ingresar a sede Las Am�ricas, Ate.</small>
+                        <small class="text-muted text-xs">Sin costos de matrícula ocultos ni permanencia forzada. Carnet con código QR directo en tu celular para ingresar a sede Las Américas, Ate.</small>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -126,10 +126,10 @@
                                 <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
                             </tr>
                             <tr>
-                                <td class="text-start ps-4 fw-bold">Horario Ilimitado (Lunes a Domingo 06:00 a 23:00)</td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <td class="text-start ps-4 fw-bold">Horario de Atención (Lun–Vie 06:00–23:00 · Sáb 07:00–20:00 · Dom 08:00–14:00)</td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
                             </tr>
                             <tr>
                                 <td class="text-start ps-4 fw-bold">Carnet Digital QR para Torniquetes en tu Portal</td>
@@ -214,25 +214,25 @@
                                     <i class="fa-solid fa-chevron-down text-primary"></i>
                                 </h6>
                                 <div id="faq3" class="collapse pt-3 text-muted text-xs">
-                                    Tu membresía activa te otorga un <strong>Carnet Digital con Código QR</strong> visible en tu portal de socio. Al llegar a nuestra sede en Las Am�ricas, Ate, solo acercas la pantalla de tu celular al lector del torniquete y el acceso se habilita automáticamente.
+                                    Tu membresía activa te otorga un <strong>Carnet Digital con Código QR</strong> visible en tu portal de socio. Al llegar a nuestra sede en Las Américas, Ate, solo acercas la pantalla de tu celular al lector del torniquete y el acceso se habilita automáticamente.
                                 </div>
                             </div>
 
                             <div class="card p-3 mb-3 border-secondary bg-card">
-                                <h6 class="font-anton text-light m-0 d-flex justify-content-between align-items-center"
-                                    style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#faq4">
-                                    <span>¿EMITEN BOLETA O FACTURA ELECTRÓNICA?</span>
-                                    <i class="fa-solid fa-chevron-down text-primary"></i>
-                                </h6>
+                                <button type="button" class="btn btn-link text-decoration-none text-start p-0 font-anton text-light w-100 d-flex justify-content-between align-items-center"
+                                        data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
+                                    <span>¿LOS PAGOS Y COMPROBANTES EN LÍNEA SON REALES O ACADÉMICOS?</span>
+                                    <i class="fa-solid fa-chevron-down text-primary" aria-hidden="true"></i>
+                                </button>
                                 <div id="faq4" class="collapse pt-3 text-muted text-xs">
-                                    Totalmente. Puedes elegir entre Boleta Electrónica (con tu DNI de socio o datos de un tercero pagador) o Factura Electrónica ingresando RUC y Razón Social. El comprobante oficial con desglose de IGV (18%) queda disponible para descarga inmediata en PDF.
+                                    Este sistema corresponde a un prototipo académico (Grupo 04 UTP). Los pagos en línea y constancias/comprobantes generados son de demostración académica: no ejecutan cargos bancarios reales ni tienen validez tributaria ante SUNAT.
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
 
         <div th:replace="~{fragments/footer :: footer}"></div>
     </section>

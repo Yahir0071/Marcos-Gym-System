@@ -79,15 +79,15 @@
 
                         <div class="row g-3 mb-4">
                             <div class="col-sm-6">
-                                <label class="form-label">CANTIDAD</label>
+                                <label for="detailQtyInput" class="form-label">CANTIDAD</label>
                                 <div class="d-flex align-items-center border border-secondary rounded bg-card" style="width: 145px;">
-                                    <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2" id="btnQtyMinus">-</button>
+                                    <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2" id="btnQtyMinus" aria-label="Disminuir cantidad">-</button>
                                     <input type="number" id="detailQtyInput" class="form-control text-center border-0 bg-transparent text-light p-0 fw-bold" value="1" min="1" max="10" readonly>
-                                    <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2" id="btnQtyPlus">+</button>
+                                    <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2" id="btnQtyPlus" aria-label="Aumentar cantidad">+</button>
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <label class="form-label">SUBTOTAL ESTIMADO</label>
+                                <span class="form-label d-block">SUBTOTAL ESTIMADO</span>
                                 <div class="p-2 rounded bg-elevated border border-secondary d-flex justify-content-between align-items-center">
                                     <span class="text-xs text-muted">TOTAL A PAGAR:</span>
                                     <span class="font-anton fs-4 text-primary" id="detailTotalPrice">S/ 149</span>

@@ -1,103 +1,129 @@
 <!DOCTYPE html>
-<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
 <head><title>Afluencia - Energy Gym</title></head>
 <body>
     <section class="client-wrapper">
         <div th:replace="~{fragments/cliente-sidebar :: sidebar('afluencia')}"></div>
         <div class="client-main">
             <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
-            <div class="client-content">
+            <main class="client-content" id="main-content">
                 <div class="d-flex justify-content-between align-items-end flex-wrap gap-4 mb-4">
                     <div>
                         <div class="section-subtitle has-line mb-2">PLANIFICA TU VISITA</div>
-                        <h1 class="display-3 font-anton leading-none mb-1 text-light">AFLUENCIA <span class="text-primary">EN VIVO</span></h1>
+                        <h1 class="display-3 font-anton leading-none mb-1 text-light">AFLUENCIA <span class="text-primary">DEL GIMNASIO</span></h1>
                         <p class="font-anton text-muted m-0 tracking-wide text-lg">CONOCE LOS HORARIOS CON MAYOR Y MENOR CONCURRENCIA</p>
                     </div>
 
-                    <!-- Day Selector -->
-                    <div class="d-flex gap-2 flex-wrap" id="afluenciaDaySelector">
-                        <button type="button" class="btn btn-primary py-2 px-3 text-xs day-afluencia-btn active" data-day="LUNES" data-m="60" data-md="85" data-t="70">LUN</button>
-                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="MARTES" data-m="55" data-md="78" data-t="82">MAR</button>
-                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="MIÉRCOLES" data-m="50" data-md="72" data-t="75">MIÉ</button>
-                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="JUEVES" data-m="58" data-md="80" data-t="88">JUE</button>
-                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="VIERNES" data-m="48" data-md="68" data-t="62">VIE</button>
-                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="SÁBADO" data-m="65" data-md="45" data-t="30">SÁB</button>
+                    <!-- Selector: Datos vigentes de BD + Proyecciones referenciales -->
+                    <div class="d-flex gap-2 flex-wrap" id="afluenciaDaySelector" role="group" aria-label="Selector de vista de afluencia">
+                        <button type="button" class="btn btn-primary py-2 px-3 text-xs day-afluencia-btn active"
+                                data-day="VIGENTE" data-live="true"
+                                th:attr="data-m=${pctManana != null ? pctManana : 0}, data-md=${pctMediodia != null ? pctMediodia : 0}, data-t=${pctTarde != null ? pctTarde : 0}">VIGENTE</button>
+                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="LUNES" data-m="60" data-md="85" data-t="70">LUN (REF)</button>
+                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="MARTES" data-m="55" data-md="78" data-t="82">MAR (REF)</button>
+                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="MIÉRCOLES" data-m="50" data-md="72" data-t="75">MIÉ (REF)</button>
+                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="JUEVES" data-m="58" data-md="80" data-t="88">JUE (REF)</button>
+                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="VIERNES" data-m="48" data-md="68" data-t="62">VIE (REF)</button>
+                        <button type="button" class="btn btn-outline py-2 px-3 text-xs day-afluencia-btn" data-day="SÁBADO" data-m="65" data-md="45" data-t="30">SÁB (REF)</button>
                     </div>
                 </div>
 
                 <!-- Smart Recommendation Banner -->
                 <div class="card p-4 mb-4 card-active d-flex flex-row justify-content-between align-items-center flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        <span class="pulse-dot"></span>
+                        <span class="pulse-dot" aria-hidden="true"></span>
                         <div>
-                            <span class="text-xs text-primary fw-bold tracking-wider" id="selectedDayLabel">PROYECCIÓN PARA: LUNES</span>
-                            <h5 class="font-anton m-0 text-light">HORARIO RECOMENDADO: <span class="text-primary" id="bestTimeSlotText">06:00 – 11:00 AM (MÁS CÓMODO)</span></h5>
+                            <span class="text-xs text-primary fw-bold tracking-wider" id="selectedDayLabel">REGISTRO VIGENTE EN SISTEMA (DATOS REALES)</span>
+                            <h5 class="font-anton m-0 text-light">HORARIO RECOMENDADO: <span class="text-primary" id="bestTimeSlotText" th:text="${mejorFranjaTexto != null ? mejorFranjaTexto : 'SIN REGISTROS RECIENTES'}">SIN REGISTROS RECIENTES</span></h5>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-outline py-2 px-3 text-xs" data-toast="¡Recordatorio de entrenamiento activado para hoy!">
-                        <i class="fa-regular fa-bell text-primary"></i> RECORDARME ENTRENAR
-                    </button>
+                    <span class="badge bg-elevated border border-secondary text-light px-3 py-2 font-anton"
+                          th:text="${'CAPACIDAD MÁXIMA: ' + (capacidadMaxima != null ? capacidadMaxima : 80) + ' PERSONAS'}">CAPACIDAD MÁXIMA: 80 PERSONAS</span>
                 </div>
 
                 <!-- MAÑANA -->
-                <div class="card p-4 d-flex flex-row align-items-center flex-wrap gap-4 mb-3">
+                <div class="card p-4 d-flex flex-row align-items-center flex-wrap gap-3 gap-md-4 mb-3">
                     <div class="w-150px">
                         <h5 class="font-anton m-0">MAÑANA</h5>
-                        <small class="text-muted">06:00 - 11:00</small>
+                        <small class="text-muted">06:00 – 11:00</small>
                     </div>
-                    <div class="flex-grow-1">
+                    <div class="flex-grow-1" style="min-width: 160px;">
                         <div class="progress progress-custom">
-                            <div class="progress-bar progress-bar-custom" id="barManana" role="progressbar" style="width: 60%;"></div>
+                            <div class="progress-bar progress-bar-custom" id="barManana" role="progressbar"
+                                 aria-label="Afluencia en turno mañana" aria-valuemin="0" aria-valuemax="100"
+                                 th:attr="aria-valuenow=${pctManana != null ? pctManana : 0}"
+                                 th:style="'width: ' + ${pctManana != null ? pctManana : 0} + '%;'"></div>
                         </div>
                     </div>
                     <div class="text-end w-150px">
-                        <h4 class="font-anton text-primary m-0" id="valManana">60%</h4>
-                        <small class="text-muted text-xs fw-bold" id="lblManana">AFLUENCIA MODERADA</small>
+                        <h4 class="font-anton m-0" id="valManana"
+                            th:classappend="${pctManana == null or pctManana == 0 ? 'text-muted' : (pctManana >= 80 ? 'text-danger' : (pctManana >= 55 ? 'text-primary' : 'text-success'))}"
+                            th:text="${(pctManana != null ? pctManana : 0) + '%'}">0%</h4>
+                        <small class="text-xs fw-bold" id="lblManana"
+                               th:classappend="${pctManana == null or pctManana == 0 ? 'text-muted' : (pctManana >= 80 ? 'text-danger' : (pctManana >= 55 ? 'text-primary' : 'text-success'))}"
+                               th:text="${pctManana == null or pctManana == 0 ? 'SIN REGISTROS' : (pctManana >= 80 ? 'AFLUENCIA ALTA' : (pctManana >= 55 ? 'AFLUENCIA MODERADA' : 'AFLUENCIA BAJA · IDEAL'))}">SIN REGISTROS</small>
                     </div>
                 </div>
 
                 <!-- MEDIODÍA -->
-                <div class="card p-4 d-flex flex-row align-items-center flex-wrap gap-4 mb-3">
+                <div class="card p-4 d-flex flex-row align-items-center flex-wrap gap-3 gap-md-4 mb-3">
                     <div class="w-150px">
                         <h5 class="font-anton m-0">MEDIODÍA</h5>
-                        <small class="text-muted">11:00 - 16:00</small>
+                        <small class="text-muted">11:00 – 16:00</small>
                     </div>
-                    <div class="flex-grow-1">
+                    <div class="flex-grow-1" style="min-width: 160px;">
                         <div class="progress progress-custom">
-                            <div class="progress-bar progress-bar-custom" id="barMediodia" role="progressbar" style="width: 85%;"></div>
+                            <div class="progress-bar progress-bar-custom" id="barMediodia" role="progressbar"
+                                 aria-label="Afluencia en turno mediodía" aria-valuemin="0" aria-valuemax="100"
+                                 th:attr="aria-valuenow=${pctMediodia != null ? pctMediodia : 0}"
+                                 th:style="'width: ' + ${pctMediodia != null ? pctMediodia : 0} + '%;'"></div>
                         </div>
                     </div>
                     <div class="text-end w-150px">
-                        <h4 class="font-anton text-danger m-0" id="valMediodia">85%</h4>
-                        <small class="text-danger text-xs fw-bold" id="lblMediodia">AFLUENCIA ALTA</small>
+                        <h4 class="font-anton m-0" id="valMediodia"
+                            th:classappend="${pctMediodia == null or pctMediodia == 0 ? 'text-muted' : (pctMediodia >= 80 ? 'text-danger' : (pctMediodia >= 55 ? 'text-primary' : 'text-success'))}"
+                            th:text="${(pctMediodia != null ? pctMediodia : 0) + '%'}">0%</h4>
+                        <small class="text-xs fw-bold" id="lblMediodia"
+                               th:classappend="${pctMediodia == null or pctMediodia == 0 ? 'text-muted' : (pctMediodia >= 80 ? 'text-danger' : (pctMediodia >= 55 ? 'text-primary' : 'text-success'))}"
+                               th:text="${pctMediodia == null or pctMediodia == 0 ? 'SIN REGISTROS' : (pctMediodia >= 80 ? 'AFLUENCIA ALTA' : (pctMediodia >= 55 ? 'AFLUENCIA MODERADA' : 'AFLUENCIA BAJA · IDEAL'))}">SIN REGISTROS</small>
                     </div>
                 </div>
 
                 <!-- TARDE-NOCHE -->
-                <div class="card p-4 d-flex flex-row align-items-center flex-wrap gap-4 mb-4">
+                <div class="card p-4 d-flex flex-row align-items-center flex-wrap gap-3 gap-md-4 mb-4">
                     <div class="w-150px">
                         <h5 class="font-anton m-0">TARDE-NOCHE</h5>
-                        <small class="text-muted">16:00 - 23:00</small>
+                        <small class="text-muted">16:00 – 23:00</small>
                     </div>
-                    <div class="flex-grow-1">
+                    <div class="flex-grow-1" style="min-width: 160px;">
                         <div class="progress progress-custom">
-                            <div class="progress-bar progress-bar-custom" id="barTarde" role="progressbar" style="width: 70%;"></div>
+                            <div class="progress-bar progress-bar-custom" id="barTarde" role="progressbar"
+                                 aria-label="Afluencia en turno tarde-noche" aria-valuemin="0" aria-valuemax="100"
+                                 th:attr="aria-valuenow=${pctTarde != null ? pctTarde : 0}"
+                                 th:style="'width: ' + ${pctTarde != null ? pctTarde : 0} + '%;'"></div>
                         </div>
                     </div>
                     <div class="text-end w-150px">
-                        <h4 class="font-anton text-primary m-0" id="valTarde">70%</h4>
-                        <small class="text-muted text-xs fw-bold" id="lblTarde">AFLUENCIA MODERADA</small>
+                        <h4 class="font-anton m-0" id="valTarde"
+                            th:classappend="${pctTarde == null or pctTarde == 0 ? 'text-muted' : (pctTarde >= 80 ? 'text-danger' : (pctTarde >= 55 ? 'text-primary' : 'text-success'))}"
+                            th:text="${(pctTarde != null ? pctTarde : 0) + '%'}">0%</h4>
+                        <small class="text-xs fw-bold" id="lblTarde"
+                               th:classappend="${pctTarde == null or pctTarde == 0 ? 'text-muted' : (pctTarde >= 80 ? 'text-danger' : (pctTarde >= 55 ? 'text-primary' : 'text-success'))}"
+                               th:text="${pctTarde == null or pctTarde == 0 ? 'SIN REGISTROS' : (pctTarde >= 80 ? 'AFLUENCIA ALTA' : (pctTarde >= 55 ? 'AFLUENCIA MODERADA' : 'AFLUENCIA BAJA · IDEAL'))}">SIN REGISTROS</small>
                     </div>
                 </div>
 
-                <div class="card p-3 d-flex flex-row justify-content-between align-items-center flex-wrap gap-4">
+                <div class="card p-3 d-flex flex-row justify-content-between align-items-center flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-primary"></i>
-                        <span class="text-muted font-anton text-xs tracking-wide">INFORMACIÓN APROXIMADA REGISTRADA POR EL ADMINISTRADOR.</span>
+                        <i class="fa-solid fa-circle-info text-primary" aria-hidden="true"></i>
+                        <span class="text-muted font-anton text-xs tracking-wide">INFORMACIÓN APROXIMADA REGISTRADA POR RECEPCIÓN · SEDE AV. LAS AMÉRICAS, ATE.</span>
                     </div>
-                    <div class="text-muted font-anton text-xs tracking-wide">ACTUALIZADO: HOY</div>
+                    <div class="text-muted font-anton text-xs tracking-wide" id="afluenciaUltimaActualizacion"
+                         th:text="${ultimaActualizacion != null ? 'ÚLTIMA ACTUALIZACIÓN: ' + #temporals.format(ultimaActualizacion, 'dd/MM/yyyy HH:mm') : 'ÚLTIMA ACTUALIZACIÓN: SIN REGISTROS'}">
+                        ÚLTIMA ACTUALIZACIÓN: SIN REGISTROS
+                    </div>
                 </div>
-            </div>
+            </main>
         </div>
     </section>
 </body>

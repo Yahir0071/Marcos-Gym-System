@@ -1,19 +1,14 @@
 <footer th:fragment="footer" class="border-top border-secondary pt-5 pb-4 mt-5" style="background-color: #06080b;">
-    <div class="container-fluid px-5">
+    <div class="container-fluid px-3 px-md-5">
         <div class="row g-4 mb-4">
             <div class="col-lg-4">
                 <a class="text-light text-decoration-none d-flex align-items-center font-anton fs-4 mb-3" th:href="@{/inicio}">
-                    <span class="text-primary me-2">⚡</span> ENERGY <span class="text-primary ms-1">GYM</span>
+                    <span class="text-primary me-2" aria-hidden="true">⚡</span> ENERGY <span class="text-primary ms-1">GYM</span>
                 </a>
                 <p class="text-muted text-sm mb-3" style="max-width: 340px;">
-                    Entrenamiento de alto rendimiento, maquinaria biomecánica de última generación y suplementación certificada para transformar tu disciplina en resultados.
+                    Entrenamiento de alto rendimiento, equipamiento biomecánico y seguimiento de rutinas en nuestra sede de Ate, Lima.
                 </p>
-                <div class="d-flex gap-2">
-                    <a href="javascript:void(0);" class="btn btn-outline px-3 py-2" data-toast="Síguenos en Instagram @EnergyGymPeru"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="javascript:void(0);" class="btn btn-outline px-3 py-2" data-toast="Síguenos en Facebook /EnergyGymPeru"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="javascript:void(0);" class="btn btn-outline px-3 py-2" data-toast="Síguenos en TikTok @EnergyGym"><i class="fa-brands fa-tiktok"></i></a>
-                    <a href="javascript:void(0);" class="btn btn-outline px-3 py-2" data-toast="Contacto WhatsApp: +51 987 654 321"><i class="fa-brands fa-whatsapp"></i></a>
-                </div>
+
             </div>
             <div class="col-6 col-lg-2">
                 <h6 class="font-anton text-primary tracking-wide mb-3">NAVEGACIÓN</h6>
@@ -22,36 +17,36 @@
                     <li><a th:href="@{/planes}" class="btn-link-white text-muted">Planes y Tarifas</a></li>
                     <li><a th:href="@{/promociones}" class="btn-link-white text-muted">Promociones</a></li>
                     <li><a th:href="@{/productos}" class="btn-link-white text-muted">Suplementos</a></li>
-                    <li><a th:href="@{/afluencia}" class="btn-link-white text-muted">Afluencia en Vivo</a></li>
+                    <li><a th:href="@{/afluencia}" class="btn-link-white text-muted">Afluencia</a></li>
                 </ul>
             </div>
             <div class="col-6 col-lg-3">
                 <h6 class="font-anton text-primary tracking-wide mb-3">HORARIOS DE ATENCIÓN</h6>
                 <ul class="list-unstyled text-muted text-sm d-flex flex-column gap-2">
-                    <li><i class="fa-regular fa-clock text-primary me-2"></i> <strong>Lun - Vie:</strong> 06:00 AM – 11:00 PM</li>
-                    <li><i class="fa-regular fa-clock text-primary me-2"></i> <strong>Sábados:</strong> 07:00 AM – 08:00 PM</li>
-                    <li><i class="fa-regular fa-clock text-primary me-2"></i> <strong>Domingos y Feriados:</strong> 08:00 AM – 02:00 PM</li>
+                    <li><i class="fa-regular fa-clock text-primary me-2" aria-hidden="true"></i> <strong>Lun - Vie:</strong> 06:00 – 23:00</li>
+                    <li><i class="fa-regular fa-clock text-primary me-2" aria-hidden="true"></i> <strong>Sábados:</strong> 07:00 – 20:00</li>
+                    <li><i class="fa-regular fa-clock text-primary me-2" aria-hidden="true"></i> <strong>Domingos y Feriados:</strong> 08:00 – 14:00</li>
                 </ul>
             </div>
             <div class="col-lg-3">
                 <h6 class="font-anton text-primary tracking-wide mb-3">SEDE PRINCIPAL</h6>
-                <p class="text-muted text-sm mb-2"><i class="fa-solid fa-location-dot text-primary me-2"></i> Av. Las Américas, Ate — Lima</p>
-                <p class="text-muted text-sm mb-3"><i class="fa-solid fa-phone text-primary me-2"></i> (01) 480-9921 / +51 987 654 321</p>
+                <p class="text-muted text-sm mb-2"><i class="fa-solid fa-location-dot text-primary me-2" aria-hidden="true"></i> Av. Las Américas, Ate — Lima</p>
+                <p class="text-muted text-sm mb-3"><i class="fa-solid fa-phone text-primary me-2" aria-hidden="true"></i> (01) 480-9921 / +51 987 654 321</p>
                 <div class="text-muted text-xs d-flex flex-column gap-1">
-                    <div><i class="fa-solid fa-circle-check text-success me-1"></i> Estacionamiento gratuito para socios</div>
-                    <div><i class="fa-solid fa-circle-check text-success me-1"></i> Lockers y duchas con agua caliente</div>
+                    <div><i class="fa-solid fa-circle-check text-success me-1" aria-hidden="true"></i> Estacionamiento para socios</div>
+                    <div><i class="fa-solid fa-circle-check text-success me-1" aria-hidden="true"></i> Lockers y duchas con agua caliente</div>
                     <div class="mt-2">
                         <a th:href="@{/login}" class="btn-link-white text-muted text-2xs font-anton tracking-wider text-decoration-none">
-                            <i class="fa-solid fa-user-lock text-primary me-1"></i> ACCESO A MI CUENTA
+                            <i class="fa-solid fa-user-lock text-primary me-1" aria-hidden="true"></i> ACCESO A MI CUENTA
                         </a>
                     </div>
                 </div>
             </div>
         </div>
         <hr class="border-secondary">
-        <div class="d-flex flex-wrap justify-content-between align-items-center text-muted text-xs pt-2">
-            <span>&copy; 2026 ENERGY GYM SYSTEM — Grupo 04 UTP. Todos los derechos reservados.</span>
-            <span>Diseñado para el máximo rendimiento físico.</span>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 text-muted text-xs pt-2">
+            <span>&copy; 2026 ENERGY GYM SYSTEM — Proyecto académico Grupo 04 UTP.</span>
+            <span>Entorno de demostración académica: los pagos y comprobantes en línea son simulados y sin validez tributaria.</span>
         </div>
     </div>
 </footer>

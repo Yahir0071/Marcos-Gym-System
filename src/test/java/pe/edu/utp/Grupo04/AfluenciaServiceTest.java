@@ -13,6 +13,10 @@ import pe.edu.utp.Grupo04.repository.RegistroAfluenciaRepository;
 import pe.edu.utp.Grupo04.service.impl.AfluenciaServiceImpl;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,5 +74,37 @@ public class AfluenciaServiceTest {
         assertEquals(42, actualizado.getConcurrenciaAprox(), "La concurrencia debió actualizarse a 42");
         assertEquals(20L, actualizado.getId(), "Debe conservar el mismo ID existente");
         verify(afluenciaRepository, times(1)).save(existente);
+    }
+
+    @Test
+    @DisplayName("M07 - Sin registros de afluencia, obtenerUltimaFechaActualizacion devuelve null (sin inventar fecha actual)")
+    void testObtenerUltimaFechaActualizacion_SinRegistrosDevuelveNull() {
+        when(afluenciaRepository.findTopByOrderByFechaRegistroDesc()).thenReturn(Optional.empty());
+
+        LocalDateTime resultado = afluenciaService.obtenerUltimaFechaActualizacion();
+
+        assertNull(resultado, "No debe fabricar LocalDateTime.now() cuando no hay registros");
+    }
+
+    @Test
+    @DisplayName("M07 / M13 - Sin registros hoy, consulta únicamente la fecha más reciente sin llamar findAll()")
+    void testObtenerAfluenciaVigente_UsaUltimaFechaSinFindAll() {
+        LocalDate ayer = hoy.minusDays(1);
+        RegistroAfluencia regAyer = new RegistroAfluencia();
+        regAyer.setFecha(ayer);
+        regAyer.setFranjaHoraria(FranjaHoraria.TARDE_NOCHE);
+        regAyer.setConcurrenciaAprox(48);
+
+        when(afluenciaRepository.findByFecha(hoy)).thenReturn(Collections.emptyList());
+        when(afluenciaRepository.findUltimaFechaRegistrada()).thenReturn(Optional.of(ayer));
+        when(afluenciaRepository.findByFecha(ayer)).thenReturn(List.of(regAyer));
+
+        Map<FranjaHoraria, Integer> mapa = afluenciaService.obtenerAfluenciaVigente();
+
+        assertEquals(0, mapa.get(FranjaHoraria.MANANA));
+        assertEquals(0, mapa.get(FranjaHoraria.MEDIODIA));
+        assertEquals(48, mapa.get(FranjaHoraria.TARDE_NOCHE));
+        verify(afluenciaRepository, never()).findAll();
+        verify(afluenciaRepository, times(1)).findUltimaFechaRegistrada();
     }
 }

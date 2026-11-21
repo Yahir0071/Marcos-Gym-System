@@ -1,46 +1,49 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'socios', ~{::main})}">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{admin/fragments :: layout(~{::title}, 'socios', ~{::main})}">
 <head><title>Gestión de Socios - Energy Gym</title></head>
 <body>
-<main class="admin-page">
+<main class="admin-page" id="main-content">
     <div class="page-header">
         <div>
             <small class="subtitle">GESTIÓN DE USUARIOS DEL GIMNASIO</small>
             <h1>SOCIOS</h1>
             <p>ADMINISTRA TUS SOCIOS, REVISA SU ESTADO Y MEMBRESÍAS</p>
         </div>
-        <div sec:authorize="hasRole('RECEPCION')">
-            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarSocio">+ REGISTRAR SOCIO</button>
+        <div>
+            <button type="button" sec:authorize="hasRole('RECEPCION')"
+                    class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarSocio">+ REGISTRAR SOCIO</button>
+            <span sec:authorize="hasRole('ADMINISTRACION')"
+                  class="badge bg-dark text-muted border border-secondary px-3 py-2 font-anton text-xs">MODO SOLO LECTURA</span>
         </div>
     </div>
 
     <!-- Flash Messages -->
     <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
-        <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        <i class="fa-solid fa-circle-check me-2" aria-hidden="true"></i> <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
     </div>
     <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show bg-dark text-danger border border-danger mb-4" role="alert">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${mensajeError}"></span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i> <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
     </div>
 
     <!-- Filters -->
     <div class="filters-bar">
         <div class="filter-group filter-large">
-            <label>BUSCAR SOCIO</label>
-            <input type="text" class="table-search-input" placeholder="Buscar por nombre, documento o teléfono...">
+            <label for="buscarSocioInput">BUSCAR SOCIO</label>
+            <input type="text" id="buscarSocioInput" class="table-search-input" placeholder="Buscar por nombre, documento o teléfono...">
         </div>
         <div class="filter-group">
-            <label>ESTADO</label>
-            <select class="table-filter-select" data-filter-col="5">
+            <label for="filtroEstadoSocio">ESTADO</label>
+            <select id="filtroEstadoSocio" class="table-filter-select" data-filter-col="5">
                 <option value="">TODOS LOS ESTADOS</option>
                 <option value="ACTIVO">ACTIVO</option>
                 <option value="INACTIVO">INACTIVO</option>
             </select>
         </div>
         <div class="filter-group">
-            <label>USUARIO / EMAIL</label>
-            <select class="table-filter-select" data-filter-col="4">
+            <label for="filtroEmailSocio">USUARIO / EMAIL</label>
+            <select id="filtroEmailSocio" class="table-filter-select" data-filter-col="4">
                 <option value="">TODOS</option>
                 <option value="@energygym.pe">CON CORREO INSTITUCIONAL</option>
             </select>
@@ -48,7 +51,7 @@
     </div>
 
     <!-- Table -->
-    <div class="table-container" tabindex="0" role="region" aria-label="Tabla de socios desplazable">
+    <div class="table-container">
         <table class="custom-table filterable-table" id="tablaSocios">
             <thead>
             <tr>
@@ -62,23 +65,30 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="socio : ${socios}">
+            <tr th:each="socio : ${socios}" th:attr="data-socio-id=${socio.id}">
                 <td class="code-cell" th:text="${#numbers.formatInteger(socio.id, 2)}">01</td>
-                <td class="fw-bold" th:text="${socio.nombres + ' ' + socio.apellidos}">Carlos Mendoza</td>
+                <td class="fw-bold" data-socio-cell="nombre" th:text="${socio.nombres + ' ' + socio.apellidos}">Carlos Mendoza</td>
                 <td th:text="${socio.dni}">72563123</td>
-                <td th:text="${socio.telefono != null and !#strings.isEmpty(socio.telefono) ? socio.telefono : '—'}">987 654 321</td>
+                <td data-socio-cell="telefono" th:text="${socio.telefono != null and !#strings.isEmpty(socio.telefono) ? socio.telefono : '—'}">987654321</td>
                 <td class="text-xs text-muted" th:text="${socio.usuario != null ? socio.usuario.username : 'Sin usuario'}">user@energygym.pe</td>
-                <td>
+                <td data-socio-cell="estado">
                     <span th:class="${socio.usuario != null and socio.usuario.activo ? '' : 'status-inactive'}"
                           th:text="${socio.usuario != null and socio.usuario.activo ? 'ACTIVO' : 'INACTIVO'}">ACTIVO</span>
                 </td>
                 <td>
-                    <div sec:authorize="hasRole('RECEPCION')">
-                        <a th:href="@{/admin/socios/{id}/editar(id=${socio.id})}">VER / EDITAR</a>
-                    </div>
-                    <div sec:authorize="!hasRole('RECEPCION')">
-                        <span class="text-muted text-xs">SOLO LECTURA</span>
-                    </div>
+                    <a sec:authorize="hasRole('RECEPCION')" th:href="@{/admin/socios/{id}/editar(id=${socio.id})}"
+                            class="btn-table-action btn-edit-socio"
+                            th:attr="data-id=${socio.id},
+                                     data-nombres=${socio.nombres},
+                                     data-apellidos=${socio.apellidos},
+                                     data-dni=${socio.dni},
+                                     data-telefono=${socio.telefono != null ? socio.telefono : ''},
+                                     data-email=${socio.usuario != null ? socio.usuario.username : ''},
+                                     data-activo=${socio.usuario != null and socio.usuario.activo ? 'true' : 'false'},
+                                     aria-label=${'Editar socio ' + socio.nombres + ' ' + socio.apellidos}">
+                        VER / EDITAR
+                    </a>
+                    <span sec:authorize="hasRole('ADMINISTRACION')" class="text-muted text-2xs fw-bold">SOLO LECTURA</span>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(socios)}">
@@ -89,40 +99,40 @@
     </div>
 
     <!-- Modal Registrar Socio -->
-    <div class="modal fade" id="modalRegistrarSocio" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalRegistrarSocio" tabindex="-1" aria-labelledby="modalRegistrarSocioTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content gym-modal">
                 <div class="modal-header">
-                    <h5 class="modal-title font-anton text-primary tracking-wide">REGISTRAR NUEVO SOCIO</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title font-anton text-primary tracking-wide" id="modalRegistrarSocioTitle">REGISTRAR NUEVO SOCIO</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar ventana"></button>
                 </div>
                 <form th:action="@{/admin/socios/guardar}" method="post">
                     <div class="modal-body p-4">
                         <div class="row g-3 mb-3">
                             <div class="col-6">
-                                <label class="form-label">DNI</label>
-                                <input type="text" name="dni" class="form-control" maxlength="8" pattern="\d{8}" placeholder="8 dígitos" required>
+                                <label for="regSocioDni" class="form-label">DNI</label>
+                                <input type="text" id="regSocioDni" name="dni" class="form-control" maxlength="8" pattern="\d{8}" placeholder="8 dígitos" required>
                             </div>
                             <div class="col-6">
-                                <label class="form-label">TELÉFONO</label>
-                                <input type="text" name="telefono" class="form-control" maxlength="9" placeholder="9 dígitos">
+                                <label for="regSocioTelefono" class="form-label">TELÉFONO</label>
+                                <input type="text" id="regSocioTelefono" name="telefono" class="form-control" maxlength="9" pattern="\d{9}" placeholder="9 dígitos">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">NOMBRES</label>
-                            <input type="text" name="nombres" class="form-control" placeholder="Ej. Juan Carlos" required>
+                            <label for="regSocioNombres" class="form-label">NOMBRES</label>
+                            <input type="text" id="regSocioNombres" name="nombres" class="form-control" placeholder="Ej. Juan Carlos" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">APELLIDOS</label>
-                            <input type="text" name="apellidos" class="form-control" placeholder="Ej. Pérez Gómez" required>
+                            <label for="regSocioApellidos" class="form-label">APELLIDOS</label>
+                            <input type="text" id="regSocioApellidos" name="apellidos" class="form-control" placeholder="Ej. Pérez Gómez" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">CORREO ELECTRÓNICO (USUARIO)</label>
-                            <input type="email" name="email" class="form-control" placeholder="socio@energygym.pe" required>
+                            <label for="regSocioEmail" class="form-label">CORREO ELECTRÓNICO (USUARIO)</label>
+                            <input type="email" id="regSocioEmail" name="email" class="form-control" placeholder="socio@energygym.pe" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">CONTRASEÑA TEMPORAL</label>
-                            <input type="password" name="password" class="form-control" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                            <label for="regSocioPassword" class="form-label">CONTRASEÑA TEMPORAL</label>
+                            <input type="password" id="regSocioPassword" name="password" class="form-control" placeholder="Mínimo 6 caracteres" minlength="6" required>
                         </div>
                     </div>
                     <div class="modal-footer border-secondary">

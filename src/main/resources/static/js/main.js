@@ -5,7 +5,7 @@
 
 // Core Modules
 import { showGymToast, initDataToastTriggers } from "./core/toast.js";
-import { openGymModal, closeGymModal } from "./core/modal.js";
+import { openGymModal, openSafeGymModal, closeGymModal } from "./core/modal.js";
 import { initNavbar, initLiveClock, initSidebars, initQrPass } from "./core/navigation.js";
 
 // Public Modules
@@ -20,6 +20,7 @@ import { initLoginControls } from "./auth/login.js";
 
 // Client Portal Modules
 import { initWorkoutTracker, initPlanActions, initReservasClient, initNotifications, initCartAndCompras } from "./cliente/portal.js";
+import { initCongelamiento, initSafeReservaVoucher } from "./cliente/congelamiento.js";
 
 // Admin Module
 import { initTableFilters, initDashboardChart, initAdminTabs, initAdminCrudModals } from "./admin/tables-crud.js";
@@ -27,6 +28,7 @@ import { initTableFilters, initDashboardChart, initAdminTabs, initAdminCrudModal
 // Exponer utilidades globales en window para compatibilidad con triggers dinámicos
 window.showGymToast = showGymToast;
 window.openGymModal = openGymModal;
+window.openSafeGymModal = openSafeGymModal;
 window.closeGymModal = closeGymModal;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -55,7 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // 4. Módulos del Portal del Cliente
     initWorkoutTracker();
     initPlanActions();
+    initCongelamiento();
     initReservasClient();
+    initSafeReservaVoucher();
     initNotifications();
     initCartAndCompras();
 
