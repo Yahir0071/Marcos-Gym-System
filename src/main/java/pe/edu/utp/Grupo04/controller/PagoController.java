@@ -76,6 +76,14 @@ public class PagoController {
         return ResponseEntity.ok(ordenCompraService.listarTodas());
     }
 
+    @GetMapping("/admin/boleta-venta/descargar")
+    public ResponseEntity<byte[]> descargarBoletaInterna(@RequestParam String codigo) {
+        return ordenCompraService.buscarPorCodigo(codigo)
+                .filter(orden -> "PAGADO".equals(orden.get("estadoPago")))
+                .map(CompraApiResponder::boleta)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/admin/api/compras/{codigo}")
     @ResponseBody
     public ResponseEntity<?> obtenerDetalleCompraAdmin(@PathVariable String codigo) {

@@ -277,12 +277,11 @@ public class HomeController {
                 item.setQty(1);
                 req.getItems().add(item);
 
-                String username = transacciones.execute(status -> {
+                Map<String, Object> orden = transacciones.execute(status -> {
                     Socio socio = socioService.registrarSocio(nuevo, email.trim(), password);
                     membresiaService.asignarPlanASocio(socio.getId(), planId, hoy, periodo, mesesContratados);
-                    return socio.getUsuario().getUsername();
+                    return ordenCompraService.registrarCompraDeInscripcion(req, socio.getUsuario().getUsername(), montoFinal);
                 });
-                Map<String, Object> orden = ordenCompraService.registrarCompraDeInscripcion(req, username, montoFinal);
                 String boleta = (String) orden.get("boleta");
 
                 flash.addFlashAttribute("mensajeExito", "¡Inscripción confirmada! Membresía activada exitosamente con comprobante " + boleta + ".");

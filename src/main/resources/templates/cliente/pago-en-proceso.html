@@ -84,13 +84,20 @@
                                 <i class="fa-solid fa-bag-shopping me-2"></i> VER EN MIS COMPRAS
                             </a>
                         </div>
+                        <div class="col-12">
+                            <a th:href="@{/cliente/pago-cancelado(codigo=${ordenActual['codigo']})}"
+                               th:attr="data-codigo=${ordenActual['codigo']}"
+                               id="btnCancelPendingOrder"
+                               class="btn btn-outline w-100 py-2 text-center border-secondary text-muted">
+                                <i class="fa-solid fa-ban me-2" aria-hidden="true"></i> CANCELAR OPERACIÓN
+                            </a>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Footer Disclaimer -->
                 <div class="mt-4 pt-3 border-top border-secondary text-muted text-2xs">
-                    <div>Demostración visual. Pagos y facturación requieren integración posterior.</div>
-                    <div>Pagos online solo para productos. Activación y renovación de membresías presenciales.</div>
+                    <div>SIMULACIÓN ACADÉMICA: no se realizan cobros reales ni se emiten comprobantes oficiales.</div>
                 </div>
             </div>
         </div>

@@ -3,9 +3,9 @@
  * Responsabilidad: Seguimiento de entrenamientos, renovación, congelamiento, vouchers y gestión de avisos.
  */
 
-import { postJson } from "../core/api-client.js";
 import { openGymModal } from "../core/modal.js";
 import { showGymToast } from "../core/toast.js";
+import { initPasarelaSimulada } from "./pago.js";
 
 export { initWorkoutTracker } from "./rutina.js";
 
@@ -750,71 +750,8 @@ export function initCartAndCompras() {
     if (docNumInput) docNumInput.addEventListener("input", saveBuyerInfo);
     if (emailInput) emailInput.addEventListener("input", saveBuyerInfo);
 
-    // 4. Procesar compra en memoria y descontar stock real al pulsar los botones de la pasarela
-    document.querySelectorAll(".btn-process-gateway").forEach((btn) => {
-        btn.addEventListener("click", async function (e) {
-            e.preventDefault();
-            const targetHref = this.getAttribute("href") || "/cliente/compra-exitosa";
-            const scenario = this.getAttribute("data-gateway-scenario") || "PAGADO";
-            const items = getStoredCartItems();
-            const digits = (cardNumberInput?.value || "").replace(/\D/g, "");
-            const cardLast4 = digits.length >= 4 ? digits.slice(-4) : "4242";
-            const cardBrand = digits.startsWith("5") ? "MASTERCARD" : digits.startsWith("3") ? "AMEX" : "VISA";
-            const buyerName = `${firstNameInput?.value || "Carlos"} ${lastNameInput?.value || "Mendoza Rojas"}`.trim();
-            const buyerDocType = docTypeInput?.value || "DNI";
-            const buyerDocNum = docNumInput?.value || "72563123";
-            const buyerEmail = emailInput?.value || "carlos.mendoza@ejemplo.com";
-
-            saveBuyerInfo();
-
-            try {
-                const reservationCheckout = document.getElementById("reservationCheckout");
-                const payload = {
-                    estado: scenario,
-                    buyerName,
-                    buyerDocType,
-                    buyerDocNum,
-                    buyerEmail,
-                    cardBrand,
-                    cardLast4,
-                    items
-                };
-                if (reservationCheckout && reservationCheckout.dataset.reservationId) {
-                    payload.reservaId = reservationCheckout.dataset.reservationId;
-                }
-                const resp = await postJson("/cliente/api/compras", payload);
-                if (resp.ok) {
-                    const data = await resp.json();
-                    if (scenario === "PAGADO" || scenario === "EN_PROCESO") {
-                        sessionStorage.setItem("energyGymCartPaid", "true");
-                    }
-                    if (data.codigo) {
-                        window.location.href = `${targetHref}?codigo=${encodeURIComponent(data.codigo)}`;
-                        return;
-                    }
-                }
-            } catch (err) {
-                console.warn("Error registrando compra en memoria:", err);
-            }
-            window.location.href = targetHref;
-        });
-    });
-
-    // 5. Aprobar una orden que estaba en proceso (#btnApprovePendingOrder)
-    const btnApprovePendingOrder = document.getElementById("btnApprovePendingOrder");
-    if (btnApprovePendingOrder) {
-        btnApprovePendingOrder.addEventListener("click", async function (e) {
-            e.preventDefault();
-            const targetHref = this.getAttribute("href") || "/cliente/compra-exitosa";
-            const codigo = this.getAttribute("data-codigo") || "#PED-00521";
-            try {
-                await postJson(`/cliente/api/compras/aprobar?codigo=${encodeURIComponent(codigo)}`, {});
-            } catch (err) {
-                // ignore
-            }
-            window.location.href = targetHref;
-        });
-    }
+    // 4 y 5. Pasarela simulada: pagar, aprobar y cancelar pedido en proceso (lógica en pago.js)
+    initPasarelaSimulada({ getStoredCartItems, saveBuyerInfo });
 
     document.querySelectorAll(".btn-download-boleta").forEach((btn) => {
         btn.addEventListener("click", function () {
