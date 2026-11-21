@@ -9,8 +9,9 @@ import pe.edu.utp.Grupo04.dto.CompraRequestDTO;
 import java.util.Set;
 
 /**
- * Validador personalizado de Spring Framework para el proceso de compra y pagos online.
- * Cumple con el estándar de arquitectura indicado en la Figura 5 y sección 3.6.1 del informe del proyecto.
+ * Validador personalizado de Spring para el proceso de compra (simulada).
+ * Solo valida la FORMA de la solicitud: los precios, el stock y el propietario
+ * se verifican en OrdenCompraService, con datos de la base de datos.
  */
 @Component
 public class CompraValidator implements Validator {
@@ -18,6 +19,7 @@ public class CompraValidator implements Validator {
     private static final Set<String> ESTADOS_PERMITIDOS = Set.of(
             "PAGADO", "EN_PROCESO", "RECHAZADO", "CANCELADO"
     );
+    private static final Set<String> CONCEPTOS_PERMITIDOS = Set.of("PRODUCTO", "MEMBRESIA");
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -33,7 +35,7 @@ public class CompraValidator implements Validator {
 
         CompraRequestDTO dto = (CompraRequestDTO) target;
 
-        // 1. Validación de documento de identidad
+        // 1. Documento de identidad (solo si se envía)
         if ("DNI".equalsIgnoreCase(dto.getBuyerDocType())) {
             if (dto.getBuyerDocNum() != null && !dto.getBuyerDocNum().matches("^\\d{8}$")) {
                 errors.rejectValue("buyerDocNum", "documento.dni.invalido",
@@ -41,33 +43,43 @@ public class CompraValidator implements Validator {
             }
         }
 
-        // 2. Validación según el tipo de concepto (PRODUCTO o MEMBRESIA)
+        // 2. Tipo de concepto
+        if (dto.getTipoConcepto() != null
+                && !CONCEPTOS_PERMITIDOS.contains(dto.getTipoConcepto().toUpperCase())) {
+            errors.rejectValue("tipoConcepto", "concepto.invalido",
+                    "El tipo de compra debe ser PRODUCTO o MEMBRESIA");
+        }
+
+        // 3. Validación según el concepto
         if ("MEMBRESIA".equalsIgnoreCase(dto.getTipoConcepto())) {
             if (dto.getPlanId() == null || dto.getPlanId() <= 0) {
                 errors.rejectValue("planId", "plan.requerido",
                         "Debe seleccionar un plan de membresía válido");
             }
-        } else {
-            // Caso PRODUCTO (por defecto)
+        } else if (dto.getReservaId() == null) {
             if (dto.getItems() == null || dto.getItems().isEmpty()) {
                 errors.rejectValue("items", "items.vacio",
                         "El carrito de compras debe contener al menos un producto");
             } else {
-                for (int i = 0; i < dto.getItems().size(); i++) {
-                    CompraItemDTO item = dto.getItems().get(i);
-                    if (item.getQty() == null || item.getQty() <= 0) {
-                        errors.rejectValue("items[" + i + "].qty", "item.cantidad.invalida",
-                                "La cantidad del producto '" + item.getName() + "' debe ser mayor a cero");
+                for (CompraItemDTO item : dto.getItems()) {
+                    if (item == null) {   // items:[null] ya no provoca HTTP 500
+                        errors.rejectValue("items", "item.nulo",
+                                "El carrito contiene un producto inválido");
+                        continue;
                     }
-                    if (item.getPrice() == null || item.getPrice() < 0) {
-                        errors.rejectValue("items[" + i + "].price", "item.precio.invalido",
-                                "El precio unitario no puede ser negativo");
+                    if (item.getId() == null) {
+                        errors.rejectValue("items", "item.sinId",
+                                "Falta el identificador de un producto");
+                    }
+                    if (item.getQty() == null || item.getQty() <= 0) {
+                        errors.rejectValue("items", "item.cantidad.invalida",
+                                "La cantidad de cada producto debe ser mayor a cero");
                     }
                 }
             }
         }
 
-        // 3. Validación de estado permitido
+        // 4. Estado de la simulación de pago
         if (dto.getEstado() != null && !ESTADOS_PERMITIDOS.contains(dto.getEstado().toUpperCase())) {
             errors.rejectValue("estado", "estado.noPermitido",
                     "El estado '" + dto.getEstado() + "' no es un estado de transacción válido");

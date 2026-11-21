@@ -461,6 +461,7 @@
 
             // 5. Envío y Procesamiento en la Pasarela de Pago
             const expressForm = document.getElementById("expressPaymentForm");
+            let referenciaPendiente = null;
             if (expressForm) {
                 expressForm.addEventListener("submit", async function(e) {
                     e.preventDefault();
@@ -492,31 +493,18 @@
                     const prodId = btnBuyOnline.getAttribute("data-id") || 1;
 
                     const submitBtn = document.getElementById("btnSubmitModalPayment");
+                    if (submitBtn.disabled) return;
                     const origBtnText = submitBtn.innerHTML;
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> PROCESANDO SIMULACIÓN ACADÉMICA...`;
 
                     const payload = {
+                        referencia: referenciaPendiente ?? ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now())),
                         tipoConcepto: "PRODUCTO",
-                        paymentMethod: "TARJETA",
-                        buyerName: buyerName,
-                        buyerDocType: "DNI",
-                        buyerDocNum: buyerDni,
-                        buyerEmail: buyerEmail,
-                        cardNumber: cardNumber,
+                        estado: "PAGADO",
                         cardBrand: cardNumber.startsWith("4") ? "VISA" : (cardNumber.startsWith("5") ? "MASTERCARD" : "AMEX"),
                         cardLast4: cardNumber.slice(-4),
-                        cardExpiry: cardExpiry,
-                        cardHolder: cardHolder,
-                        items: [
-                            {
-                                id: prodId,
-                                name: prodName,
-                                category: "Suplementos",
-                                price: unitPrice,
-                                qty: qty
-                            }
-                        ]
+                        items: [{ id: Number(prodId), qty: qty }]
                     };
 
                     try {
@@ -532,19 +520,21 @@
                             body: JSON.stringify(payload)
                         });
 
-                        const data = await resp.json();
+                        const data = await resp.json().catch(() => ({}));
+                        referenciaPendiente = (resp.status >= 500 || (resp.ok && !data.codigo)) ? payload.referencia : null;
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origBtnText;
+                        if (resp.status === 401) { window.location.href = "/login"; return; }
 
-                        if (resp.ok && data.success) {
+                        if (resp.ok && data.success && data.codigo && data.estadoPago === "PAGADO") {
                             // Mostrar pantalla de éxito
                             document.getElementById("modalPaymentFormSection").classList.add("d-none");
                             document.getElementById("modalPaymentSuccessSection").classList.remove("d-none");
 
-                            document.getElementById("succModalCode").textContent = data.codigo || "#PED-00522";
-                            document.getElementById("succModalBoleta").textContent = data.boleta || "B001-00000843";
-                            document.getElementById("succModalOperacion").textContent = data.orden?.operacion || "OP-" + Math.floor(100000 + Math.random() * 900000);
-                            document.getElementById("succModalTotal").textContent = `S/ ${total.toFixed(2)}`;
+                            document.getElementById("succModalCode").textContent = data.codigo;
+                            document.getElementById("succModalBoleta").textContent = data.boleta;
+                            document.getElementById("succModalOperacion").textContent = data.orden?.operacion ?? "";
+                            document.getElementById("succModalTotal").textContent = `S/ ${data.orden?.totalFormatted}`;
 
                             const btnDown = document.getElementById("btnDownloadBoletaModal");
                             if (btnDown) {
@@ -574,6 +564,7 @@
                             alert("Hubo un inconveniente en la pasarela de pago: " + (data.mensaje || "Revisa los datos de tu tarjeta."));
                         }
                     } catch (err) {
+                        referenciaPendiente = payload.referencia;
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origBtnText;
                         alert("Error de conexión al procesar el pago. Por favor intenta nuevamente.");

@@ -187,11 +187,8 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1">
-                                <a th:href="@{/cliente/boleta-venta(codigo=${ord.codigo})}" target="_blank" rel="noopener noreferrer"
-                                   class="btn btn-sm btn-outline text-nowrap" title="Ver constancia académica">
-                                    <i class="fa-solid fa-file-invoice me-1" aria-hidden="true"></i> VER
-                                </a>
-                                <a th:href="@{/cliente/boleta-venta/descargar(codigo=${ord.codigo})}"
+
+                                <a th:if="${ord.estadoPago == 'PAGADO'}" th:href="@{/admin/boleta-venta/descargar(codigo=${ord.codigo})}"
                                    class="btn btn-sm btn-outline text-nowrap" aria-label="Descargar constancia" title="Descargar constancia">
                                     <i class="fa-solid fa-download" aria-hidden="true"></i>
                                 </a>
@@ -263,8 +260,6 @@
             </div>
         </div>
     </div>
-</main>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll(".btn-entregar-pedido").forEach(function(btn) {
@@ -300,5 +295,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+</main>
 </body>
 </html>

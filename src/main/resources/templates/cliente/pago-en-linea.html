@@ -7,6 +7,10 @@
         <div class="client-main">
             <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
             <div class="client-content">
+                <div th:if="${reservaCheckout != null}" id="reservationCheckout" hidden
+                     th:attr="data-reservation-id=${reservaCheckout.id},data-product-id=${reservaCheckout.producto.id},
+                              data-name=${reservaCheckout.producto.nombre},data-img=${reservaCheckout.producto.imagenUrl},
+                              data-price=${reservaCheckout.producto.precio},data-qty=${reservaCheckout.cantidad}"></div>
                 <!-- Barra de Progreso del Flujo de Compra -->
                 <div class="d-flex align-items-center gap-2 mb-4 text-2xs font-anton tracking-wide">
                     <a th:href="@{/cliente/carrito}" class="badge bg-dark text-light border border-secondary text-decoration-none px-3 py-2">
@@ -160,7 +164,7 @@
                                     </div>
                                     <div class="d-flex align-items-center gap-2 mt-3 text-muted text-2xs">
                                         <i class="fa-solid fa-shield-halved text-success"></i>
-                                        <span>Conexión cifrada TLS/SSL. Energy Gym no almacena los datos de tu tarjeta.</span>
+                                        <span>Pago de demostración académica. Usa datos ficticios de tarjeta.</span>
                                     </div>
                                 </div>
                             </div>

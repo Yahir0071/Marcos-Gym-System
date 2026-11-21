@@ -251,19 +251,22 @@ class SecurityAlonsoTests {
                         .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO")))
                 .andExpect(status().isForbidden());
 
-        // 3. Cliente sí puede descargar su boleta de venta
+        // Un código ausente no descarga un comprobante de respaldo.
         mockMvc.perform(get("/cliente/boleta-venta/descargar")
                         .with(user("cliente@energygym.pe").roles("CLIENTE")))
-                .andExpect(status().isOk());
+                .andExpect(status().isNotFound());
 
-        // 4. Recepción y Administración sí pueden auditar y descargar boletas
-        mockMvc.perform(get("/cliente/boleta-venta/descargar")
+        mockMvc.perform(get("/admin/boleta-venta/descargar").param("codigo", "#PED-99999")
                         .with(user("recep@energygym.pe").roles("RECEPCION")))
-                .andExpect(status().isOk());
+                .andExpect(status().isNotFound());
 
-        mockMvc.perform(get("/cliente/boleta-venta/descargar")
+        mockMvc.perform(get("/admin/boleta-venta/descargar").param("codigo", "#PED-99999")
                         .with(user("admin@energygym.pe").roles("ADMINISTRACION")))
-                .andExpect(status().isOk());
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/admin/boleta-venta/descargar").param("codigo", "#PED-99999")
+                        .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO")))
+                .andExpect(status().isForbidden());
     }
 
     @Test
