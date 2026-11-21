@@ -106,15 +106,15 @@
                     <!-- Selector Interactivo de Cantidad y Subtotal en Vivo -->
                     <div class="row g-3 mb-4 align-items-center">
                         <div class="col-sm-5">
-                            <label class="form-label text-2xs text-muted fw-bold">CANTIDAD</label>
+                            <label for="productQtyInput" class="form-label text-2xs text-muted fw-bold">CANTIDAD</label>
                             <div class="d-flex align-items-center border border-secondary rounded bg-card" style="width: 140px;">
-                                <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2 font-anton fs-5" id="btnQtyMinus">-</button>
+                                <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2 font-anton fs-5" id="btnQtyMinus" aria-label="Disminuir cantidad">-</button>
                                 <input type="number" id="productQtyInput" class="form-control text-center border-0 bg-transparent text-light p-0 fw-bold font-anton fs-6" value="1" min="1" max="10" readonly>
-                                <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2 font-anton fs-5" id="btnQtyPlus">+</button>
+                                <button type="button" class="btn btn-link text-light text-decoration-none px-3 py-2 font-anton fs-5" id="btnQtyPlus" aria-label="Aumentar cantidad">+</button>
                             </div>
                         </div>
                         <div class="col-sm-7">
-                            <label class="form-label text-2xs text-muted fw-bold">SUBTOTAL ESTIMADO</label>
+                            <span class="form-label text-2xs text-muted fw-bold d-block">SUBTOTAL ESTIMADO</span>
                             <div class="p-2 px-3 rounded bg-elevated border border-secondary d-flex justify-content-between align-items-center">
                                 <span class="text-xs text-muted">TOTAL A LIQUIDAR:</span>
                                 <span class="font-anton fs-4 text-primary" id="productTotalPrice"
@@ -146,13 +146,13 @@
                         </button>
                     </div>
 
-                    <!-- Garantías de la Pasarela de Pago Oficial -->
+                    <!-- Aviso de Entorno Académico (M15) -->
                     <div class="card p-3 bg-transparent border-secondary mb-3">
                         <div class="d-flex align-items-center gap-3">
-                            <i class="fa-solid fa-shield-halved text-success fs-3"></i>
+                            <i class="fa-solid fa-graduation-cap text-warning fs-3" aria-hidden="true"></i>
                             <div>
-                                <div class="text-light font-anton text-xs tracking-wide">PAGO 100% SEGURO Y EMISIÓN DE BOLETA ELECTRÓNICA</div>
-                                <small class="text-muted text-2xs">Pasarela con encriptación SSL de 256 bits. Aceptamos Visa, Mastercard y Amex. Emisión instantánea de comprobante para recojo inmediato en sede Las Am�ricas, Ate.</small>
+                                <div class="text-light font-anton text-xs tracking-wide">SIMULACIÓN ACADÉMICA DE COMPRA Y CONSTANCIA</div>
+                                <small class="text-muted text-2xs">Flujo de demostración académica (sin cargo bancario real ni validez tributaria SUNAT). Referencia de recojo en sede Av. Las Américas, Ate — Lima.</small>
                             </div>
                         </div>
                     </div>
@@ -214,79 +214,86 @@
                                                 <span class="font-anton text-light text-xs">TOTAL A PAGAR:</span>
                                                 <span class="font-anton text-primary fs-3" id="modalProductTotal">S/ 90.00</span>
                                             </div>
-                                            <small class="text-success text-2xs d-block mt-1">
-                                                <i class="fa-solid fa-circle-check me-1"></i> Boleta Electrónica incluida
+                                            <small class="text-warning text-2xs d-block mt-1">
+                                                <i class="fa-solid fa-graduation-cap me-1" aria-hidden="true"></i> Constancia académica (sin validez tributaria)
                                             </small>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Columna Derecha: Datos de Facturación y Tarjeta -->
+                                <!-- Columna Derecha: Datos de Demostración y Tarjeta Simulada -->
                                 <div class="col-md-7">
                                     <form id="expressPaymentForm">
-                                        <!-- 1. Datos para la Boleta -->
+                                        <!-- 1. Datos para la Constancia -->
                                         <div class="mb-3">
-                                            <span class="text-2xs font-anton tracking-wide text-muted d-block mb-1">1. DATOS PARA LA BOLETA ELECTRÓNICA</span>
+                                            <span class="text-2xs font-anton tracking-wide text-muted d-block mb-1">1. DATOS DEL COMPRADOR (CONSTANCIA ACADÉMICA)</span>
                                             <div class="row g-2">
                                                 <div class="col-sm-6">
-                                                    <input type="text" class="form-control form-control-sm text-xs" id="modalBuyerName" 
-                                                           th:value="${socio != null ? socio.nombres + ' ' + socio.apellidos : ''}" 
+                                                    <label for="modalBuyerName" class="visually-hidden">Nombres y apellidos</label>
+                                                    <input type="text" class="form-control form-control-sm text-xs" id="modalBuyerName"
+                                                           th:value="${socio != null ? socio.nombres + ' ' + socio.apellidos : ''}"
                                                            placeholder="Nombres y Apellidos *" required>
                                                 </div>
                                                 <div class="col-sm-6">
-                                                    <input type="text" class="form-control form-control-sm text-xs" id="modalBuyerDni" 
-                                                           th:value="${socio != null ? socio.dni : ''}" 
+                                                    <label for="modalBuyerDni" class="visually-hidden">DNI</label>
+                                                    <input type="text" class="form-control form-control-sm text-xs" id="modalBuyerDni"
+                                                           th:value="${socio != null ? socio.dni : ''}"
                                                            placeholder="DNI (8 dígitos) *" maxlength="8" pattern="[0-9]{8}" required>
                                                 </div>
                                                 <div class="col-12">
-                                                    <input type="email" class="form-control form-control-sm text-xs" id="modalBuyerEmail" 
-                                                           th:value="${socio != null and socio.usuario != null ? socio.usuario.username : ''}" 
-                                                           placeholder="correo@ejemplo.com (para envío de boleta) *" required>
+                                                    <label for="modalBuyerEmail" class="visually-hidden">Correo electrónico</label>
+                                                    <input type="email" class="form-control form-control-sm text-xs" id="modalBuyerEmail"
+                                                           th:value="${socio != null and socio.usuario != null ? socio.usuario.username : ''}"
+                                                           placeholder="correo@ejemplo.com *" required>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- 2. Pasarela con Tarjeta -->
+                                        <!-- 2. Datos Simulados de Tarjeta -->
                                         <div class="mb-3">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <span class="text-2xs font-anton tracking-wide text-muted">2. TARJETA DE CRÉDITO O DÉBITO</span>
-                                                <div class="d-flex gap-2 text-muted fs-6">
+                                                <span class="text-2xs font-anton tracking-wide text-muted">2. TARJETA DE PRUEBA (SIMULACIÓN ACADÉMICA)</span>
+                                                <div class="d-flex gap-2 text-muted fs-6" aria-hidden="true">
                                                     <i class="fa-brands fa-cc-visa text-primary"></i>
                                                     <i class="fa-brands fa-cc-mastercard text-warning"></i>
                                                     <i class="fa-brands fa-cc-amex text-info"></i>
                                                 </div>
                                             </div>
                                             <div class="input-group input-group-sm mb-2">
-                                                <input type="text" class="form-control text-xs" id="modalCardNumber" placeholder="•••• •••• •••• 4242" maxlength="19" required>
-                                                <span class="input-group-text bg-deep-dark border-secondary text-muted"><i class="fa-solid fa-credit-card"></i></span>
+                                                <label for="modalCardNumber" class="visually-hidden">Número de tarjeta de prueba</label>
+                                                <input type="text" class="form-control text-xs" id="modalCardNumber" placeholder="Tarjeta ficticia (ej. 4557 •••• •••• 4242)" maxlength="19" required>
+                                                <span class="input-group-text bg-deep-dark border-secondary text-muted"><i class="fa-solid fa-credit-card" aria-hidden="true"></i></span>
                                             </div>
                                             <div class="row g-2 mb-2">
                                                 <div class="col-6">
+                                                    <label for="modalCardExpiry" class="visually-hidden">Vencimiento</label>
                                                     <input type="text" class="form-control form-control-sm text-xs" id="modalCardExpiry" placeholder="MM/AA" maxlength="5" required>
                                                 </div>
                                                 <div class="col-6">
-                                                    <input type="password" class="form-control form-control-sm text-xs" id="modalCardCvv" placeholder="CVV (3 dígitos)" maxlength="4" required>
+                                                    <label for="modalCardCvv" class="visually-hidden">CVV ficticio</label>
+                                                    <input type="password" class="form-control form-control-sm text-xs" id="modalCardCvv" placeholder="CVV (prueba)" maxlength="4" required>
                                                 </div>
                                             </div>
-                                            <input type="text" class="form-control form-control-sm text-xs text-uppercase" id="modalCardHolder" placeholder="NOMBRE COMO APARECE EN LA TARJETA *" required>
+                                            <label for="modalCardHolder" class="visually-hidden">Nombre del titular</label>
+                                            <input type="text" class="form-control form-control-sm text-xs text-uppercase" id="modalCardHolder" placeholder="NOMBRE DEL TITULAR *" required>
                                         </div>
 
                                         <button type="submit" class="btn btn-primary w-100 py-3 font-anton text-sm tracking-wide" id="btnSubmitModalPayment">
-                                            <i class="fa-solid fa-lock me-2"></i> PAGAR AHORA Y EMITIR BOLETA
+                                            <i class="fa-solid fa-flask me-2" aria-hidden="true"></i> CONFIRMAR COMPRA SIMULADA
                                         </button>
-                                        <small class="text-muted text-2xs text-center d-block mt-2">
-                                            <i class="fa-solid fa-shield-halved text-success me-1"></i> Transacción cifrada y protegida por Energy Gym.
+                                        <small class="text-warning text-2xs text-center d-block mt-2">
+                                            <i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i> Entorno académico: no ingreses datos bancarios reales.
                                         </small>
                                     </form>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Pantalla 2: Éxito y Boleta Emitida -->
+                        <!-- Pantalla 2: Éxito y Constancia Académica -->
                         <div id="modalPaymentSuccessSection" class="d-none text-center py-4">
-                            <i class="fa-solid fa-circle-check text-success mb-3" style="font-size: 4rem;"></i>
-                            <h3 class="font-anton text-light mb-1">¡COMPRA EXITOSA Y BOLETA EMITIDA!</h3>
-                            <p class="text-muted text-xs mb-4">Tu pago ha sido procesado mediante la pasarela segura. Tu comprobante oficial y orden de recojo están listos:</p>
+                            <i class="fa-solid fa-circle-check text-success mb-3" style="font-size: 4rem;" aria-hidden="true"></i>
+                            <h3 class="font-anton text-light mb-1">¡COMPRA SIMULADA REGISTRADA!</h3>
+                            <p class="text-muted text-xs mb-4">Operación registrada en modo demostración académica (sin cobro bancario ni validez tributaria SUNAT):</p>
 
                             <div class="p-3 rounded bg-elevated border border-success d-inline-block text-start mb-4 mw-420px w-100">
                                 <div class="d-flex justify-content-between text-xs mb-1">
@@ -294,7 +301,7 @@
                                     <span class="text-primary font-anton fw-bold" id="succModalCode">#PED-00522</span>
                                 </div>
                                 <div class="d-flex justify-content-between text-xs mb-1">
-                                    <span class="text-muted">Boleta Electrónica:</span>
+                                    <span class="text-muted">Constancia Demo:</span>
                                     <span class="text-light font-anton" id="succModalBoleta">B001-00000843</span>
                                 </div>
                                 <div class="d-flex justify-content-between text-xs mb-1">
@@ -302,18 +309,18 @@
                                     <span class="text-light" id="succModalOperacion">OP-782914</span>
                                 </div>
                                 <div class="d-flex justify-content-between text-xs mb-1">
-                                    <span class="text-muted">Total Pagado:</span>
+                                    <span class="text-muted">Total Registrado:</span>
                                     <span class="text-success font-anton fw-bold fs-6" id="succModalTotal">S/ 90.00</span>
                                 </div>
                                 <div class="d-flex justify-content-between text-xs">
                                     <span class="text-muted">Lugar de Recojo:</span>
-                                    <span class="text-light">Recepción sede Las Am�ricas, Ate</span>
+                                    <span class="text-light">Recepción sede Av. Las Américas, Ate</span>
                                 </div>
                             </div>
 
                             <div class="d-flex justify-content-center gap-3 flex-wrap">
-                                <a id="btnDownloadBoletaModal" href="#" target="_blank" class="btn btn-primary px-4 py-2 font-anton text-xs tracking-wide">
-                                    <i class="fa-solid fa-file-arrow-down me-2"></i> DESCARGAR BOLETA ELECTRÓNICA
+                                <a id="btnDownloadBoletaModal" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary px-4 py-2 font-anton text-xs tracking-wide">
+                                    <i class="fa-solid fa-file-arrow-down me-2" aria-hidden="true"></i> DESCARGAR CONSTANCIA ACADÉMICA
                                 </a>
                                 <button type="button" class="btn btn-outline px-4 py-2 font-anton text-xs" data-bs-dismiss="modal">
                                     FINALIZAR
@@ -487,7 +494,7 @@
                     const submitBtn = document.getElementById("btnSubmitModalPayment");
                     const origBtnText = submitBtn.innerHTML;
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> PROCESANDO EN PASARELA SSL...`;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> PROCESANDO SIMULACIÓN ACADÉMICA...`;
 
                     const payload = {
                         tipoConcepto: "PRODUCTO",
@@ -609,7 +616,7 @@
                                     </div>
                                     <div class="d-flex justify-content-between text-xs">
                                         <span class="text-muted">Lugar de pago:</span>
-                                        <span class="text-light">Recepción sede Las Am�ricas, Ate (Efectivo / POS / Yape)</span>
+                                        <span class="text-light">Recepción sede Las Américas, Ate (Efectivo / POS / Yape)</span>
                                     </div>
                                 </div>
                                 <button type="button" class="btn btn-primary px-4 py-2 font-anton text-xs" data-bs-dismiss="modal">
@@ -618,7 +625,7 @@
                             </div>`
                         );
                     } else {
-                        alert(`¡Reserva registrada con éxito!\nCódigo: ${code}\nTotal: S/ ${total.toFixed(2)}\nAcércate a recepción de sede Las Am�ricas, Ate para abonar y retirar tus productos.`);
+                        alert(`¡Reserva registrada con éxito!\nCódigo: ${code}\nTotal: S/ ${total.toFixed(2)}\nAcércate a recepción de sede Las Américas, Ate para abonar y retirar tus productos.`);
                     }
                 });
             }

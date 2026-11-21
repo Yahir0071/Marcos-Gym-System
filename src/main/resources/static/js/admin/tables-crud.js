@@ -1,9 +1,11 @@
 /**
- * admin/tables-crud.js - Energy Gym Administration Engine
- * Responsabilidad: Filtrado universal de tablas, gráficos del dashboard, pestañas y modales CRUD.
+ * admin/tables-crud.js - Energy Gym Administration Engine (DOM Seguro - C04 / C08 / M07 / M15)
+ * Responsabilidad: Filtrado de tablas, gráfico con datos reales, pestañas, edición persistente
+ * de socios contra el contrato REST de Esaul y comprobantes académicos sin innerHTML.
  */
 
-import { openGymModal } from "../core/modal.js";
+import { putJson, patchRequest } from "../core/api-client.js";
+import { openSafeGymModal, closeGymModal, createDomElement, createIcon } from "../core/modal.js";
 import { showGymToast } from "../core/toast.js";
 
 export function initTableFilters() {
@@ -15,6 +17,7 @@ export function initTableFilters() {
         const selects = Array.from(document.querySelectorAll(".table-filter-select"));
 
         table.querySelectorAll("tbody tr").forEach((row) => {
+            if (row.children.length <= 1) return;
             const text = row.textContent.toLowerCase();
             let matchesSelects = true;
             selects.forEach((sel) => {
@@ -34,28 +37,48 @@ export function initTableFilters() {
 }
 
 export function initDashboardChart() {
+    const chartContainer = document.getElementById("dashboardBarChart");
     const chartPeriodBtns = document.querySelectorAll(".chart-period-btn");
-    if (chartPeriodBtns.length === 0) return;
+    if (!chartContainer || chartPeriodBtns.length === 0) return;
 
-    const chartData = {
-        semana: [
-            { val: "115", h: "72%" },
-            { val: "132", h: "84%" },
-            { val: "128", h: "80%" },
-            { val: "145", h: "92%" },
-            { val: "138", h: "87%" },
-            { val: "96", h: "60%" },
-            { val: "54", h: "35%" }
-        ],
-        mes: [
-            { val: "480", h: "78%" },
-            { val: "520", h: "85%" },
-            { val: "510", h: "82%" },
-            { val: "590", h: "95%" },
-            { val: "540", h: "88%" },
-            { val: "410", h: "66%" },
-            { val: "230", h: "42%" }
-        ]
+    const parseDataset = (attrName) => {
+        try {
+            const raw = chartContainer.getAttribute(attrName);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    };
+
+    const datasets = {
+        semana: parseDataset("data-semana"),
+        mes: parseDataset("data-mes")
+    };
+
+    const renderBars = (periodKey) => {
+        const data = datasets[periodKey] || [];
+        const hasAny = data.some((d) => Number(d.valor) > 0);
+        const emptyNotice = document.getElementById("dashboardChartEmptyNotice");
+        if (emptyNotice) {
+            emptyNotice.classList.toggle("d-none", hasAny);
+        }
+
+        const vals = chartContainer.querySelectorAll(".bar-val");
+        const fills = chartContainer.querySelectorAll(".bar-fill");
+        data.forEach((item, idx) => {
+            const valor = Number(item.valor) || 0;
+            const altura = Number(item.altura) || 0;
+            if (vals[idx]) {
+                vals[idx].textContent = String(valor);
+                vals[idx].className = valor > 0 ? "text-xs fw-bold text-primary mb-1 bar-val" : "text-xs fw-bold text-muted mb-1 bar-val";
+            }
+            if (fills[idx]) {
+                fills[idx].style.height = `${valor > 0 ? altura : 4}%`;
+                fills[idx].classList.toggle("bg-primary", valor > 0);
+                fills[idx].style.backgroundColor = valor > 0 ? "" : "#2c3548";
+            }
+        });
     };
 
     chartPeriodBtns.forEach((btn) => {
@@ -63,29 +86,29 @@ export function initDashboardChart() {
             chartPeriodBtns.forEach((b) => {
                 b.classList.remove("btn-primary", "active");
                 b.classList.add("btn-outline");
+                b.setAttribute("aria-pressed", "false");
             });
             this.classList.remove("btn-outline");
             this.classList.add("btn-primary", "active");
+            this.setAttribute("aria-pressed", "true");
 
-            const p = this.getAttribute("data-period") || "semana";
-            const data = chartData[p];
-            const vals = document.querySelectorAll("#dashboardBarChart .bar-val");
-            const fills = document.querySelectorAll("#dashboardBarChart .bar-fill");
-            if (data) {
-                data.forEach((d, idx) => {
-                    if (vals[idx]) vals[idx].textContent = d.val;
-                    if (fills[idx]) fills[idx].style.height = d.h;
-                });
-            }
+            const period = this.getAttribute("data-period") || "semana";
+            renderBars(period);
         });
     });
+
+    renderBars("semana");
 }
 
 export function initAdminTabs() {
     document.querySelectorAll(".tab-btn[data-tab-target]").forEach((btn) => {
         btn.addEventListener("click", function () {
-            document.querySelectorAll(".tab-btn[data-tab-target]").forEach((b) => b.classList.remove("active"));
+            document.querySelectorAll(".tab-btn[data-tab-target]").forEach((b) => {
+                b.classList.remove("active");
+                b.setAttribute("aria-selected", "false");
+            });
             this.classList.add("active");
+            this.setAttribute("aria-selected", "true");
             const target = this.getAttribute("data-tab-target");
             document.querySelectorAll(".admin-tab-pane").forEach((pane) => {
                 pane.style.display = target === "all" || pane.id === target ? "" : "none";
@@ -94,171 +117,285 @@ export function initAdminTabs() {
     });
 }
 
-export function initAdminCrudModals() {
-    const bindAdminRowEdits = () => {
-        document.querySelectorAll(".btn-edit-row").forEach((btn) => {
-            if (btn.dataset.bound) return;
-            btn.dataset.bound = "true";
-            btn.addEventListener("click", function (e) {
-                e.preventDefault();
-                const row = this.closest("tr");
-                if (!row) return;
-                const table = row.closest("table");
-                if (!table) return;
-                const headers = Array.from(table.querySelectorAll("thead th")).map((th) => th.textContent.trim());
-                const cells = Array.from(row.children);
+function buildLabeledField(id, labelText, inputEl) {
+    const group = createDomElement("div", "mb-3");
+    const label = createDomElement("label", "form-label", labelText);
+    label.htmlFor = id;
+    inputEl.id = id;
+    group.append(label, inputEl);
+    return group;
+}
 
-                let fieldsHtml = "";
-                for (let i = 0; i < cells.length - 1; i++) {
-                    const label = headers[i] || `CAMPO ${i + 1}`;
-                    if (label === "IMAGEN") continue;
-                    const val = cells[i].textContent.trim();
-                    if (label === "ESTADO") {
-                        fieldsHtml += `
-                            <div class="mb-3">
-                                <label class="form-label">${label}</label>
-                                <select class="form-select edit-row-input" data-col-idx="${i}" data-is-status="true">
-                                    <option value="${val}" selected>${val} (Actual)</option>
-                                    <option value="ACTIVO">ACTIVO</option>
-                                    <option value="ACTIVA">ACTIVA</option>
-                                    <option value="INACTIVO">INACTIVO</option>
-                                    <option value="CONFIRMADA">CONFIRMADA</option>
-                                    <option value="ENTREGADA">ENTREGADA</option>
-                                    <option value="OPERATIVO">OPERATIVO</option>
-                                    <option value="EN MANTENIMIENTO">EN MANTENIMIENTO</option>
-                                    <option value="FINALIZADO">FINALIZADO</option>
-                                    <option value="PUBLICADA">PUBLICADA</option>
-                                </select>
-                            </div>`;
-                    } else {
-                        fieldsHtml += `
-                            <div class="mb-3">
-                                <label class="form-label">${label}</label>
-                                <input type="text" class="form-control edit-row-input" data-col-idx="${i}" value="${val}">
-                            </div>`;
-                    }
-                }
+function buildAlertBanner(text, variant = "danger") {
+    const alert = createDomElement(
+        "div",
+        `alert alert-${variant} bg-dark text-${variant} border border-${variant} py-2 px-3 text-xs mb-3`,
+        ""
+    );
+    alert.append(createIcon("fa-solid fa-triangle-exclamation me-2"), document.createTextNode(text));
+    return alert;
+}
 
-                openGymModal(
-                    `<i class="fa-solid fa-pen-to-square me-2"></i> EDITAR REGISTRO`,
-                    `<form id="adminEditRowForm">
-                        ${fieldsHtml}
-                        <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary flex-grow-1">GUARDAR CAMBIOS</button>
-                            <button type="button" class="btn btn-outline text-danger" id="btnDeleteRowModal">ELIMINAR</button>
-                        </div>
-                    </form>`
-                );
+/**
+ * Envía actualización de socio al contrato pactado de Esaul:
+ *   PUT /api/admin/socios/{id}  -> { nombres, apellidos, telefono, activo }
+ *   PATCH /api/admin/socios/{id}/estado?activo=true|false
+ */
+async function requestSocioUpdate(id, payload) {
+    const resp = await putJson(`/api/admin/socios/${encodeURIComponent(id)}`, payload);
+    const data = await resp.json().catch(() => ({}));
+    return { ok: resp.ok && !resp.redirected, status: resp.status, data };
+}
 
-                setTimeout(() => {
-                    const form = document.getElementById("adminEditRowForm");
-                    if (form) {
-                        form.addEventListener("submit", (ev) => {
-                            ev.preventDefault();
-                            form.querySelectorAll(".edit-row-input").forEach((inp) => {
-                                const idx = parseInt(inp.getAttribute("data-col-idx"), 10);
-                                const isStatus = inp.getAttribute("data-is-status") === "true";
-                                const newVal = inp.value.trim();
-                                if (isStatus) {
-                                    let badgeClass = "";
-                                    if (["INACTIVO", "CANCELADA", "FUERA DE SERVICIO", "VENCIDA"].includes(newVal)) badgeClass = "status-inactive";
-                                    else if (["EN MANTENIMIENTO", "EN PROCESO", "PENDIENTE", "POR VENCER", "STOCK BAJO"].includes(newVal)) badgeClass = "status-warning";
-                                    cells[idx].innerHTML = `<span class="${badgeClass}">${newVal}</span>`;
-                                } else {
-                                    cells[idx].textContent = newVal;
-                                }
-                            });
-                            if (window.bootstrap && window.bootstrap.Modal) {
-                                const modal = window.bootstrap.Modal.getInstance(document.getElementById("dynamicGymModal"));
-                                if (modal) modal.hide();
-                            }
-                            showGymToast("Registro actualizado correctamente", "fa-check");
-                        });
-                    }
-                    const delBtn = document.getElementById("btnDeleteRowModal");
-                    if (delBtn) {
-                        delBtn.addEventListener("click", () => {
-                            row.remove();
-                            if (window.bootstrap && window.bootstrap.Modal) {
-                                const modal = window.bootstrap.Modal.getInstance(document.getElementById("dynamicGymModal"));
-                                if (modal) modal.hide();
-                            }
-                            showGymToast("Registro eliminado de la tabla", "fa-trash");
-                        });
-                    }
-                }, 50);
-            });
-        });
-    };
-    bindAdminRowEdits();
+async function requestSocioToggleEstado(id, activo) {
+    const url = `/api/admin/socios/${encodeURIComponent(id)}/estado?activo=${encodeURIComponent(String(activo))}`;
+    const resp = await patchRequest(url);
+    const data = await resp.json().catch(() => ({}));
+    return { ok: resp.ok && !resp.redirected, status: resp.status, data };
+}
 
-    // Trigger para botones "+ NUEVO"
-    document.querySelectorAll("[data-admin-modal]").forEach((btn) => {
-        btn.addEventListener("click", function () {
-            const type = this.getAttribute("data-admin-modal") || "REGISTRO";
-            const table = document.querySelector(".custom-table");
-            if (!table) return;
-            const headers = Array.from(table.querySelectorAll("thead th")).map((th) => th.textContent.trim());
+function renderSocioStatusCell(statusCell, activo) {
+    if (!statusCell) return;
+    statusCell.replaceChildren();
+    const badge = createDomElement("span", activo ? "" : "status-inactive", activo ? "ACTIVO" : "INACTIVO");
+    statusCell.appendChild(badge);
+}
 
-            let formFields = "";
-            headers.forEach((h, idx) => {
-                if (h === "ACCIÓN" || h === "IMAGEN") return;
-                formFields += `
-                    <div class="mb-3">
-                        <label class="form-label">${h}</label>
-                        <input type="text" class="form-control new-admin-field" data-header="${h}" data-idx="${idx}" placeholder="Ingrese ${h.toLowerCase()}..." required>
-                    </div>`;
-            });
+export function initSocioEditModal() {
+    document.querySelectorAll(".btn-edit-socio").forEach((btn) => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = "true";
 
-            openGymModal(
-                `<i class="fa-solid fa-plus-circle me-2"></i> NUEVO REGISTRO (${type.toUpperCase()})`,
-                `<form id="adminCreateRowForm">
-                    ${formFields}
-                    <button type="submit" class="btn btn-primary w-100 py-3 mt-2">REGISTRAR AHORA</button>
-                </form>`
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            const row = this.closest("tr");
+            const socioId = this.dataset.id;
+            if (!socioId || !row) return;
+
+            const currentNombres = this.dataset.nombres || "";
+            const currentApellidos = this.dataset.apellidos || "";
+            const currentDni = this.dataset.dni || "";
+            const currentTelefono = this.dataset.telefono || "";
+            const currentEmail = this.dataset.email || "";
+            const currentActivo = this.dataset.activo !== "false";
+
+            const form = createDomElement("form");
+            form.id = "adminEditSocioForm";
+            form.noValidate = false;
+
+            const feedbackBox = createDomElement("div");
+            feedbackBox.id = "socioEditFeedback";
+            feedbackBox.setAttribute("aria-live", "polite");
+            form.appendChild(feedbackBox);
+
+            // Resumen de solo lectura (DNI y usuario con textContent seguro)
+            const metaCard = createDomElement("div", "p-3 rounded bg-elevated border border-secondary mb-3 text-xs");
+            const metaDni = createDomElement("div", "d-flex justify-content-between mb-1");
+            metaDni.append(
+                createDomElement("span", "text-muted", "DOCUMENTO (DNI):"),
+                createDomElement("strong", "text-light", currentDni || "—")
+            );
+            const metaEmail = createDomElement("div", "d-flex justify-content-between");
+            metaEmail.append(
+                createDomElement("span", "text-muted", "USUARIO:"),
+                createDomElement("span", "text-primary fw-bold", currentEmail || "Sin usuario")
+            );
+            metaCard.append(metaDni, metaEmail);
+            form.appendChild(metaCard);
+
+            const nombresInput = createDomElement("input", "form-control");
+            nombresInput.type = "text";
+            nombresInput.name = "nombres";
+            nombresInput.required = true;
+            nombresInput.maxLength = 100;
+            nombresInput.value = currentNombres;
+
+            const apellidosInput = createDomElement("input", "form-control");
+            apellidosInput.type = "text";
+            apellidosInput.name = "apellidos";
+            apellidosInput.required = true;
+            apellidosInput.maxLength = 100;
+            apellidosInput.value = currentApellidos;
+
+            const telefonoInput = createDomElement("input", "form-control");
+            telefonoInput.type = "tel";
+            telefonoInput.inputMode = "numeric";
+            telefonoInput.name = "telefono";
+            telefonoInput.maxLength = 9;
+            telefonoInput.pattern = "^$|\\d{9}";
+            telefonoInput.placeholder = "9 dígitos numéricos";
+            telefonoInput.value = currentTelefono;
+
+            const estadoSelect = createDomElement("select", "form-select");
+            estadoSelect.name = "activo";
+            const optActivo = createDomElement("option", "", "ACTIVO");
+            optActivo.value = "true";
+            const optInactivo = createDomElement("option", "", "INACTIVO");
+            optInactivo.value = "false";
+            estadoSelect.append(optActivo, optInactivo);
+            estadoSelect.value = currentActivo ? "true" : "false";
+
+            form.append(
+                buildLabeledField("editSocioNombres", "NOMBRES *", nombresInput),
+                buildLabeledField("editSocioApellidos", "APELLIDOS *", apellidosInput),
+                buildLabeledField("editSocioTelefono", "TELÉFONO (9 DÍGITOS)", telefonoInput),
+                buildLabeledField("editSocioEstado", "ESTADO DE CUENTA", estadoSelect)
             );
 
-            setTimeout(() => {
-                const form = document.getElementById("adminCreateRowForm");
-                if (form) {
-                    form.addEventListener("submit", (ev) => {
-                        ev.preventDefault();
-                        const inputs = Array.from(form.querySelectorAll(".new-admin-field"));
-                        const tr = document.createElement("tr");
-                        let rowHtml = "";
+            const actionsRow = createDomElement("div", "d-flex flex-wrap gap-2 mt-4");
+            const saveBtn = createDomElement("button", "btn btn-primary flex-grow-1", "");
+            saveBtn.type = "submit";
+            saveBtn.id = "btnSaveSocioModal";
+            saveBtn.append(createIcon("fa-solid fa-floppy-disk me-1"), document.createTextNode("GUARDAR CAMBIOS"));
 
-                        headers.forEach((h) => {
-                            if (h === "IMAGEN") {
-                                rowHtml += `<td><div class="image-placeholder"><i class="fa-solid fa-box text-primary"></i></div></td>`;
-                            } else if (h === "ACCIÓN") {
-                                rowHtml += `<td><a href="#" class="btn-edit-row">VER / EDITAR</a></td>`;
-                            } else {
-                                const match = inputs.find((inp) => inp.getAttribute("data-header") === h);
-                                const val = match ? match.value.trim() : "—";
-                                if (h === "ESTADO") {
-                                    rowHtml += `<td><span>${val.toUpperCase()}</span></td>`;
-                                } else if (h === "CÓDIGO" || h === "N°") {
-                                    rowHtml += `<td class="code-cell">${val}</td>`;
-                                } else {
-                                    rowHtml += `<td class="fw-bold">${val}</td>`;
-                                }
-                            }
-                        });
+            const nextActivo = !currentActivo;
+            const toggleBtn = createDomElement(
+                "button",
+                `btn btn-outline ${nextActivo ? "text-success" : "text-danger"}`,
+                ""
+            );
+            toggleBtn.type = "button";
+            toggleBtn.id = "btnToggleSocioEstadoModal";
+            toggleBtn.append(
+                createIcon(nextActivo ? "fa-solid fa-user-check me-1" : "fa-solid fa-user-slash me-1"),
+                document.createTextNode(nextActivo ? "ACTIVAR SOCIO" : "DESACTIVAR SOCIO")
+            );
 
-                        tr.innerHTML = rowHtml;
-                        const tbody = table.querySelector("tbody");
-                        if (tbody) tbody.prepend(tr);
-                        bindAdminRowEdits();
-                        if (window.bootstrap && window.bootstrap.Modal) {
-                            const modal = window.bootstrap.Modal.getInstance(document.getElementById("dynamicGymModal"));
-                            if (modal) modal.hide();
-                        }
-                        showGymToast(`Nuevo registro (${type}) añadido con éxito`, "fa-circle-check");
-                    });
+            actionsRow.append(saveBtn, toggleBtn);
+            form.appendChild(actionsRow);
+
+            const updateRowDom = (socioResp) => {
+                const updatedNombres = socioResp.nombres ?? nombresInput.value.trim();
+                const updatedApellidos = socioResp.apellidos ?? apellidosInput.value.trim();
+                const updatedTel = socioResp.telefono ?? telefonoInput.value.trim();
+                const updatedActivo = typeof socioResp.activo === "boolean" ? socioResp.activo : (estadoSelect.value === "true");
+
+                const nameCell = row.querySelector("[data-socio-cell='nombre']") || row.children[1];
+                const telCell = row.querySelector("[data-socio-cell='telefono']") || row.children[3];
+                const statusCell = row.querySelector("[data-socio-cell='estado']") || row.children[5];
+
+                if (nameCell) nameCell.textContent = `${updatedNombres} ${updatedApellidos}`.trim();
+                if (telCell) telCell.textContent = updatedTel ? updatedTel : "—";
+                renderSocioStatusCell(statusCell, updatedActivo);
+
+                btn.dataset.nombres = updatedNombres;
+                btn.dataset.apellidos = updatedApellidos;
+                btn.dataset.telefono = updatedTel;
+                btn.dataset.activo = String(updatedActivo);
+            };
+
+            const setBusy = (isBusy) => {
+                saveBtn.disabled = isBusy;
+                toggleBtn.disabled = isBusy;
+                nombresInput.disabled = isBusy;
+                apellidosInput.disabled = isBusy;
+                telefonoInput.disabled = isBusy;
+                estadoSelect.disabled = isBusy;
+            };
+
+            form.addEventListener("submit", async (ev) => {
+                ev.preventDefault();
+                feedbackBox.replaceChildren();
+
+                const nombres = nombresInput.value.trim();
+                const apellidos = apellidosInput.value.trim();
+                const telefono = telefonoInput.value.trim();
+                const activo = estadoSelect.value === "true";
+
+                if (!nombres || !apellidos) {
+                    const campo = nombres ? apellidosInput : nombresInput;
+                    campo.setAttribute("aria-invalid", "true");
+                    campo.setAttribute("aria-describedby", feedbackBox.id);
+                    campo.addEventListener("input", () => {
+                        campo.removeAttribute("aria-invalid");
+                        campo.removeAttribute("aria-describedby");
+                        feedbackBox.replaceChildren();
+                    }, { once: true });
+                    feedbackBox.appendChild(buildAlertBanner("Nombres y apellidos son obligatorios."));
+                    campo.focus();
+                    return;
                 }
-            }, 50);
+                if (telefono && !/^\d{9}$/.test(telefono)) {
+                    feedbackBox.appendChild(buildAlertBanner("El teléfono debe contener exactamente 9 dígitos numéricos."));
+                    return;
+                }
+
+                setBusy(true);
+                try {
+                    const result = await requestSocioUpdate(socioId, { nombres, apellidos, telefono, activo });
+                    if (!result.ok || result.data?.success === false) {
+                        const errMsg = result.data?.mensaje || result.data?.error || `No se pudo guardar los cambios en el servidor (HTTP ${result.status}).`;
+                        feedbackBox.appendChild(buildAlertBanner(errMsg));
+                        showGymToast(errMsg, "fa-triangle-exclamation", "error");
+                        return;
+                    }
+                    updateRowDom(result.data?.socio || { nombres, apellidos, telefono, activo });
+                    closeGymModal();
+                    showGymToast(result.data?.mensaje || "Socio actualizado correctamente en el servidor.", "fa-circle-check");
+                } catch {
+                    const msg = "Error de conexión con el servidor. No se guardaron los cambios.";
+                    feedbackBox.appendChild(buildAlertBanner(msg));
+                    showGymToast(msg, "fa-triangle-exclamation", "error");
+                } finally {
+                    setBusy(false);
+                }
+            });
+
+            toggleBtn.addEventListener("click", async () => {
+                feedbackBox.replaceChildren();
+                const targetActivo = btn.dataset.activo === "false";
+                const accionTxt = targetActivo ? "activar" : "desactivar";
+                if (!window.confirm(`¿Confirmas ${accionTxt} la cuenta del socio?`)) {
+                    return;
+                }
+
+                setBusy(true);
+                try {
+                    const result = await requestSocioToggleEstado(socioId, targetActivo);
+                    if (!result.ok || result.data?.success === false) {
+                        const errMsg = result.data?.mensaje || result.data?.error || `No se pudo cambiar el estado del socio (HTTP ${result.status}).`;
+                        feedbackBox.appendChild(buildAlertBanner(errMsg));
+                        showGymToast(errMsg, "fa-triangle-exclamation", "error");
+                        return;
+                    }
+                    const confirmedActivo = typeof result.data?.activo === "boolean" ? result.data.activo : targetActivo;
+                    updateRowDom({
+                        nombres: btn.dataset.nombres,
+                        apellidos: btn.dataset.apellidos,
+                        telefono: btn.dataset.telefono,
+                        activo: confirmedActivo
+                    });
+                    closeGymModal();
+                    showGymToast(
+                        result.data?.mensaje || (confirmedActivo ? "Socio activado correctamente." : "Socio desactivado correctamente."),
+                        confirmedActivo ? "fa-user-check" : "fa-user-slash"
+                    );
+                } catch {
+                    const msg = "Error de conexión con el servidor. No se modificó el estado del socio.";
+                    feedbackBox.appendChild(buildAlertBanner(msg));
+                    showGymToast(msg, "fa-triangle-exclamation", "error");
+                } finally {
+                    setBusy(false);
+                }
+            });
+
+            openSafeGymModal("EDITAR SOCIO", form, "fa-solid fa-user-pen text-primary me-2");
         });
     });
+}
+
+function buildVoucherDetailRow(labelText, valueText, valueClass = "") {
+    const row = createDomElement("div", "d-flex justify-content-between gap-2 mb-1");
+    row.append(
+        createDomElement("span", "text-muted", labelText),
+        createDomElement("span", valueClass, valueText)
+    );
+    return row;
+}
+
+export function initAdminCrudModals() {
+    // Edición segura y persistente de socios (C04 + C08)
+    initSocioEditModal();
 
     // Binding para modal Editar Plan
     document.querySelectorAll(".btn-edit-plan").forEach((btn) => {
@@ -397,7 +534,7 @@ export function initAdminCrudModals() {
     if (selectMembresia) {
         selectMembresia.addEventListener("change", function () {
             const selectedOpt = this.options[this.selectedIndex];
-            const monto = selectedOpt.getAttribute("data-monto");
+            const monto = selectedOpt?.getAttribute("data-monto");
             const inputMonto = document.getElementById("inputMontoPago");
             if (inputMonto && monto) {
                 inputMonto.value = parseFloat(monto).toFixed(2);
@@ -405,53 +542,62 @@ export function initAdminCrudModals() {
         });
     }
 
-    // Modal Voucher Comprobante
+    // Modal Voucher Comprobante Académico (DOM seguro C04 + M15 + L02)
     document.querySelectorAll(".btn-view-voucher").forEach((btn) => {
+        if (btn.dataset.voucherBound) return;
+        btn.dataset.voucherBound = "true";
         btn.addEventListener("click", () => {
-            const pagoId = btn.dataset.pagoId;
-            const socio = btn.dataset.socio;
-            const dni = btn.dataset.dni;
-            const plan = btn.dataset.plan;
-            const monto = btn.dataset.monto;
-            const metodo = btn.dataset.metodo;
-            const fecha = btn.dataset.fecha;
+            const pagoId = btn.dataset.pagoId || "0";
+            const socio = btn.dataset.socio || "Socio";
+            const dni = btn.dataset.dni || "—";
+            const plan = btn.dataset.plan || "Membresía";
+            const monto = btn.dataset.monto || "0.00";
+            const metodo = btn.dataset.metodo || "—";
+            const fecha = btn.dataset.fecha || "—";
 
-            openGymModal(
-                `<i class="fa-solid fa-receipt text-primary me-2"></i> COMPROBANTE DE CAJA N° ${String(pagoId).padStart(5, "0")}`,
-                `<div class="p-3 text-center">
-                    <h3 class="font-anton text-primary mb-1">ENERGY GYM S.A.C.</h3>
-                    <p class="text-muted text-xs mb-3">RUC 20601234567 · Av. Principal 123, Lima</p>
-                    <hr class="border-secondary my-3">
-                    <div class="text-start mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">FECHA Y HORA:</span>
-                            <span class="fw-bold">${fecha}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">SOCIO:</span>
-                            <span class="fw-bold">${socio}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">DNI:</span>
-                            <span>${dni}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">CONCEPTO:</span>
-                            <span class="text-primary fw-bold">${plan}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">MÉTODO:</span>
-                            <span>${metodo}</span>
-                        </div>
-                    </div>
-                    <div class="bg-dark p-3 rounded border border-secondary mb-3 d-flex justify-content-between align-items-center">
-                        <span class="font-anton text-light fs-5">TOTAL PAGADO</span>
-                        <span class="font-anton text-primary fs-4">S/ ${monto}</span>
-                    </div>
-                    <button type="button" class="btn btn-outline w-100" onclick="window.print()">
-                        <i class="fa-solid fa-print me-1"></i> IMPRIMIR COMPROBANTE
-                    </button>
-                </div>`
+            const wrapper = createDomElement("div", "p-2 text-center");
+            const demoBadge = createDomElement(
+                "div",
+                "badge bg-dark text-warning border border-warning font-anton text-2xs px-3 py-1 mb-2",
+                "COMPROBANTE ACADÉMICO DE DEMOSTRACIÓN"
+            );
+            const brand = createDomElement("h3", "font-anton text-primary mb-1", "ENERGY GYM");
+            const address = createDomElement("p", "text-muted text-xs mb-2", "Sede Av. Las Américas, Ate — Lima · Proyecto Académico UTP");
+            const disclaimer = createDomElement(
+                "p",
+                "text-warning text-2xs mb-3",
+                "Documento interno de demostración académica. Sin validez tributaria ante SUNAT ni respaldo bancario real."
+            );
+
+            const details = createDomElement("div", "text-start mb-3 p-3 rounded bg-elevated border border-secondary text-xs");
+            details.append(
+                buildVoucherDetailRow("FECHA Y HORA:", fecha, "fw-bold text-light"),
+                buildVoucherDetailRow("SOCIO:", socio, "fw-bold text-light"),
+                buildVoucherDetailRow("DNI:", dni, "text-light"),
+                buildVoucherDetailRow("CONCEPTO:", plan, "text-primary fw-bold"),
+                buildVoucherDetailRow("MÉTODO:", metodo, "text-light")
+            );
+
+            const totalBox = createDomElement(
+                "div",
+                "bg-dark p-3 rounded border border-secondary mb-3 d-flex justify-content-between align-items-center"
+            );
+            totalBox.append(
+                createDomElement("span", "font-anton text-light fs-5", "TOTAL REGISTRADO"),
+                createDomElement("span", "font-anton text-primary fs-4", `S/ ${monto}`)
+            );
+
+            const printBtn = createDomElement("button", "btn btn-outline w-100", "");
+            printBtn.type = "button";
+            printBtn.append(createIcon("fa-solid fa-print me-1"), document.createTextNode("IMPRIMIR CONSTANCIA"));
+            printBtn.addEventListener("click", () => window.print());
+
+            wrapper.append(demoBadge, brand, address, disclaimer, details, totalBox, printBtn);
+
+            openSafeGymModal(
+                `CONSTANCIA DE CAJA N° ${String(pagoId).padStart(5, "0")}`,
+                wrapper,
+                "fa-solid fa-receipt text-primary me-2"
             );
         });
     });

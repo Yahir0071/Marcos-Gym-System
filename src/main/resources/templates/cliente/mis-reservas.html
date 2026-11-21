@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
 <head><title>Mis Reservas - Energy Gym</title></head>
 <body>
     <section class="client-wrapper">
         <div th:replace="~{fragments/cliente-sidebar :: sidebar('reservas')}"></div>
         <div class="client-main">
             <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
-            <div class="client-content">
+            <main class="client-content" id="main-content">
                 <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
                     <div>
                         <div class="section-subtitle has-line mb-2">TODAS TUS RESERVAS</div>
@@ -14,27 +14,29 @@
                         <p class="font-anton text-muted m-0 tracking-wide text-lg">REVISA, SIGUE Y RECOGE TUS PRODUCTOS EN EL LOCAL</p>
                     </div>
                     <a th:href="@{/cliente/productos}" class="btn btn-primary">
-                        <i class="fa-solid fa-plus"></i> NUEVA RESERVA
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i> NUEVA RESERVA
                     </a>
+                </div>
+
                 <!-- Flash Messages -->
                 <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
-                    <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                    <i class="fa-solid fa-circle-check me-2" aria-hidden="true"></i> <span th:text="${mensajeExito}"></span>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
                 </div>
                 <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show bg-dark text-danger border border-danger mb-4" role="alert">
-                    <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${mensajeError}"></span>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                    <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i> <span th:text="${mensajeError}"></span>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
                 </div>
 
                 <!-- Filters -->
                 <div class="filters-bar">
                     <div class="filter-group filter-large">
-                        <label>BUSCAR RESERVA</label>
-                        <input type="text" class="table-search-input" placeholder="Buscar por producto o código (#RES-00490)...">
+                        <label for="buscarMiReservaInput">BUSCAR RESERVA</label>
+                        <input type="text" id="buscarMiReservaInput" class="table-search-input" placeholder="Buscar por producto o código (#RES-00001)...">
                     </div>
                     <div class="filter-group">
-                        <label>FILTRAR POR ESTADO</label>
-                        <select class="table-filter-select" data-filter-col="4">
+                        <label for="filtroEstadoMiReserva">FILTRAR POR ESTADO</label>
+                        <select id="filtroEstadoMiReserva" class="table-filter-select" data-filter-col="4">
                             <option value="">TODOS LOS ESTADOS</option>
                             <option value="PENDIENTE">PENDIENTE</option>
                             <option value="CONFIRMADA">CONFIRMADA</option>
@@ -59,26 +61,26 @@
                         <tbody id="misReservasTbody">
                             <tr th:each="res : ${reservas}">
                                 <td class="code-cell" th:text="'#RES-' + ${#numbers.formatInteger(res.id, 5)}">#RES-00001</td>
-                                <td class="text-muted text-sm" th:text="${#temporals.format(res.fechaReserva, 'dd MMM yyyy')}">20 Ene 2025</td>
-                                <td class="text-light fw-bold" th:text="${res.producto.nombre}">Whey Protein 2 LB</td>
+                                <td class="text-muted text-sm" th:text="${#temporals.format(res.fechaReserva, 'dd MMM yyyy')}">Fecha</td>
+                                <td class="text-light fw-bold" th:text="${res.producto.nombre}">Producto</td>
                                 <td th:text="${res.cantidad}">1</td>
                                 <td>
                                     <span th:class="${res.estado.name() == 'PENDIENTE' ? 'status-warning' : (res.estado.name() == 'ENTREGADA' ? 'status-draft' : (res.estado.name() == 'CANCELADA' ? 'status-inactive' : ''))}"
                                           th:text="${res.estado}">PENDIENTE</span>
                                 </td>
                                 <td>
-                                    <div class="d-flex gap-2">
+                                    <div class="d-flex flex-wrap gap-2">
                                         <a th:if="${res.estado.name() == 'PENDIENTE'}"
                                            th:href="@{/cliente/pago-en-linea(reservaId=${res.id})}"
                                            class="btn-table-action btn-primary text-decoration-none">
-                                            <i class="fa-solid fa-credit-card me-1"></i> PAGAR
+                                            <i class="fa-solid fa-credit-card me-1" aria-hidden="true"></i> PAGAR
                                         </a>
-                                        <button type="button" class="btn-table-action btn-view-voucher"
+                                        <button type="button" class="btn-table-action btn-view-reserva-voucher"
                                                 th:data-code="'#RES-' + ${#numbers.formatInteger(res.id, 5)}"
                                                 th:data-product="${res.producto.nombre}"
                                                 th:data-qty="${res.cantidad}"
                                                 th:data-status="${res.estado}"
-                                                th:data-socio="${socio != null ? socio.nombre + ' ' + socio.apellido + ' (' + socio.dni + ')' : #authentication.name}">VOUCHER</button>
+                                                th:data-socio="${socio != null ? socio.nombre + ' ' + socio.apellido + ' (' + socio.dni + ')' : #authentication.name}">CONSTANCIA</button>
                                         <form th:if="${res.estado.name() == 'PENDIENTE' or res.estado.name() == 'CONFIRMADA'}"
                                               th:action="@{/cliente/reservas/cancelar}" method="post" class="m-0 p-0"
                                               onsubmit="return confirm('¿Estás seguro de cancelar esta reserva?');">
@@ -96,7 +98,7 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </main>
         </div>
     </section>
 </body>

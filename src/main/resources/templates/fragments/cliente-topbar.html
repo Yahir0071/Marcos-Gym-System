@@ -1,19 +1,21 @@
-<div th:fragment="topbar" class="client-topbar">
-    <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-sm btn-outline d-lg-none px-3 py-2" id="openClientSidebarBtn">
-            <i class="fa-solid fa-bars"></i>
+<header th:fragment="topbar" class="client-topbar">
+    <div class="d-flex align-items-center gap-2 gap-md-3">
+        <button type="button" class="btn btn-sm btn-outline d-lg-none px-3 py-2" id="openClientSidebarBtn"
+                aria-label="Abrir menú lateral" aria-controls="clientSidebar" aria-expanded="false">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
         </button>
         <div class="d-none d-md-flex align-items-center gap-2 text-xs text-muted">
-            <span class="pulse-dot"></span>
-            <span th:if="${membresia != null}" th:text="'MEMBRESÍA PLAN ' + ${membresia.plan.nombre} + ' ACTIVA'">MEMBRESÍA PLAN PLUS ACTIVA</span>
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span th:if="${membresia != null}" th:text="'MEMBRESÍA PLAN ' + ${membresia.plan.nombre} + ' ACTIVA'">MEMBRESÍA ACTIVA</span>
             <span th:if="${membresia == null}">SIN MEMBRESÍA ACTIVA</span>
-            <span class="text-secondary">|</span>
-            <span>RACHA DE ENTRENAMIENTO: <strong class="text-primary" id="topbarStreakCount">12 DÍAS 🔥</strong></span>
+            <span class="text-secondary" aria-hidden="true">|</span>
+            <span>RACHA DE ENTRENAMIENTO: <strong class="text-primary" id="topbarStreakCount">0 SESIONES</strong></span>
         </div>
     </div>
 
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2 gap-md-3">
         <button type="button" class="btn btn-outline py-2 px-3 text-xs" id="btnTopbarQr"
+                aria-label="Abrir mi pase digital QR"
                 th:attr="data-socio-name=${socio != null ? socio.nombre + ' ' + socio.apellido : (#authentication != null ? #authentication.name : 'Socio')},
                          data-socio-dni=${socio != null ? socio.dni : '—'},
                          data-socio-code=${socio != null ? '#SOC-00' + socio.id : '—'},
@@ -22,23 +24,23 @@
                          data-plan-estado=${membresia != null and membresia.estado != null ? membresia.estado.name() : 'INACTIVA'},
                          data-plan-vence=${membresia != null and membresia.fechaFin != null ? #temporals.format(membresia.fechaFin, 'dd/MM/yyyy') : '—'},
                          data-dias-restantes=${diasRestantes != null ? diasRestantes : 0}">
-            <i class="fa-solid fa-qrcode text-primary"></i> <span class="d-none d-sm-inline">MI PASE QR</span>
+            <i class="fa-solid fa-qrcode text-primary" aria-hidden="true"></i> <span class="d-none d-sm-inline">MI PASE QR</span>
         </button>
-        <a th:href="@{/cliente/notificaciones}" class="btn btn-outline py-2 px-3 position-relative">
-            <i class="fa-solid fa-bell"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-2xs">3</span>
+        <a th:href="@{/cliente/notificaciones}" class="btn btn-outline py-2 px-3 position-relative" aria-label="Ver notificaciones">
+            <i class="fa-solid fa-bell" aria-hidden="true"></i>
         </a>
         <div class="d-flex align-items-center gap-2 ps-2 border-start border-secondary">
-            <div class="rounded-circle bg-primary text-dark fw-bold d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 0.8rem;"
+            <div class="rounded-circle bg-primary text-dark fw-bold d-flex align-items-center justify-content-center"
+                 style="width: 34px; height: 34px; font-size: 0.8rem;" aria-hidden="true"
                  th:text="${socio != null ? #strings.substring(socio.nombre, 0, 1) + #strings.substring(socio.apellido, 0, 1) : 'EG'}">
-                CM
+                EG
             </div>
-            <div class="text-start">
+            <div class="d-none d-sm-block text-start">
                 <div class="text-uppercase font-anton text-light text-sm tracking-wide leading-none"
-                     th:text="${socio != null ? socio.nombre + ' ' + socio.apellido : #authentication.name}">CARLOS MENDOZA</div>
+                     th:text="${socio != null ? socio.nombre + ' ' + socio.apellido : (#authentication != null ? #authentication.name : 'SOCIO')}">SOCIO</div>
                 <small class="text-primary text-2xs fw-bold"
-                       th:text="${socio != null ? 'SOCIO #00' + socio.id : 'SOCIO ACTIVO'}">SOCIO #00490</small>
+                       th:text="${socio != null ? 'CLIENTE · #00' + socio.id : 'CLIENTE'}">CLIENTE</small>
             </div>
         </div>
     </div>
-</div>
+</header>

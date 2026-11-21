@@ -1,45 +1,48 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/fragments :: layout(~{::title}, 'planes', ~{::main})}">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:replace="~{admin/fragments :: layout(~{::title}, 'planes', ~{::main})}">
 <head><title>Planes y Membresías - Energy Gym</title></head>
 <body>
-<main class="admin-page">
+<main class="admin-page" id="main-content">
     <div class="page-header">
         <div>
             <small class="subtitle">GESTIONA PLANES Y ASIGNACIONES</small>
             <h1>PLANES Y MEMBRESÍAS</h1>
             <p>CATÁLOGO DE PLANES Y MEMBRESÍAS ASIGNADAS</p>
         </div>
-        <div class="d-flex gap-2">
-            <a th:href="@{/admin/membresias}" class="btn btn-outline">+ ASIGNAR MEMBRESÍA</a>
-            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoPlan">+ NUEVO PLAN</button>
+        <div class="d-flex flex-wrap gap-2">
+            <a th:href="@{/admin/membresias}" class="btn btn-outline">VER MEMBRESÍAS</a>
+            <button type="button" sec:authorize="hasRole('ADMINISTRACION')"
+                    class="btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoPlan">+ NUEVO PLAN</button>
+            <span sec:authorize="hasRole('RECEPCION')"
+                  class="badge bg-dark text-muted border border-secondary px-3 py-2 font-anton text-xs">MODO SOLO LECTURA</span>
         </div>
     </div>
 
     <!-- Flash Messages -->
     <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show bg-dark text-success border border-success mb-4" role="alert">
-        <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${mensajeExito}"></span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        <i class="fa-solid fa-circle-check me-2" aria-hidden="true"></i> <span th:text="${mensajeExito}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
     </div>
     <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show bg-dark text-danger border border-danger mb-4" role="alert">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${mensajeError}"></span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i> <span th:text="${mensajeError}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
     </div>
 
     <!-- Tab navigation -->
     <nav class="tab-navigation mb-4" aria-label="Planes y membresías">
-        <a class="active" th:href="@{/admin/planes}">CATÁLOGO DE PLANES</a>
+        <a class="active" aria-current="page" th:href="@{/admin/planes}">CATÁLOGO DE PLANES</a>
         <a th:href="@{/admin/membresias}">MEMBRESÍAS ASIGNADAS</a>
     </nav>
 
     <!-- Filters -->
     <div class="filters-bar">
         <div class="filter-group filter-large">
-            <label>BUSCAR PLAN</label>
-            <input type="text" class="table-search-input" placeholder="Buscar por nombre o descripción...">
+            <label for="buscarPlanInput">BUSCAR PLAN</label>
+            <input type="text" id="buscarPlanInput" class="table-search-input" placeholder="Buscar por nombre o descripción...">
         </div>
         <div class="filter-group">
-            <label>ESTADO</label>
-            <select class="table-filter-select" data-filter-col="4">
+            <label for="filtroEstadoPlan">ESTADO</label>
+            <select id="filtroEstadoPlan" class="table-filter-select" data-filter-col="4">
                 <option value="">TODOS LOS ESTADOS</option>
                 <option value="ACTIVO">ACTIVO</option>
                 <option value="INACTIVO">INACTIVO</option>
@@ -65,14 +68,14 @@
                 <td class="fw-bold" th:text="${plan.nombre}">Plan Básico</td>
                 <td class="text-primary fw-bold" th:text="${'S/ ' + #numbers.formatDecimal(plan.precio, 1, 2)}">S/ 79.00</td>
                 <td th:text="${plan.duracionDias + ' días'}">30 días</td>
-                <td th:text="${plan.descripcion != null and !#strings.isEmpty(plan.descripcion) ? plan.descripcion : 'Sin descripción'}">Acceso a áreas generales y pesas libres</td>
+                <td th:text="${plan.descripcion != null and !#strings.isEmpty(plan.descripcion) ? plan.descripcion : 'Sin descripción'}">Acceso a áreas generales</td>
                 <td>
                     <span th:class="${plan.activo ? '' : 'status-inactive'}"
                           th:text="${plan.activo ? 'ACTIVO' : 'INACTIVO'}">ACTIVO</span>
                 </td>
                 <td>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn-edit-row btn-edit-plan"
+                    <div sec:authorize="hasRole('ADMINISTRACION')" class="d-flex gap-2">
+                        <button type="button" class="btn-table-action btn-edit-plan"
                                 th:data-id="${plan.id}"
                                 th:data-nombre="${plan.nombre}"
                                 th:data-precio="${plan.precio}"
@@ -87,6 +90,7 @@
                                     th:text="${plan.activo ? 'DESACTIVAR' : 'ACTIVAR'}">DESACTIVAR</button>
                         </form>
                     </div>
+                    <span sec:authorize="hasRole('RECEPCION')" class="text-muted text-2xs fw-bold">SOLO LECTURA</span>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(planes)}">
@@ -97,36 +101,36 @@
     </div>
 
     <!-- Modal Nuevo / Editar Plan -->
-    <div class="modal fade" id="modalNuevoPlan" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalNuevoPlan" tabindex="-1" aria-labelledby="modalPlanTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content gym-modal">
                 <div class="modal-header">
                     <h5 class="modal-title font-anton text-primary tracking-wide" id="modalPlanTitle">GESTIONAR PLAN</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar ventana"></button>
                 </div>
                 <form th:action="@{/admin/planes/guardar}" method="post" id="formPlan">
                     <input type="hidden" id="planId" name="id">
                     <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label class="form-label">NOMBRE DEL PLAN</label>
+                            <label for="planNombre" class="form-label">NOMBRE DEL PLAN</label>
                             <input type="text" id="planNombre" name="nombre" class="form-control" placeholder="Ej. Plan Trimestral Pro" required>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
-                                <label class="form-label">PRECIO (S/)</label>
+                                <label for="planPrecio" class="form-label">PRECIO (S/)</label>
                                 <input type="number" id="planPrecio" name="precio" step="0.01" min="0" class="form-control" placeholder="Ej. 149.00" required>
                             </div>
                             <div class="col-6">
-                                <label class="form-label">DURACIÓN (DÍAS)</label>
+                                <label for="planDuracion" class="form-label">DURACIÓN (DÍAS)</label>
                                 <input type="number" id="planDuracion" name="duracionDias" min="1" class="form-control" placeholder="Ej. 30" required>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">BENEFICIOS / DESCRIPCIÓN</label>
+                            <label for="planDescripcion" class="form-label">BENEFICIOS / DESCRIPCIÓN</label>
                             <textarea id="planDescripcion" name="descripcion" class="form-control" rows="3" placeholder="Detalla las zonas de acceso, beneficios o promociones incluidas..."></textarea>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">ESTADO INICIAL</label>
+                            <label for="planActivo" class="form-label">ESTADO INICIAL</label>
                             <select id="planActivo" name="activo" class="form-select">
                                 <option value="true">ACTIVO (Visible para inscripciones)</option>
                                 <option value="false">INACTIVO (Oculto)</option>

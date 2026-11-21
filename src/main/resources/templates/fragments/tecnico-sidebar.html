@@ -1,0 +1,31 @@
+<aside th:fragment="sidebar(activeItem)" class="admin-sidebar" id="tecnicoSidebar" aria-label="Menú del gestor técnico">
+    <div class="p-4 border-bottom border-secondary d-flex align-items-center justify-content-between">
+        <a class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/tecnico/cuentas}">
+            <span class="text-primary fs-4" aria-hidden="true">⚡</span>
+            <div>
+                <div class="font-anton text-lg tracking-wide leading-none">ENERGY GYM</div>
+                <small class="text-primary text-2xs fw-bold tracking-wider">GESTOR TÉCNICO</small>
+            </div>
+        </a>
+        <button type="button" class="btn btn-sm btn-outline d-lg-none px-2 py-1" id="closeSidebarBtn" aria-label="Cerrar menú lateral">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <nav class="flex-grow-1 d-flex flex-column gap-1 px-3 py-3" aria-label="Gestión técnica de accesos">
+        <div class="text-muted text-2xs fw-bold px-3 py-1 tracking-wider">SEGURIDAD Y ACCESOS</div>
+        <a th:href="@{/tecnico/cuentas}"
+           th:class="'sidebar-link ' + (${activeItem == 'cuentas'} ? 'active' : '')"
+           th:attr="aria-current=${activeItem == 'cuentas' ? 'page' : null}">
+            <i class="fa-solid fa-users-gear" aria-hidden="true"></i> <span>CUENTAS Y ROLES</span>
+        </a>
+    </nav>
+
+    <div class="p-3 mt-auto border-top border-secondary">
+        <form th:action="@{/logout}" method="post" class="m-0 p-0">
+            <button type="submit" class="sidebar-link text-danger border-0 bg-transparent w-100 text-start" style="cursor: pointer;">
+                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> <span>CERRAR SESIÓN</span>
+            </button>
+        </form>
+    </div>
+</aside>

@@ -1,9 +1,9 @@
 /**
- * public/promociones.js - Energy Gym Promotions & Offers
- * Responsabilidad: Contador regresivo de ofertas y modal de canje de cupones con copiado.
+ * public/promociones.js - Energy Gym Promotions & Offers (DOM Seguro - C04)
+ * Responsabilidad: Contador regresivo de ofertas y modal de canje de cupones sin innerHTML.
  */
 
-import { openGymModal } from "../core/modal.js";
+import { openSafeGymModal, createDomElement, createIcon } from "../core/modal.js";
 import { showGymToast } from "../core/toast.js";
 
 export function initPromoCountdown() {
@@ -31,39 +31,44 @@ export function initPromoCoupons() {
             const code = this.getAttribute("data-promo-code") || "ENERGY";
             const desc = this.getAttribute("data-promo-desc") || "Descuento en planes y productos.";
 
-            openGymModal(
-                `<i class="fa-solid fa-ticket me-2"></i> ${title}`,
-                `<div>
-                    <p class="text-light text-sm mb-4">${desc}</p>
-                    <div class="p-3 rounded bg-elevated border border-secondary d-flex justify-content-between align-items-center mb-4">
-                        <div>
-                            <small class="text-muted text-2xs fw-bold d-block">CÓDIGO PROMOCIONAL</small>
-                            <span class="font-anton fs-4 text-primary tracking-wider">${code}</span>
-                        </div>
-                        <button type="button" class="btn btn-primary py-2 px-3 text-xs" id="btnCopyPromoCode" data-code="${code}">
-                            <i class="fa-regular fa-copy"></i> COPIAR CÓDIGO
-                        </button>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="/public/planes" class="btn btn-outline flex-grow-1">IR A PLANES</a>
-                        <button type="button" class="btn btn-primary flex-grow-1" data-bs-dismiss="modal">CERRAR</button>
-                    </div>
-                </div>`
+            const body = createDomElement("div");
+            body.appendChild(createDomElement("p", "text-light text-sm mb-4", desc));
+
+            const codeCard = createDomElement(
+                "div",
+                "p-3 rounded bg-elevated border border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4"
+            );
+            const codeInfo = createDomElement("div");
+            codeInfo.append(
+                createDomElement("small", "text-muted text-2xs fw-bold d-block", "CÓDIGO PROMOCIONAL"),
+                createDomElement("span", "font-anton fs-4 text-primary tracking-wider", code)
             );
 
-            setTimeout(() => {
-                const copyBtn = document.getElementById("btnCopyPromoCode");
-                if (copyBtn) {
-                    copyBtn.addEventListener("click", function () {
-                        const c = this.getAttribute("data-code");
-                        if (navigator.clipboard) {
-                            navigator.clipboard.writeText(c).catch(() => {});
-                        }
-                        this.innerHTML = `<i class="fa-solid fa-check"></i> ¡COPIADO!`;
-                        showGymToast(`Código ${c} copiado al portapapeles`, "fa-ticket");
-                    });
+            const copyBtn = createDomElement("button", "btn btn-primary py-2 px-3 text-xs");
+            copyBtn.type = "button";
+            copyBtn.id = "btnCopyPromoCode";
+            copyBtn.append(createIcon("fa-regular fa-copy me-1"), document.createTextNode("COPIAR CÓDIGO"));
+            copyBtn.addEventListener("click", function () {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(code).catch(() => {});
                 }
-            }, 50);
+                this.replaceChildren(createIcon("fa-solid fa-check me-1"), document.createTextNode("¡COPIADO!"));
+                showGymToast(`Código ${code} copiado al portapapeles`, "fa-ticket");
+            });
+
+            codeCard.append(codeInfo, copyBtn);
+
+            const actions = createDomElement("div", "d-flex flex-wrap gap-2");
+            const planesLink = createDomElement("a", "btn btn-outline flex-grow-1", "IR A PLANES");
+            planesLink.href = "/planes";
+            const closeBtn = createDomElement("button", "btn btn-primary flex-grow-1", "CERRAR");
+            closeBtn.type = "button";
+            closeBtn.setAttribute("data-bs-dismiss", "modal");
+            actions.append(planesLink, closeBtn);
+
+            body.append(codeCard, actions);
+
+            openSafeGymModal(title, body, "fa-solid fa-ticket text-primary me-2");
         });
     });
 }

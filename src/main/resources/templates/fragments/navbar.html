@@ -1,70 +1,81 @@
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-main fixed-top">
-    <div class="container-fluid px-4 px-lg-5">
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-main fixed-top" aria-label="Navegación principal">
+    <div class="container-fluid px-3 px-md-4 px-lg-5">
         <a class="navbar-brand text-light d-flex align-items-center font-anton" th:href="@{/inicio}">
-            <span class="text-primary me-2">⚡</span> ENERGY <span class="text-primary ms-1">GYM</span>
+            <span class="text-primary me-2" aria-hidden="true">⚡</span> ENERGY <span class="text-primary ms-1">GYM</span>
         </a>
-        <button class="navbar-toggler border-0 text-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <i class="fa-solid fa-bars fs-4 text-primary"></i>
+        <button class="navbar-toggler border-0 text-light" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir menú de navegación">
+            <i class="fa-solid fa-bars fs-4 text-primary" aria-hidden="true"></i>
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav align-items-lg-center gap-2 gap-lg-3 mt-3 mt-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage == 'inicio' ? 'active' : ''}" th:href="@{/inicio}">INICIO</a>
+                    <a class="nav-link" th:classappend="${activePage == 'inicio' ? 'active' : ''}"
+                       th:attr="aria-current=${activePage == 'inicio' ? 'page' : null}" th:href="@{/inicio}">INICIO</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage == 'planes' ? 'active' : ''}" th:href="@{/planes}">PLANES</a>
+                    <a class="nav-link" th:classappend="${activePage == 'planes' ? 'active' : ''}"
+                       th:attr="aria-current=${activePage == 'planes' ? 'page' : null}" th:href="@{/planes}">PLANES</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage == 'promociones' ? 'active' : ''}" th:href="@{/promociones}">PROMOCIONES</a>
+                    <a class="nav-link" th:classappend="${activePage == 'promociones' ? 'active' : ''}"
+                       th:attr="aria-current=${activePage == 'promociones' ? 'page' : null}" th:href="@{/promociones}">PROMOCIONES</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage == 'productos' ? 'active' : ''}" th:href="@{/productos}">PRODUCTOS</a>
+                    <a class="nav-link" th:classappend="${activePage == 'productos' ? 'active' : ''}"
+                       th:attr="aria-current=${activePage == 'productos' ? 'page' : null}" th:href="@{/productos}">PRODUCTOS</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${activePage == 'afluencia' ? 'active' : ''}" th:href="@{/afluencia}">
-                        <span class="pulse-dot me-1" style="width:7px;height:7px;"></span> AFLUENCIA
+                    <a class="nav-link" th:classappend="${activePage == 'afluencia' ? 'active' : ''}"
+                       th:attr="aria-current=${activePage == 'afluencia' ? 'page' : null}" th:href="@{/afluencia}">
+                        <span class="pulse-dot me-1" style="width:7px;height:7px;" aria-hidden="true"></span> AFLUENCIA
                     </a>
                 </li>
-                <!-- Si no está autenticado -->
+
+                <!-- Visitante anónimo -->
                 <li class="nav-item ms-lg-3" sec:authorize="isAnonymous()">
                     <a class="nav-link nav-btn-login" th:href="@{/login}">
-                        <i class="fa-solid fa-bolt me-1"></i> INICIAR SESIÓN
+                        <i class="fa-solid fa-bolt me-1" aria-hidden="true"></i> INICIAR SESIÓN
                     </a>
                 </li>
 
-                <!-- Si es Socio / Cliente autenticado -->
+                <!-- Rol 1: Cliente -->
                 <li class="nav-item ms-lg-3" sec:authorize="hasRole('CLIENTE')">
                     <a class="nav-link nav-btn-login" th:href="@{/cliente/mi-membresia}">
-                        <i class="fa-solid fa-id-card me-1"></i> MI PORTAL
+                        <i class="fa-solid fa-id-card me-1" aria-hidden="true"></i> MI PORTAL
                     </a>
                 </li>
 
-                <!-- Si es Administrador autenticado -->
-                <li class="nav-item ms-lg-3" sec:authorize="hasRole('ADMINISTRACION')">
-                    <a class="nav-link nav-btn-login" th:href="@{/admin/dashboard}">
-                        <i class="fa-solid fa-chart-pie me-1"></i> PANEL ADMIN
-                    </a>
-                </li>
-
-                <!-- Si es Recepción autenticado -->
+                <!-- Rol 2: Recepción -->
                 <li class="nav-item ms-lg-3" sec:authorize="hasRole('RECEPCION')">
                     <a class="nav-link nav-btn-login" th:href="@{/admin/socios}">
-                        <i class="fa-solid fa-users me-1"></i> RECEPCIÓN
+                        <i class="fa-solid fa-users me-1" aria-hidden="true"></i> RECEPCIÓN
                     </a>
                 </li>
 
-                <!-- Si es Gestor Técnico autenticado -->
+                <!-- Rol 3: Administración -->
+                <li class="nav-item ms-lg-3" sec:authorize="hasRole('ADMINISTRACION')">
+                    <a class="nav-link nav-btn-login" th:href="@{/admin/dashboard}">
+                        <i class="fa-solid fa-chart-pie me-1" aria-hidden="true"></i> PANEL ADMIN
+                    </a>
+                </li>
+
+                <!-- Rol 4: Gestor Técnico -->
                 <li class="nav-item ms-lg-3" sec:authorize="hasRole('GESTOR_TECNICO')">
                     <a class="nav-link nav-btn-login" th:href="@{/tecnico/cuentas}">
-                        <i class="fa-solid fa-users-gear me-1"></i> GESTOR TÉCNICO
+                        <i class="fa-solid fa-users-gear me-1" aria-hidden="true"></i> GESTOR TÉCNICO
                     </a>
                 </li>
 
-                <!-- Botón de Cerrar Sesión si está autenticado -->
+                <!-- Cerrar sesión autenticado -->
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link text-danger d-flex align-items-center gap-1" th:href="@{/logout}" title="Cerrar Sesión">
-                        <i class="fa-solid fa-right-from-bracket"></i> <span class="d-lg-none">SALIR</span>
-                    </a>
+                    <form th:action="@{/logout}" method="post" class="m-0 p-0 d-inline">
+                        <button type="submit" class="nav-link text-danger border-0 bg-transparent d-flex align-items-center gap-1"
+                                title="Cerrar sesión" aria-label="Cerrar sesión">
+                            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> <span class="d-lg-none">SALIR</span>
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>
