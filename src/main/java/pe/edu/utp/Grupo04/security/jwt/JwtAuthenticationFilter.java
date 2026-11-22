@@ -20,6 +20,7 @@ import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    public static final String JWT_VERIFICADO = JwtAuthenticationFilter.class.getName() + ".VERIFICADO";
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
@@ -101,6 +102,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     // Establecer autenticación por JWT para este request
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    request.setAttribute(JWT_VERIFICADO, true);
                 }
             } else {
                 SecurityContextHolder.clearContext();

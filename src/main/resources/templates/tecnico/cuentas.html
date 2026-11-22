@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cuentas y Roles - Gestor Técnico | Energy Gym</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <!-- Custom CSS -->
-    <link rel="stylesheet" th:href="@{/css/style.css?v=6}" href="/css/style.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="/css/style.css">
     <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
     <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
     <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
 </head>
@@ -50,10 +52,13 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="d-flex align-items-center gap-2 text-xs text-muted">
                     <span class="pulse-dot"></span>
-                    <span>PANEL TÉCNICO AISLADO — SIN ACCESO A NEGOCIO</span>
+                    <span>GESTIÓN TÉCNICA</span>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-3">
+                <form th:action="@{/logout}" method="post" class="d-lg-none">
+                    <button type="submit" class="btn btn-sm btn-outline">Cerrar sesión</button>
+                </form>
                 <div class="text-end d-none d-sm-block">
                     <div class="font-anton text-light text-xs tracking-wide leading-none" th:text="${#authentication.name}">GESTOR_TECNICO</div>
                     <small class="text-primary text-2xs fw-bold">GESTOR TÉCNICO</small>
@@ -61,20 +66,20 @@
             </div>
         </header>
 
-        <div class="admin-content p-4">
+        <main class="admin-content p-3 p-md-4">
             <div class="mb-4">
-                <h2 class="font-anton text-light mb-1">GESTIÓN DE CUENTAS INTERNAS Y ROLES</h2>
-                <p class="text-muted text-sm">Control de acceso basado en roles (RBAC) para el personal de Energy Gym: Recepción, Administración y Gestor Técnico.</p>
+                <h1 class="font-anton text-light mb-1">Cuentas y roles</h1>
+                <p class="text-muted text-sm">Gestiona las cuentas del personal de Energy Gym.</p>
             </div>
 
             <!-- Alertas -->
-            <div th:if="${exito}" class="alert alert-success alert-dismissible fade show border-0 py-3" style="background-color: rgba(0, 230, 118, 0.15); color: #00e676;" role="alert">
+            <div th:if="${exito}" class="alert alert-success alert-dismissible fade show border-0 py-3" style="background-color: rgba(0, 230, 118, 0.15); color: #00e676;" role="status">
                 <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${exito}"></span>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
             </div>
             <div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 py-3" style="background-color: rgba(255, 51, 102, 0.15); color: #ff3366;" role="alert">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${error}"></span>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
             </div>
 
             <!-- Fila de Alta y Tabla -->
@@ -82,27 +87,33 @@
                 <!-- Formulario de Alta de Cuenta Interna -->
                 <div class="col-lg-4">
                     <div class="card p-4 h-100" style="background: #121721; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
-                        <h5 class="font-anton text-light mb-3">CREAR CUENTA INTERNA</h5>
-                        <p class="text-muted text-xs mb-3">Aprovisiona cuentas para colaboradores internos. Solo roles autorizados (sin CLIENTE).</p>
+                        <h2 class="font-anton fs-5 text-light mb-3">Crear cuenta interna</h2>
 
                         <form th:action="@{/tecnico/cuentas/crear}" th:object="${cuentaDTO}" method="post">
                             <div class="mb-3">
-                                <label for="username" class="form-label text-xs fw-bold text-muted">CORREO INSTITUCIONAL / USUARIO</label>
-                                <input type="email" class="form-control form-control-sm bg-dark text-light border-secondary" id="username" th:field="*{username}" placeholder="usuario@energygym.pe" required>
-                                <small class="text-danger text-2xs" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
+                                <label for="username" class="form-label text-xs fw-bold text-muted">Correo electrónico</label>
+                                <input type="email" class="form-control form-control-sm bg-dark text-light border-secondary" id="username" th:field="*{username}" autocomplete="off" maxlength="100" required
+                                       th:attr="aria-invalid=${#fields.hasErrors('username')},aria-describedby=${#fields.hasErrors('username') ? 'correoError' : null}">
+                                <small id="correoError" class="text-danger text-2xs" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
                             </div>
 
                             <div class="mb-3">
-                                <label for="password" class="form-label text-xs fw-bold text-muted">CONTRASEÑA TEMPORAL</label>
-                                <input type="password" class="form-control form-control-sm bg-dark text-light border-secondary" id="password" th:field="*{password}" placeholder="Mínimo 6 caracteres" required>
-                                <small class="text-danger text-2xs" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+                                <label for="password" class="form-label text-xs fw-bold text-muted">Contraseña</label>
+                                <input type="password" class="form-control form-control-sm bg-dark text-light border-secondary" id="password" name="password"
+                                       minlength="6" maxlength="50" autocomplete="new-password" required
+                                       th:attr="aria-invalid=${#fields.hasErrors('password')},aria-describedby=${#fields.hasErrors('password') ? 'passwordError' : 'passwordAyuda'}">
+                                <small id="passwordAyuda" class="text-muted text-2xs">Entre 6 y 50 caracteres.</small>
+                                <small id="passwordError" class="text-danger text-2xs d-block" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
                             </div>
 
                             <div class="mb-4">
-                                <label for="rol" class="form-label text-xs fw-bold text-muted">ROL ASIGNADO</label>
-                                <select class="form-select form-select-sm bg-dark text-light border-secondary" id="rol" th:field="*{rol}" required>
-                                    <option th:each="r : ${rolesDisponibles}" th:value="${r}" th:text="${r}"></option>
+                                <label for="rol" class="form-label text-xs fw-bold text-muted">Rol asignado</label>
+                                <select class="form-select form-select-sm bg-dark text-light border-secondary" id="rol" th:field="*{rol}" required
+                                        th:attr="aria-invalid=${#fields.hasErrors('rol')},aria-describedby=${#fields.hasErrors('rol') ? 'rolError' : null}">
+                                    <option value="">Selecciona un rol</option>
+                                    <option th:each="r : ${rolesDisponibles}" th:value="${r}" th:text="${r.etiqueta}"></option>
                                 </select>
+                                <small id="rolError" class="text-danger text-2xs" th:if="${#fields.hasErrors('rol')}" th:errors="*{rol}"></small>
                             </div>
 
                             <button type="submit" class="btn btn-primary w-100 py-2 font-anton text-xs tracking-wider">
@@ -115,7 +126,7 @@
                 <!-- Tabla de Cuentas Internas -->
                 <div class="col-lg-8">
                     <div class="card p-4 h-100" style="background: #121721; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
-                        <h5 class="font-anton text-light mb-3">CUENTAS INTERNAS ACTIVAS E INACTIVAS</h5>
+                        <h2 class="font-anton fs-5 text-light mb-3">Cuentas internas</h2>
                         <div class="table-responsive">
                             <table class="table table-dark table-hover align-middle mb-0" style="font-size: 0.85rem;">
                                 <thead>
@@ -134,12 +145,14 @@
                                             <span class="fw-bold text-light" th:text="${u.username}">admin@energygym.pe</span>
                                         </td>
                                         <td>
-                                            <form th:action="@{'/tecnico/cuentas/' + ${u.id} + '/cambiar-rol'}" method="post" class="d-flex align-items-center gap-1">
-                                                <select name="rol" class="form-select form-select-sm bg-dark text-light border-secondary py-0" style="font-size: 0.75rem; width: 140px;">
-                                                    <option th:each="r : ${rolesDisponibles}" th:value="${r}" th:text="${r}" th:selected="${r == u.rol}"></option>
+                                            <span th:if="${u.username == #authentication.name}" th:text="${u.rol.etiqueta}"></span>
+                                            <form th:unless="${u.username == #authentication.name}" th:action="@{'/tecnico/cuentas/' + ${u.id} + '/cambiar-rol'}" method="post" class="d-flex align-items-center gap-1">
+                                                <select name="rol" class="form-select form-select-sm bg-dark text-light border-secondary py-0" style="font-size: 0.75rem; width: 140px;"
+                                                        th:attr="aria-label=${'Rol de ' + u.username}">
+                                                    <option th:each="r : ${rolesDisponibles}" th:value="${r}" th:text="${r.etiqueta}" th:selected="${r == u.rol}"></option>
                                                 </select>
-                                                <button type="submit" class="btn btn-sm btn-outline px-2 py-1 text-2xs" title="Guardar Rol">
-                                                    <i class="fa-solid fa-floppy-disk"></i>
+                                                <button type="submit" class="btn btn-sm btn-outline px-2 py-1 text-2xs" th:attr="aria-label=${'Guardar rol de ' + u.username}">
+                                                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
                                                 </button>
                                             </form>
                                         </td>
@@ -148,7 +161,8 @@
                                             <span th:unless="${u.activo}" class="badge bg-danger text-light fw-bold text-2xs">INACTIVO</span>
                                         </td>
                                         <td class="text-end">
-                                            <form th:action="@{'/tecnico/cuentas/' + ${u.id} + '/alternar-estado'}" method="post" class="d-inline">
+                                            <span th:if="${u.username == #authentication.name}" class="text-muted">Tu cuenta</span>
+                                            <form th:unless="${u.username == #authentication.name}" th:action="@{'/tecnico/cuentas/' + ${u.id} + '/alternar-estado'}" method="post" class="d-inline">
                                                 <button type="submit" class="btn btn-sm"
                                                         th:classappend="${u.activo} ? 'btn-outline-danger' : 'btn-outline-success'"
                                                         th:text="${u.activo} ? 'DESACTIVAR' : 'ACTIVAR'"
@@ -163,14 +177,19 @@
                                 </tbody>
                             </table>
                         </div>
+                        <nav th:if="${paginaCuentas.hasPrevious() or paginaCuentas.hasNext()}" class="mt-3 d-flex gap-2 align-items-center" aria-label="Páginas de cuentas">
+                            <a th:if="${paginaCuentas.hasPrevious()}" th:href="@{/tecnico/cuentas(pagina=${paginaCuentas.number - 1})}" class="btn btn-sm btn-outline">Anterior</a>
+                            <span class="text-muted small" th:text="${'Página ' + (paginaCuentas.number + 1)}"></span>
+                            <a th:if="${paginaCuentas.hasNext()}" th:href="@{/tecnico/cuentas(pagina=${paginaCuentas.number + 1})}" class="btn btn-sm btn-outline">Siguiente</a>
+                        </nav>
                     </div>
                 </div>
             </div>
 
             <!-- Registro de Auditoría de Identidad -->
             <div class="card p-4" style="background: #121721; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
-                <h5 class="font-anton text-light mb-2">BITÁCORA DE AUDITORÍA DE SEGURIDAD (TRAZABILIDAD)</h5>
-                <p class="text-muted text-xs mb-3">Registro inmutable de creación de cuentas, cambios de privilegios y desactivación de accesos.</p>
+                <h2 class="font-anton fs-5 text-light mb-2">Actividad de cuentas</h2>
+                <p class="text-muted text-xs mb-3">Últimos 50 movimientos de cuentas, roles y accesos.</p>
                 <div class="table-responsive">
                     <table class="table table-dark table-sm table-striped align-middle mb-0" style="font-size: 0.8rem;">
                         <thead>
@@ -200,10 +219,11 @@
                 </div>
             </div>
 
-        </div>
+        </main>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 </body>
 </html>

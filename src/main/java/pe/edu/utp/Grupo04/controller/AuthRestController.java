@@ -5,9 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.edu.utp.Grupo04.dto.AuthRequestDTO;
 import pe.edu.utp.Grupo04.dto.AuthResponseDTO;
 import pe.edu.utp.Grupo04.security.SecurityTokenRevocationManager;
+import pe.edu.utp.Grupo04.security.ApiSecurityError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pe.edu.utp.Grupo04.security.jwt.JwtService;
 
 import java.util.HashMap;
@@ -26,6 +30,7 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthRestController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AuthRestController.class);
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final SecurityTokenRevocationManager revocationManager;
@@ -58,23 +63,23 @@ public class AuthRestController {
             String token = jwtService.generarToken(authentication.getName(), rol, tokenVersion);
 
             return ResponseEntity.ok(new AuthResponseDTO(token, authentication.getName(), rol, jwtExpirationMs));
-        } catch (BadCredentialsException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Credenciales incorrectas.");
-            error.put("mensaje", "El usuario o la contraseña proporcionados no son válidos.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Error de autenticación.");
-            error.put("mensaje", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        } catch (InternalAuthenticationServiceException e) {
+            LOG.warn("Servicio de autenticación no disponible", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
+                    new ApiSecurityError("SERVICE_UNAVAILABLE", "El inicio de sesión no está disponible en este momento."));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiSecurityError.CREDENTIALS);
+        } catch (RuntimeException e) {
+            LOG.error("Error al generar el token de acceso", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ApiSecurityError("INTERNAL_SERVER_ERROR", "No se pudo completar el inicio de sesión."));
         }
     }
 
     @GetMapping("/me")
     public ResponseEntity<?> obtenerUsuarioAutenticado(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiSecurityError.UNAUTHORIZED);
         }
 
         Map<String, Object> respuesta = new HashMap<>();

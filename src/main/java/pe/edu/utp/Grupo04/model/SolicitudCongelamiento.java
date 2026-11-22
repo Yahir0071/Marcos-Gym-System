@@ -45,4 +45,8 @@ public class SolicitudCongelamiento {
 
     @Column(nullable = false)
     private LocalDateTime fechaSolicitud = LocalDateTime.now();
+
+    private LocalDateTime fechaResolucion;
+
+    private String resueltoPor;
 }

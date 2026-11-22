@@ -7,22 +7,26 @@ import { postJson } from "../core/api-client.js";
 import { openSafeGymModal, createDomElement, createIcon } from "../core/modal.js";
 import { showGymToast } from "../core/toast.js";
 
-export async function saveProductReservation(productName, price, qty, productId = 1) {
-    let code = null;
-
+async function saveProductReservation(button, qty) {
+    const productId = Number(button.dataset.id);
+    if (button.disabled || !Number.isSafeInteger(productId) || productId < 1 || !Number.isSafeInteger(qty) || qty < 1) return;
+    button.disabled = true;
+    let data;
     try {
         const resp = await postJson("/api/reservas", { productoId: productId, cantidad: qty });
-        const data = await resp.json().catch(() => ({}));
-        if (!resp.ok || resp.redirected) {
-            const errMsg = data.error || data.mensaje || "No se pudo registrar la reserva. Inicia sesión e inténtalo nuevamente.";
+        data = await resp.json().catch(() => ({}));
+        if (!resp.ok || resp.redirected || !data.success || !data.code) {
+            const errMsg = data.error || data.mensaje || "No se pudo confirmar la reserva. Verifica que tu sesión siga activa.";
             showGymToast(errMsg, "fa-circle-exclamation", "error");
             return;
         }
-        code = data.code || `#RES-${String(data.id || "").padStart(5, "0")}`;
     } catch {
-        showGymToast("Error de conexión con el servidor. No se registró la reserva.", "fa-circle-exclamation", "error");
+        showGymToast("Se perdió la conexión. Revisa Mis reservas antes de volver a intentar.", "fa-circle-exclamation", "error");
         return;
+    } finally {
+        button.disabled = false;
     }
+    const { code, producto: productName, cantidad, total } = data;
 
     const sidebarCount = document.getElementById("sidebarReservaCount");
     if (sidebarCount) {
@@ -33,7 +37,18 @@ export async function saveProductReservation(productName, price, qty, productId 
     const detailStockEl = document.getElementById("detailStockCount");
     if (detailStockEl) {
         const currentStock = parseInt(detailStockEl.textContent, 10) || 0;
-        detailStockEl.textContent = String(Math.max(0, currentStock - qty));
+        const stock = Math.max(0, currentStock - cantidad);
+        detailStockEl.textContent = String(stock);
+        const qtyInput = document.getElementById("detailQtyInput");
+        if (qtyInput) {
+            qtyInput.max = String(stock);
+            qtyInput.value = String(Math.min(Number(qtyInput.value), stock));
+            qtyInput.dispatchEvent(new Event("change"));
+        }
+        if (stock === 0) {
+            button.disabled = true;
+            document.getElementById("btnAddToCartDetail")?.classList.add("d-none");
+        }
     }
 
     const cardBtn = document.querySelector(`.btn-quick-reserve[data-id="${productId}"]`);
@@ -42,7 +57,7 @@ export async function saveProductReservation(productName, price, qty, productId 
         const badge = card?.querySelector(".product-stock-badge");
         if (badge) {
             const currentStock = parseInt(badge.getAttribute("data-stock") || "0", 10);
-            const nextStock = Math.max(0, currentStock - qty);
+            const nextStock = Math.max(0, currentStock - cantidad);
             badge.setAttribute("data-stock", String(nextStock));
             if (nextStock > 5) {
                 badge.className = "badge text-success border border-success bg-transparent tracking-wide text-2xs product-stock-badge";
@@ -54,6 +69,8 @@ export async function saveProductReservation(productName, price, qty, productId 
                 badge.className = "badge text-danger border border-danger bg-transparent tracking-wide text-2xs product-stock-badge";
                 badge.textContent = "AGOTADO";
                 cardBtn.disabled = true;
+                const add = card.querySelector(".btn-quick-add-cart");
+                if (add) add.disabled = true;
             }
         }
     }
@@ -66,9 +83,9 @@ export async function saveProductReservation(productName, price, qty, productId 
     const summaryEl = createDomElement("p", "text-muted text-xs mb-3");
     summaryEl.append(
         document.createTextNode("Cantidad reservada: "),
-        createDomElement("strong", "", `${qty} unidad(es)`),
-        document.createTextNode(" · Total a abonar en sede: "),
-        createDomElement("strong", "text-primary", `S/ ${(Number(price) * Number(qty)).toFixed(2)}`)
+        createDomElement("strong", "", `${cantidad} unidad(es)`),
+        document.createTextNode(" · Importe estimado en recepción: "),
+        createDomElement("strong", "text-primary", `S/ ${Number(total).toFixed(2)}`)
     );
 
     const codeBox = createDomElement("div", "p-3 rounded bg-elevated border border-primary mb-3");
@@ -87,7 +104,7 @@ export async function saveProductReservation(productName, price, qty, productId 
 
     body.append(checkIcon, titleEl, summaryEl, codeBox, btnRow);
 
-    openSafeGymModal("¡RESERVA CONFIRMADA!", body, "fa-solid fa-bag-shopping text-primary me-2");
+    openSafeGymModal("Reserva registrada", body, "fa-solid fa-bag-shopping text-primary me-2");
     showGymToast(`Reserva ${code} creada para ${productName}`, "fa-bag-shopping");
 }
 
@@ -156,7 +173,7 @@ export function initProductCatalog() {
             const name = (card.getAttribute("data-name") || "").toLowerCase();
             const cat = (card.getAttribute("data-category") || "").toUpperCase();
             const matchesSearch = !query || name.includes(query) || cat.toLowerCase().includes(query);
-            const matchesCat = activeCategory === "ALL" || cat.includes(activeCategory);
+            const matchesCat = activeCategory === "ALL" || cat === activeCategory;
 
             if (matchesSearch && matchesCat) {
                 card.classList.remove("d-none");
@@ -201,12 +218,7 @@ export function initProductCatalog() {
     });
 
     document.querySelectorAll(".btn-quick-reserve").forEach((btn) => {
-        btn.addEventListener("click", function () {
-            const prod = this.getAttribute("data-product") || "Producto";
-            const price = parseFloat(this.getAttribute("data-price")) || 0;
-            const id = this.getAttribute("data-id") || 1;
-            saveProductReservation(prod, price, 1, id);
-        });
+        btn.addEventListener("click", () => saveProductReservation(btn, 1));
     });
 }
 
@@ -241,10 +253,11 @@ export function initProductDetail() {
 
     if (qtyInput && unitPriceEl && totalPriceEl) {
         const updateSubtotal = () => {
-            const unit = parseFloat(unitPriceEl.getAttribute("data-unit-price")) || 149;
-            const qty = parseInt(qtyInput.value, 10) || 1;
-            totalPriceEl.textContent = `S/ ${Math.round(unit * qty)}`;
+            const unit = Number(unitPriceEl.dataset.unitPrice);
+            const qty = Number(qtyInput.value);
+            totalPriceEl.textContent = `S/ ${(unit * qty).toFixed(2)}`;
         };
+        qtyInput.addEventListener("change", updateSubtotal);
         if (btnQtyMinus) {
             btnQtyMinus.addEventListener("click", () => {
                 const v = parseInt(qtyInput.value, 10) || 1;
@@ -257,20 +270,14 @@ export function initProductDetail() {
         if (btnQtyPlus) {
             btnQtyPlus.addEventListener("click", () => {
                 const v = parseInt(qtyInput.value, 10) || 1;
-                if (v < 10) {
+                if (v < Number(qtyInput.max)) {
                     qtyInput.value = String(v + 1);
                     updateSubtotal();
                 }
             });
         }
         if (btnConfirmReserve) {
-            btnConfirmReserve.addEventListener("click", function () {
-                const name = document.getElementById("detailName") ? document.getElementById("detailName").textContent.trim() : "Producto";
-                const unit = parseFloat(unitPriceEl.getAttribute("data-unit-price")) || 0;
-                const qty = parseInt(qtyInput.value, 10) || 1;
-                const id = this.getAttribute("data-id") || 1;
-                saveProductReservation(name, unit, qty, id);
-            });
+            btnConfirmReserve.addEventListener("click", () => saveProductReservation(btnConfirmReserve, Number(qtyInput.value)));
         }
     }
 }

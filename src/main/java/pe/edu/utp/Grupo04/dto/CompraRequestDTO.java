@@ -22,6 +22,9 @@ public class CompraRequestDTO {
 
     private Long planId; // Obligatorio si tipoConcepto == "MEMBRESIA"
 
+    @Size(max = 15, message = "Periodo de membresía no válido")
+    private String periodo;
+
     private Long reservaId; // Opcional: si el pago liquida una reserva previa
 
     // Identificador único del intento de compra (UUID generado por el navegador).
@@ -36,11 +39,11 @@ public class CompraRequestDTO {
     private String buyerDocNum;
     private String buyerEmail;
 
-    @Pattern(regexp = "^(VISA|MASTERCARD|AMEX)?$", message = "Marca de tarjeta no válida")
-    private String cardBrand = "VISA";
+    @Pattern(regexp = "^(SIMULADO|VISA|MASTERCARD|AMEX)?$", message = "Medio de pago no válido")
+    private String cardBrand;
 
     @Pattern(regexp = "^(\\d{4})?$", message = "Los últimos 4 dígitos no son válidos")
-    private String cardLast4 = "4242";
+    private String cardLast4;
 
     private String estado = "PAGADO"; // PAGADO, EN_PROCESO, RECHAZADO, CANCELADO
 

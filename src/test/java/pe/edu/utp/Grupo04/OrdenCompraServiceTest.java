@@ -115,7 +115,9 @@ public class OrdenCompraServiceTest {
         assertEquals(298.00, ((Number) orden.get("total")).doubleValue());
         assertNotNull(orden.get("base"));
         assertNotNull(orden.get("igv"));
-        assertEquals("SIMULACIÓN ACADÉMICA — SIN VALIDEZ TRIBUTARIA", orden.get("leyendaLegal"));
+        assertEquals("Documento interno sin validez tributaria.", orden.get("leyendaLegal"));
+        assertEquals("SIMULADO", orden.get("cardBrand"));
+        assertNull(orden.get("cardLast4"));
 
         verify(productoService, times(1)).descontarStock(eq(1L), eq(2));
     }
@@ -142,7 +144,29 @@ public class OrdenCompraServiceTest {
         assertEquals("ACTIVADA", orden.get("estadoEntrega"));
         assertEquals(119.00, ((Number) orden.get("total")).doubleValue());
 
-        verify(membresiaService, times(1)).asignarPlanASocio(eq(10L), eq(2L), any(LocalDate.class));
+        verify(membresiaService, times(1)).asignarPlanASocio(eq(10L), eq(2L), any(LocalDate.class),
+                eq("MENSUAL"), eq(1));
+    }
+
+    @Test
+    @DisplayName("Renueva por el periodo anual seleccionado con el precio calculado por el servidor")
+    void registrarRenovacionAnual() {
+        when(socioService.buscarPorUsername("carlos")).thenReturn(Optional.of(socioPrueba));
+        when(planService.buscarPorId(2L)).thenReturn(Optional.of(planPrueba));
+        planPrueba.setPrecio(119.05);
+
+        CompraRequestDTO req = new CompraRequestDTO();
+        req.setTipoConcepto("MEMBRESIA");
+        req.setPlanId(2L);
+        req.setPeriodo("ANUAL");
+
+        Map<String, Object> orden = ordenCompraService.registrarCompra(req, "carlos");
+
+        assertEquals(1142.88, ((Number) orden.get("total")).doubleValue());
+        assertEquals("ANUAL", orden.get("periodoMembresia"));
+        verify(membresiaService).asignarPlanASocio(eq(10L), eq(2L), any(LocalDate.class),
+                eq("ANUAL"), eq(12));
+        verifyNoInteractions(productoService);
     }
 
     @Test

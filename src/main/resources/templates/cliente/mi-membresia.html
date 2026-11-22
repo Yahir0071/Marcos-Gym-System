@@ -10,15 +10,18 @@
                 <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
                     <div>
                         <div class="section-subtitle has-line mb-2">TU PROGRESO CONTINÚA</div>
-                        <h1 class="display-3 font-anton leading-none mb-1 text-light">PLAN <span class="text-primary" id="memberPlanTitle" th:text="${membresia != null and membresia.plan != null ? membresia.plan.nombre.toUpperCase() : 'SIN PLAN ACTIVO'}">SIN PLAN ACTIVO</span></h1>
+                        <h1 class="display-3 font-anton leading-none mb-1 text-light">
+                            <span class="text-primary" id="memberPlanTitle"
+                                  th:text="${membresia != null and membresia.plan != null ? membresia.plan.nombre.toUpperCase() : 'SIN PLAN ACTIVO'}">SIN PLAN ACTIVO</span>
+                        </h1>
                         <p class="font-anton text-muted m-0 tracking-wide text-md">ENTRENA MÁS, CONSIGUE MÁS.</p>
                     </div>
                     <div class="d-flex align-items-center flex-wrap gap-2">
                         <span class="badge font-anton px-4 py-2 text-xs tracking-wide"
-                              th:style="${membresia != null and membresia.estado != null and membresia.estado.name() == 'ACTIVA'} ? 'background-color: var(--accent-success); color: #000;' : 'background-color: #ff3366; color: #fff;'"
-                              th:text="${membresia != null and membresia.estado != null ? membresia.estado.name() : 'INACTIVA'}">INACTIVA</span>
+                              th:classappend="${membresiaCongelada == true ? 'text-bg-warning' : (membresia != null ? 'text-bg-success' : 'text-bg-danger')}"
+                              th:text="${membresiaCongelada == true ? 'EN PAUSA' : (membresia != null and membresia.estado != null ? membresia.estado.name() : 'INACTIVA')}">INACTIVA</span>
                         <button type="button" class="btn btn-outline py-2 px-3 text-xs btn-open-qr-pass" id="btnPageQrPass">
-                            <i class="fa-solid fa-qrcode text-primary" aria-hidden="true"></i> VER MI PASE QR
+                            <i class="fa-solid fa-qrcode text-primary" aria-hidden="true"></i> VER MI CARNET
                         </button>
                         <button type="button" class="btn btn-primary py-2 px-3 text-xs" id="btnCheckinToday">
                             <i class="fa-solid fa-fire-flame-curved" aria-hidden="true"></i> REGISTRAR ENTRENO DE HOY
@@ -96,6 +99,7 @@
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
                             <h6 class="font-anton m-0">BENEFICIOS DE TU PLAN <span th:text="${membresia != null ? membresia.plan.nombre : 'ENERGY'}">ENERGY</span></h6>
                             <button type="button" class="btn btn-outline py-1 px-3 text-2xs" id="btnSolicitarCongelamiento"
+                                    th:attr="data-fecha-minima=${fechaMinimaPausa}"
                                     th:disabled="${membresia == null or membresia.estado == null or membresia.estado.name() != 'ACTIVA'}">
                                 <i class="fa-regular fa-snowflake text-info" aria-hidden="true"></i> SOLICITAR CONGELAMIENTO
                             </button>

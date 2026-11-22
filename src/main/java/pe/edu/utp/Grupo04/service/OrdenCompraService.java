@@ -1,5 +1,7 @@
 package pe.edu.utp.Grupo04.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import pe.edu.utp.Grupo04.dto.CompraRequestDTO;
 
 import java.util.List;
@@ -23,6 +25,10 @@ public interface OrdenCompraService {
     Optional<Map<String, Object>> buscarPorCodigoYPropietario(String codigo, String username);
 
     List<Map<String, Object>> listarTodas();
+
+    Page<Map<String, Object>> listarPagina(Pageable pageable);
+
+    Page<Map<String, Object>> listarPaginaPorCliente(String filtro, Pageable pageable);
 
     /** Filtro libre por correo, DNI o nombre (uso administrativo). */
     List<Map<String, Object>> listarPorCliente(String filtro);

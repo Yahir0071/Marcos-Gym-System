@@ -36,7 +36,7 @@
             </div>
             <span>INGRESOS DEL MES</span>
             <small class="text-muted text-2xs mt-2"
-                   th:text="${metricas != null and metricas['tienePagosMes'] == true ? ('Periodo: ' + metricas['periodoMesLabel'] + ' (registro académico)') : ('Sin pagos registrados en ' + (metricas != null and metricas['periodoMesLabel'] != null ? metricas['periodoMesLabel'] : 'este mes'))}">
+                   th:text="${metricas != null and metricas['tienePagosMes'] == true ? ('Periodo: ' + metricas['periodoMesLabel']) : ('Sin pagos registrados en ' + (metricas != null and metricas['periodoMesLabel'] != null ? metricas['periodoMesLabel'] : 'este mes'))}">
                 Sin pagos registrados en este mes
             </small>
         </div>

@@ -11,11 +11,16 @@ import pe.edu.utp.Grupo04.repository.MembresiaRepository;
 import pe.edu.utp.Grupo04.repository.PlanRepository;
 import pe.edu.utp.Grupo04.repository.SocioRepository;
 import pe.edu.utp.Grupo04.service.MembresiaService;
+import pe.edu.utp.Grupo04.service.TarifaInscripcion;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,20 +59,13 @@ public class MembresiaServiceImpl implements MembresiaService {
         }
 
         List<Membresia> membresias = membresiaRepository.findBySocioId(socioOpt.get().getId());
-        LocalDate hoy = LocalDate.now();
-
-        // Actualizar estados si alguna fecha venció
-        for (Membresia m : membresias) {
-            if (m.getFechaFin() != null && m.getFechaFin().isBefore(hoy) && m.getEstado() == EstadoMembresia.ACTIVA) {
-                m.setEstado(EstadoMembresia.VENCIDA);
-                membresiaRepository.save(m);
-            }
-        }
+        LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
+        actualizarVigencias(membresias, hoy);
 
         // Retornar la primera membresía activa más reciente
         return membresias.stream()
                 .filter(m -> m.getEstado() == EstadoMembresia.ACTIVA && m.getFechaFin() != null && !m.getFechaFin().isBefore(hoy))
-                .findFirst();
+                .max(Comparator.comparing(Membresia::getFechaFin));
     }
 
     @Override
@@ -75,6 +73,23 @@ public class MembresiaServiceImpl implements MembresiaService {
     public Optional<Membresia> buscarPorId(Long id) {
         if (id == null) return Optional.empty();
         return membresiaRepository.findById(id);
+    }
+
+    @Override
+    public Membresia crearPreinscripcion(Socio socio, Plan plan, TarifaInscripcion tarifa) {
+        LocalDateTime ahora = LocalDateTime.now(TarifaInscripcion.ZONA_LIMA);
+        int dias = plan.getDuracionDias() != null && plan.getDuracionDias() > 0 ? plan.getDuracionDias() : 30;
+        Membresia membresia = new Membresia();
+        membresia.setSocio(socio);
+        membresia.setPlan(plan);
+        membresia.setEstado(EstadoMembresia.PENDIENTE);
+        membresia.setFechaInicio(ahora.toLocalDate());
+        membresia.setFechaFin(tarifa.fechaFin(ahora.toLocalDate(), dias));
+        membresia.setCodigoPreinscripcion("INS-" + UUID.randomUUID().toString().toUpperCase(Locale.ROOT));
+        membresia.setPreinscripcionVence(ahora.plusHours(72));
+        membresia.setMontoReservado(tarifa.total());
+        membresia.setPeriodoReservado(tarifa.periodo());
+        return membresiaRepository.save(membresia);
     }
 
     @Override
@@ -90,20 +105,18 @@ public class MembresiaServiceImpl implements MembresiaService {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Plan no encontrado con ID: " + planId));
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
         LocalDate inicio = (fechaInicio != null) ? fechaInicio : hoy;
 
         // C09: Considerar renovación sobre membresía activa existente sin perder vigencia
         List<Membresia> existentes = membresiaRepository.findBySocioId(socioId);
-        Optional<Membresia> activaOpt = existentes.stream()
-                .filter(m -> m.getEstado() == EstadoMembresia.ACTIVA && m.getFechaFin() != null && !m.getFechaFin().isBefore(hoy))
-                .findFirst();
-
-        if (activaOpt.isPresent()) {
-            LocalDate finActual = activaOpt.get().getFechaFin();
-            if (finActual.isAfter(inicio) || finActual.isEqual(inicio)) {
-                inicio = finActual.plusDays(1);
-            }
+        Optional<LocalDate> ultimaVigencia = existentes.stream()
+                .filter(m -> m.getEstado() == EstadoMembresia.ACTIVA || esProgramada(m))
+                .map(Membresia::getFechaFin)
+                .filter(fin -> fin != null && !fin.isBefore(hoy))
+                .max(LocalDate::compareTo);
+        if (ultimaVigencia.isPresent() && !ultimaVigencia.get().isBefore(inicio)) {
+            inicio = ultimaVigencia.get().plusDays(1);
         }
 
         // C09: Cálculo de vigencia contratada (ANUAL = 12 meses / 1 año)
@@ -143,7 +156,7 @@ public class MembresiaServiceImpl implements MembresiaService {
         if (membresia == null || membresia.getFechaFin() == null) {
             return 0;
         }
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
         if (membresia.getFechaFin().isBefore(hoy)) {
             return 0;
         }
@@ -175,13 +188,28 @@ public class MembresiaServiceImpl implements MembresiaService {
 
     @Override
     public void sincronizarEstadosVencimiento() {
-        LocalDate hoy = LocalDate.now();
-        List<Membresia> activas = membresiaRepository.findByEstado(EstadoMembresia.ACTIVA);
-        for (Membresia m : activas) {
-            if (m.getFechaFin() != null && m.getFechaFin().isBefore(hoy)) {
+        LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
+        actualizarVigencias(membresiaRepository.findByEstado(EstadoMembresia.ACTIVA), hoy);
+        actualizarVigencias(membresiaRepository.findByEstado(EstadoMembresia.PENDIENTE), hoy);
+    }
+
+    private void actualizarVigencias(List<Membresia> membresias, LocalDate hoy) {
+        for (Membresia m : membresias) {
+            boolean programada = esProgramada(m);
+            if (m.getFechaFin() == null || (!programada && m.getEstado() != EstadoMembresia.ACTIVA)) {
+                continue;
+            }
+            if (m.getFechaFin().isBefore(hoy)) {
                 m.setEstado(EstadoMembresia.VENCIDA);
+                membresiaRepository.save(m);
+            } else if (programada && m.getFechaInicio() != null && !m.getFechaInicio().isAfter(hoy)) {
+                m.setEstado(EstadoMembresia.ACTIVA);
                 membresiaRepository.save(m);
             }
         }
+    }
+
+    private boolean esProgramada(Membresia membresia) {
+        return membresia.getEstado() == EstadoMembresia.PENDIENTE && membresia.getCodigoPreinscripcion() == null;
     }
 }

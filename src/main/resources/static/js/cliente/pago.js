@@ -10,9 +10,15 @@ const nuevaReferencia = () =>
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-export function initPasarelaSimulada({ getStoredCartItems, saveBuyerInfo }) {
+export function initPasarelaSimulada({ getStoredCartItems, onCartOrdered }) {
     let referenciaPendiente = null;   // se reutiliza SOLO si no hubo respuesta del servidor (error de red)
     let procesando = false;
+    const checkoutError = document.getElementById("checkoutError");
+
+    const informarError = (mensaje) => {
+        if (checkoutError) checkoutError.textContent = mensaje;
+        else showGymToast(mensaje, "fa-circle-exclamation", "error");
+    };
 
     const bloquear = (btn, valor) => {
         procesando = valor;
@@ -27,59 +33,60 @@ export function initPasarelaSimulada({ getStoredCartItems, saveBuyerInfo }) {
             e.preventDefault();
             if (procesando) return;
 
-            const targetHref = btn.getAttribute("href") || "/cliente/compra-exitosa";
-            const scenario = btn.getAttribute("data-gateway-scenario") || "PAGADO";
-
-            // Solo se envía el id y la cantidad: el precio y el nombre los decide el servidor
-            const items = getStoredCartItems().map((it) => ({ id: Number(it.id), qty: Number(it.qty) }));
-            if (items.length === 0) {
-                showGymToast("Tu carrito está vacío.", "fa-cart-shopping");
-                return;
-            }
-
-            const digits = (document.getElementById("cardNumberInput")?.value || "").replace(/\D/g, "");
+            const reservationCheckout = document.getElementById("reservationCheckout");
+            const planCheckout = document.getElementById("planCheckout");
             const payload = {
                 referencia: referenciaPendiente ?? nuevaReferencia(),
-                estado: scenario,
-                cardBrand: digits.startsWith("5") ? "MASTERCARD" : digits.startsWith("3") ? "AMEX" : "VISA",
-                cardLast4: digits.length >= 4 ? digits.slice(-4) : "4242",
-                items
+                estado: btn.dataset.gatewayScenario || "PAGADO"
             };
-            const reservationCheckout = document.getElementById("reservationCheckout");
-            if (reservationCheckout?.dataset.reservationId) {
+            if (planCheckout) {
+                payload.tipoConcepto = "MEMBRESIA";
+                payload.planId = Number(planCheckout.dataset.planId);
+                payload.periodo = planCheckout.dataset.periodo;
+            } else if (reservationCheckout) {
                 payload.reservaId = Number(reservationCheckout.dataset.reservationId);
+            } else {
+                payload.items = getStoredCartItems().map(({ id, qty }) => ({ id, qty }));
+                if (!payload.items.length) {
+                    informarError("Tu carrito está vacío.");
+                    return;
+                }
             }
 
-            saveBuyerInfo();
+            if (checkoutError) checkoutError.textContent = "";
             bloquear(btn, true);
             try {
                 const resp = await postJson("/cliente/api/compras", payload);
                 const data = await resp.json().catch(() => ({}));
                 referenciaPendiente = (resp.status >= 500 || (resp.ok && !data.codigo)) ? payload.referencia : null;
 
-                if (resp.status === 401) {
+                if (resp.status === 401 || resp.redirected) {
                     window.location.href = "/login";
                     return;
                 }
                 if (!resp.ok || !data.success || !data.codigo) {
                     const detalle = data.errores ? Object.values(data.errores)[0] : null;
-                    showGymToast(
-                        detalle || data.mensaje || `No se pudo procesar el pago (${resp.status}). Tu carrito sigue intacto.`,
-                        "fa-triangle-exclamation"
-                    );
+                    informarError(detalle || data.mensaje || "No se pudo procesar la operación. Puedes reintentarlo.");
                     bloquear(btn, false);
                     return;                                     // NO navega y NO borra el carrito
                 }
 
-                if (!reservationCheckout && (data.estadoPago === "PAGADO" || data.estadoPago === "EN_PROCESO")) {
-                    sessionStorage.setItem("energyGymCartPaid", "true");
-                }
                 const rutas = {PAGADO: "/cliente/compra-exitosa", EN_PROCESO: "/cliente/pago-en-proceso",
                     RECHAZADO: "/cliente/pago-rechazado", CANCELADO: "/cliente/pago-cancelado"};
-                window.location.href = `${rutas[data.estadoPago] || targetHref}?codigo=${encodeURIComponent(data.codigo)}`;
+                if (!Object.hasOwn(rutas, data.estadoPago)) {
+                    referenciaPendiente = payload.referencia;
+                    informarError("No se pudo confirmar el resultado. Puedes reintentarlo.");
+                    bloquear(btn, false);
+                    return;
+                }
+                if (!reservationCheckout && !planCheckout &&
+                    (data.estadoPago === "PAGADO" || data.estadoPago === "EN_PROCESO")) {
+                    onCartOrdered();
+                }
+                window.location.href = `${rutas[data.estadoPago]}?codigo=${encodeURIComponent(data.codigo)}`;
             } catch (err) {
                 referenciaPendiente = payload.referencia;       // reintento seguro: el servidor detecta el duplicado
-                showGymToast("Error de red. Puedes reintentar sin duplicar la operación.", "fa-wifi");
+                informarError("Error de conexión. Puedes reintentar sin duplicar la operación.");
                 bloquear(btn, false);
             }
         });

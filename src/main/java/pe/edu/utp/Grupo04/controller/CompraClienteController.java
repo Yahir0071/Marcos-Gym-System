@@ -14,16 +14,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.util.UriUtils;
 import pe.edu.utp.Grupo04.dto.CompraRequestDTO;
 import pe.edu.utp.Grupo04.model.Socio;
 import pe.edu.utp.Grupo04.service.OrdenCompraService;
 import pe.edu.utp.Grupo04.service.ReservaService;
 import pe.edu.utp.Grupo04.model.enums.EstadoReserva;
-import pe.edu.utp.Grupo04.service.ProductoService;
+import pe.edu.utp.Grupo04.model.enums.PeriodoMembresia;
+import pe.edu.utp.Grupo04.service.PlanService;
 import pe.edu.utp.Grupo04.service.SocioService;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -36,20 +35,20 @@ import java.util.Map;
 public class CompraClienteController {
 
     private final SocioService socioService;
-    private final ProductoService productoService;
     private final OrdenCompraService ordenCompraService;
     private final CompraApiResponder responder;
     private final ReservaService reservaService;
+    private final PlanService planService;
 
     public CompraClienteController(SocioService socioService,
-                                   ProductoService productoService,
                                    OrdenCompraService ordenCompraService,
-                                   CompraApiResponder responder, ReservaService reservaService) {
+                                   CompraApiResponder responder, ReservaService reservaService,
+                                   PlanService planService) {
         this.socioService = socioService;
-        this.productoService = productoService;
         this.ordenCompraService = ordenCompraService;
         this.responder = responder;
         this.reservaService = reservaService;
+        this.planService = planService;
     }
 
     // ------------------------------------------------------------------ API
@@ -97,8 +96,23 @@ public class CompraClienteController {
     }
 
     @GetMapping("/pago-en-linea")
-    public String pagoEnLinea(@RequestParam(required = false) Long reservaId, Authentication auth, Model model) {
+    public String pagoEnLinea(@RequestParam(required = false) Long reservaId,
+                              @RequestParam(required = false) Long planId,
+                              @RequestParam(required = false) String periodo,
+                              Authentication auth, Model model) {
         cargarDatosSocio(auth, model);
+        if (planId != null && reservaId != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecciona una sola operación.");
+        }
+        if (planId != null) {
+            var plan = planService.buscarPorId(planId)
+                    .filter(p -> Boolean.TRUE.equals(p.getActivo()))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plan no disponible"));
+            PeriodoMembresia seleccionado = PeriodoMembresia.interpretar(periodo);
+            model.addAttribute("planCheckout", plan);
+            model.addAttribute("periodoCheckout", seleccionado);
+            model.addAttribute("totalPlanCheckout", seleccionado.total(plan.getPrecio()));
+        }
         if (reservaId != null) {
             var reserva = reservaService.buscarPorId(reservaId)
                     .filter(r -> r.getSocio().getUsuario() != null
@@ -115,42 +129,15 @@ public class CompraClienteController {
     @GetMapping("/mis-compras")
     public String misCompras(Authentication auth, Model model) {
         cargarDatosSocio(auth, model);
+        String username = CompraApiResponder.username(auth);
+        model.addAttribute("ordenesMemoria", username != null ? ordenCompraService.listarDeSocio(username) : List.of());
         return "cliente/mis-compras";
     }
 
-    @GetMapping("/pago-en-proceso")
-    public String pagoEnProceso(@RequestParam(required = false) String codigo,
+    @GetMapping({"/compra-exitosa", "/pago-en-proceso", "/pago-rechazado", "/pago-cancelado"})
+    public String resultadoPago(@RequestParam(required = false) String codigo,
                                 Authentication auth, Model model) {
-        return vistaPedido("cliente/pago-en-proceso", ordenDelUsuario(codigo, auth), auth, model);
-    }
-
-    @GetMapping("/pago-rechazado")
-    public String pagoRechazado(@RequestParam(required = false) String codigo,
-                                Authentication auth, Model model) {
-        return vistaPedido("cliente/pago-rechazado", ordenDelUsuario(codigo, auth), auth, model);
-    }
-
-    @GetMapping("/pago-cancelado")
-    public String pagoCancelado(@RequestParam(required = false) String codigo,
-                                Authentication auth, Model model) {
-        return vistaPedido("cliente/pago-cancelado", ordenDelUsuario(codigo, auth), auth, model);
-    }
-
-    @GetMapping("/compra-exitosa")
-    public String compraExitosa(@RequestParam(required = false) String codigo,
-                                Authentication auth, Model model) {
-        Map<String, Object> orden = ordenDelUsuario(codigo, auth);
-        String estado = String.valueOf(orden.get("estadoPago"));
-        if (!"PAGADO".equals(estado)) {
-            // "Compra exitosa" solo con un pago aprobado y guardado
-            String destino = switch (estado) {
-                case "EN_PROCESO" -> "/cliente/pago-en-proceso";
-                case "RECHAZADO" -> "/cliente/pago-rechazado";
-                default -> "/cliente/pago-cancelado";
-            };
-            return "redirect:" + destino + "?codigo=" + UriUtils.encode(codigo, StandardCharsets.UTF_8);
-        }
-        return vistaPedido("cliente/compra-exitosa", orden, auth, model);
+        return vistaPedido("cliente/resultado-pago", ordenDelUsuario(codigo, auth), auth, model);
     }
 
     @GetMapping("/detalle-pedido")
@@ -162,7 +149,11 @@ public class CompraClienteController {
     @GetMapping("/boleta-venta")
     public String boletaVenta(@RequestParam(required = false) String codigo,
                               Authentication auth, Model model) {
-        return vistaPedido("cliente/boleta-venta", ordenDelUsuario(codigo, auth), auth, model);
+        Map<String, Object> orden = ordenDelUsuario(codigo, auth);
+        if (!"PAGADO".equals(orden.get("estadoPago"))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comprobante no disponible");
+        }
+        return vistaPedido("cliente/boleta-venta", orden, auth, model);
     }
 
     // ------------------------------------------------------------------ AUXILIARES
@@ -185,9 +176,5 @@ public class CompraClienteController {
         String username = CompraApiResponder.username(auth);
         Socio socio = (username != null) ? socioService.buscarPorUsername(username).orElse(null) : null;
         model.addAttribute("socio", socio != null ? socio : new Socio());   // sin datos ficticios
-        model.addAttribute("productosCatalogo", productoService.listarCatalogoActivo());
-        model.addAttribute("ordenesMemoria",
-                username != null ? ordenCompraService.listarDeSocio(username) : List.of());
-        model.addAttribute("proximoCodigoPedido", ordenCompraService.obtenerProximoCodigo());
     }
 }

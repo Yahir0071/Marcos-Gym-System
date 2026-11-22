@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface AuditoriaCuentaRepository extends JpaRepository<AuditoriaCuenta, Long> {
-    List<AuditoriaCuenta> findAllByOrderByFechaHoraDesc();
+    List<AuditoriaCuenta> findTop50ByOrderByFechaHoraDescIdDesc();
 }

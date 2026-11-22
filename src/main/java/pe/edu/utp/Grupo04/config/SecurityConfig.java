@@ -1,11 +1,10 @@
 package pe.edu.utp.Grupo04.config;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -13,13 +12,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import pe.edu.utp.Grupo04.security.SessionValidityFilter;
+import pe.edu.utp.Grupo04.security.ApiSecurityError;
 import pe.edu.utp.Grupo04.security.jwt.JwtAuthenticationFilter;
 
 @Configuration
@@ -27,13 +26,21 @@ import pe.edu.utp.Grupo04.security.jwt.JwtAuthenticationFilter;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    public static final String[] RECURSOS_PUBLICOS = {"/css/**", "/js/**", "/img/**", "/favicon.ico", "/error"};
+    public static final String[] PAGINAS_PUBLICAS = {"/", "/inicio", "/planes", "/promociones", "/productos",
+            "/afluencia", "/detalle-producto", "/public/detalle-producto", "/login", "/registrarse", "/registro", "/register"};
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final SessionValidityFilter sessionValidityFilter;
+    private final HttpSessionRequestCache destinosLogin = new HttpSessionRequestCache();
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           SessionValidityFilter sessionValidityFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.sessionValidityFilter = sessionValidityFilter;
+        destinosLogin.setRequestMatcher(request -> HttpMethod.GET.matches(request.getMethod())
+                && "/cliente/detalle-producto".equals(ApiSecurityError.ruta(request))
+                && idProducto(request.getParameter("id")) != null);
     }
 
     @Bean
@@ -47,8 +54,27 @@ public class SecurityConfig {
     }
 
     @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> registrarJwtSoloEnSpringSecurity(JwtAuthenticationFilter filtro) {
+        FilterRegistrationBean<JwtAuthenticationFilter> registro = new FilterRegistrationBean<>(filtro);
+        registro.setEnabled(false);
+        return registro;
+    }
+
+    @Bean
+    public FilterRegistrationBean<SessionValidityFilter> registrarSesionSoloEnSpringSecurity(SessionValidityFilter filtro) {
+        FilterRegistrationBean<SessionValidityFilter> registro = new FilterRegistrationBean<>(filtro);
+        registro.setEnabled(false);
+        return registro;
+    }
+
+    @Bean
     public AuthenticationSuccessHandler customAuthenticationSuccessHandler() {
         return (request, response, authentication) -> {
+            var destino = destinosLogin.getRequest(request, response);
+            String[] valores = destino == null ? null : destino.getParameterValues("id");
+            Long producto = valores != null && valores.length == 1 ? idProducto(valores[0]) : null;
+            destinosLogin.removeRequest(request, response);
+            String baseUrl = request.getContextPath();
             boolean isTecnico = authentication.getAuthorities().stream()
                     .anyMatch(ga -> ga.getAuthority().equals("ROLE_GESTOR_TECNICO"));
             boolean isAdmin = authentication.getAuthorities().stream()
@@ -59,22 +85,38 @@ public class SecurityConfig {
                     .anyMatch(ga -> ga.getAuthority().equals("ROLE_CLIENTE"));
 
             if (isTecnico) {
-                response.sendRedirect("/tecnico/cuentas");
+                response.sendRedirect(baseUrl + "/tecnico/cuentas");
             } else if (isAdmin) {
-                response.sendRedirect("/admin/dashboard");
+                response.sendRedirect(baseUrl + "/admin/dashboard");
             } else if (isRecepcion) {
-                response.sendRedirect("/admin/socios");
+                response.sendRedirect(baseUrl + "/admin/socios");
             } else if (isCliente) {
-                response.sendRedirect("/cliente/mi-membresia");
+                response.sendRedirect(baseUrl + (producto == null
+                        ? "/cliente/mi-membresia" : "/cliente/detalle-producto?id=" + producto));
             } else {
-                response.sendRedirect("/inicio");
+                response.sendRedirect(baseUrl + "/inicio");
             }
         };
     }
 
+    private static Long idProducto(String parametro) {
+        if (parametro == null || !parametro.matches("[1-9][0-9]{0,18}")) {
+            return null;
+        }
+        try {
+            return Long.valueOf(parametro);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        var login = new LoginUrlAuthenticationEntryPoint("/login");
         http
+            .requestCache(cache -> cache.requestCache(destinosLogin))
+            .headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'")))
             .csrf(csrf -> csrf
                 // Feedback #5 / M10: Las operaciones con cookies mantienen CSRF obligatorio.
                 // Excluir únicamente los endpoints de la API REST que usan autenticación JWT (/api/auth/** y endpoints stateless)
@@ -82,10 +124,10 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 // 1. Recursos estáticos públicos y ruta de error
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
+                .requestMatchers(RECURSOS_PUBLICOS).permitAll()
 
                 // 2. Vistas públicas y catálogo público
-                .requestMatchers("/", "/inicio", "/planes", "/promociones", "/productos", "/afluencia", "/detalle-producto").permitAll()
+                .requestMatchers(HttpMethod.GET, PAGINAS_PUBLICAS).permitAll()
 
                 // 3. Autenticación pública y login JWT
                 .requestMatchers("/login", "/registrarse", "/registro", "/register", "/api/auth/login").permitAll()
@@ -159,23 +201,17 @@ public class SecurityConfig {
             )
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
-                    String uri = request.getRequestURI();
-                    if (uri.startsWith("/api/")) {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"error\":\"No autorizado\",\"mensaje\":\"" + authException.getMessage() + "\"}");
+                    if (ApiSecurityError.esApi(request)) {
+                        ApiSecurityError.UNAUTHORIZED.responder(response, HttpServletResponse.SC_UNAUTHORIZED);
                     } else {
-                        response.sendRedirect("/login");
+                        login.commence(request, response, authException);
                     }
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    String uri = request.getRequestURI();
-                    if (uri.startsWith("/api/") || uri.contains("/api/")) {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"error\":\"Acceso denegado\",\"mensaje\":\"" + accessDeniedException.getMessage() + "\"}");
+                    if (ApiSecurityError.esApi(request)) {
+                        ApiSecurityError.FORBIDDEN.responder(response, HttpServletResponse.SC_FORBIDDEN);
                     } else {
-                        response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN);
                     }
                 })
             )

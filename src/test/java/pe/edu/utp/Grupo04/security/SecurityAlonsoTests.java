@@ -6,10 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.transaction.annotation.Transactional;
 import pe.edu.utp.Grupo04.dto.CuentaInternaDTO;
 import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.model.enums.Rol;
@@ -24,6 +27,7 @@ import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -56,6 +60,9 @@ class SecurityAlonsoTests {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @BeforeEach
     void setUp() {
         prepararUsuarioDePrueba("recep@energygym.pe", Rol.RECEPCION);
@@ -78,6 +85,30 @@ class SecurityAlonsoTests {
         usuario.setPassword("sin-inicio-de-sesion-en-pruebas-mock");
         usuario.setRol(rol);
         usuarioRepository.save(usuario);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("El cliente vuelve al producto que estaba consultando después de iniciar sesión")
+    void vuelveAlProductoDespuesDelLogin() throws Exception {
+        String correo = UUID.randomUUID() + "@example.test";
+        String clave = UUID.randomUUID().toString();
+        Usuario usuario = new Usuario();
+        usuario.setUsername(correo);
+        usuario.setPassword(passwordEncoder.encode(clave));
+        usuario.setRol(Rol.CLIENTE);
+        usuarioRepository.save(usuario);
+
+        var solicitud = mockMvc.perform(get("/cliente/detalle-producto").param("id", "42"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"))
+                .andReturn();
+        MockHttpSession sesion = (MockHttpSession) solicitud.getRequest().getSession(false);
+        assertNotNull(sesion);
+        mockMvc.perform(post("/login").session(sesion).with(csrf())
+                        .param("username", correo).param("password", clave))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/cliente/detalle-producto?id=42"));
     }
 
     @Test

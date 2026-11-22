@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
+import pe.edu.utp.Grupo04.model.enums.PeriodoMembresia;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +43,9 @@ public class Orden {
 
     private Long planId;
     private Integer duracionDias;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 15)
+    private PeriodoMembresia periodoMembresia;
     private Long reservaId;
 
     @Column(nullable = false, length = 511) private String compradorNombre;
@@ -61,6 +66,7 @@ public class Orden {
     private boolean demo = false;
 
     @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<OrdenDetalle> detalles = new ArrayList<>();
 
     public void agregarDetalle(Long productoId, String nombre, String categoria,

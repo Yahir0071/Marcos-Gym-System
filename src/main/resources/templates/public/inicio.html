@@ -111,11 +111,11 @@
                         <form id="bmiCalculatorForm" class="row g-3">
                             <div class="col-sm-6">
                                 <label for="bmiWeight" class="form-label">PESO ACTUAL (KG)</label>
-                                <input type="number" id="bmiWeight" class="form-control" placeholder="Ej. 74" value="74" min="35" max="220" required>
+                                <input type="number" id="bmiWeight" class="form-control" placeholder="Ej. 74,5" step="0.1" min="35" max="220" required>
                             </div>
                             <div class="col-sm-6">
                                 <label for="bmiHeight" class="form-label">ALTURA (CM)</label>
-                                <input type="number" id="bmiHeight" class="form-control" placeholder="Ej. 175" value="175" min="120" max="230" required>
+                                <input type="number" id="bmiHeight" class="form-control" placeholder="Ej. 175" step="0.1" min="120" max="230" required>
                             </div>
                             <div class="col-sm-12">
                                 <label for="bmiGoal" class="form-label">TU OBJETIVO PRINCIPAL</label>
@@ -133,21 +133,21 @@
                         </form>
 
                         <!-- Dynamic Output Box -->
-                        <div id="bmiResultBox" class="mt-4 p-4 rounded bg-elevated border border-secondary">
+                        <div id="bmiResultRegion" aria-live="polite">
+                        <div id="bmiResultBox" class="mt-4 p-4 rounded bg-elevated border border-secondary" hidden>
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
                                 <div>
-                                    <span class="text-muted text-2xs fw-bold tracking-wider">TU DIAGNÓSTICO ESTIMADO</span>
-                                    <h4 class="font-anton m-0 text-primary" id="bmiScoreText">IMC: 24.2 — PESO SALUDABLE</h4>
+                                    <span class="text-muted text-2xs fw-bold tracking-wider">RESULTADO ORIENTATIVO</span>
+                                    <h4 class="font-anton m-0 text-primary" id="bmiScoreText"></h4>
                                 </div>
-                                <span class="badge bg-primary text-dark font-anton px-3 py-2" id="bmiCalorieBadge">2,450 KCAL / DÍA</span>
+                                <span class="badge bg-primary text-dark font-anton px-3 py-2" id="bmiCalorieBadge"></span>
                             </div>
-                            <p class="text-muted text-sm mb-3" id="bmiAdviceText">
-                                Recomendación: Entrenamiento de hipertrofia 4-5 días por semana combinando Zona de Fuerza + Whey Protein post-entreno.
-                            </p>
-                            <div class="d-flex gap-2">
-                                <a th:href="@{/planes}" class="btn btn-outline py-2 px-3 text-xs" id="bmiPlanLink">VER PLAN PLUS RECOMENDADO →</a>
+                            <p class="text-muted text-sm mb-3" id="bmiAdviceText"></p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a th:href="@{/planes}" class="btn btn-outline py-2 px-3 text-xs" id="bmiPlanLink">VER PLANES</a>
                                 <a th:href="@{/productos}" class="btn btn-outline py-2 px-3 text-xs">VER SUPLEMENTOS</a>
                             </div>
+                        </div>
                         </div>
                     </div>
                 </div>

@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.exception.AccesoDenegadoException;
 import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
 import pe.edu.utp.Grupo04.exception.ValidacionNegocioException;
+import pe.edu.utp.Grupo04.security.ApiSecurityError;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,9 +28,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private boolean esPeticionApi(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        String accept = request.getHeader("Accept");
-        return (uri != null && uri.contains("/api/")) || (accept != null && accept.contains("application/json"));
+        return ApiSecurityError.esApi(request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -100,6 +99,7 @@ public class GlobalExceptionHandler {
         if (esPeticionApi(request)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                     "success", false,
+                    "error", ApiSecurityError.FORBIDDEN.error(),
                     "mensaje", ex.getMessage()
             ));
         }

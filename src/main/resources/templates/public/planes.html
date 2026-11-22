@@ -44,8 +44,8 @@
                     <div class="d-flex align-items-baseline gap-2 mb-4">
                         <h2 class="font-anton m-0 text-3xl plan-price"
                             th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'text-primary' : 'text-light'"
-                            th:attr="data-base-price=${#numbers.formatDecimal(plan.precio, 1, 0)}"
-                            th:text="'S/ ' + ${#numbers.formatDecimal(plan.precio, 1, 'POINT', 0, 'POINT')}">S/ 119</h2>
+                            th:attr="data-base-price=${plan.precio}"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(plan.precio, 1, 'COMMA', 2, 'POINT')}">S/ 119.00</h2>
                         <span class="text-muted text-xs font-anton plan-period-label">AL MES</span>
                     </div>
                     <ul class="list-unstyled mb-5 flex-grow-1">
@@ -58,12 +58,12 @@
                     </ul>
 
                     <!-- Botón de Inscripción Directa Sincronizado -->
-                    <a sec:authorize="isAuthenticated()"
+                    <a sec:authorize="hasRole('CLIENTE')"
                        th:href="@{/cliente/pago-en-linea(planId=${plan.id})}"
                        class="btn btn-enroll-plan mt-auto w-100 justify-content-between"
                        th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'btn-primary text-dark' : 'btn-outline'"
                        th:attr="data-plan-id=${plan.id}, data-auth='true'">
-                        <span th:text="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'INSCRIBIRME EN PLAN PLUS' : 'INSCRIBIRME EN ' + (${plan.nombre != null ? plan.nombre.toUpperCase() : 'PLAN'})">INSCRIBIRME</span> 
+                        <span>Elegir este plan</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </a>
                     <a sec:authorize="isAnonymous()"
@@ -83,12 +83,12 @@
                     <i class="fa-solid fa-shield-halved text-primary fs-3"></i>
                     <div>
                         <div class="text-light font-anton text-sm tracking-wide">INSCRIPCIÓN 100% DIGITAL Y TRANSPARENTE</div>
-                        <small class="text-muted text-xs">Sin costos de matrícula ocultos ni permanencia forzada. Carnet con código QR directo en tu celular para ingresar a sede Las Américas, Ate.</small>
+                        <small class="text-muted text-xs">Consulta las condiciones del plan y tu carnet digital desde el portal.</small>
                     </div>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     <a th:href="@{/promociones}" class="btn btn-outline py-2 px-3 text-xs">VER PROMOCIONES 2×1 →</a>
-                    <a th:href="@{/registrarse}" class="btn btn-primary py-2 px-3 text-xs">REGISTRARME COMO SOCIO</a>
+                    <a sec:authorize="isAnonymous()" th:href="@{/registrarse}" class="btn btn-primary py-2 px-3 text-xs">REGISTRARME COMO SOCIO</a>
                 </div>
             </div>
 
@@ -96,76 +96,78 @@
             <div class="mb-5 pt-3">
                 <div class="text-center mb-4">
                     <div class="section-subtitle mb-2">COMPARATIVA DETALLADA</div>
-                    <h2 class="display-3 font-anton leading-none text-light">¿QUÉ PLAN SE ADAPTA A TI?</h2>
+                    <h2 id="comparacionPlanes" class="display-3 font-anton leading-none text-light">¿QUÉ PLAN SE ADAPTA A TI?</h2>
                     <p class="text-muted text-sm mx-auto" style="max-width: 600px;">
                         Compara cada beneficio y servicio incluido en nuestros planes BÁSICO, PLUS y VIP ANUAL.
                     </p>
                 </div>
 
-                <div class="table-container">
+                <p id="comparacionAyuda" class="text-muted text-sm d-md-none mb-2">Desliza la tabla para comparar los planes.</p>
+                <div class="table-container plan-comparison" tabindex="0" role="region"
+                     aria-labelledby="comparacionPlanes" aria-describedby="comparacionAyuda">
                     <table class="custom-table w-100 text-center">
                         <thead>
                             <tr>
-                                <th class="text-start ps-4" style="width: 40%;">BENEFICIOS Y ÁREAS INCLUIDAS</th>
-                                <th style="width: 20%;">PLAN BÁSICO</th>
-                                <th class="text-primary bg-elevated" style="width: 20%;">PLAN PLUS (RECOMENDADO)</th>
-                                <th style="width: 20%;">PLAN VIP ANUAL</th>
+                                <th scope="col" class="text-start ps-3">Beneficios y áreas incluidas</th>
+                                <th scope="col">Plan Básico</th>
+                                <th scope="col" class="text-primary bg-elevated">Plan Plus</th>
+                                <th scope="col">Plan VIP Anual</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="text-start ps-4 fw-bold">Acceso a Máquinas de Musculación y Peso Libre</td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                            </tr>
-                            <tr>
-                                <td class="text-start ps-4 fw-bold">Zona Cardio HIIT y Máquinas Biomecánicas</td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                            </tr>
-                            <tr>
-                                <td class="text-start ps-4 fw-bold">Horario de Atención (Lun–Vie 06:00–23:00 · Sáb 07:00–20:00 · Dom 08:00–14:00)</td>
+                                <th scope="row" class="text-start ps-3">Máquinas de musculación y peso libre</th>
                                 <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
                                 <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
                                 <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
                             </tr>
                             <tr>
-                                <td class="text-start ps-4 fw-bold">Carnet Digital QR para Torniquetes en tu Portal</td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <th scope="row" class="text-start ps-3">Zona cardio HIIT y máquinas biomecánicas</th>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
                             </tr>
                             <tr>
-                                <td class="text-start ps-4 fw-bold">Evaluación Física y Bioimpedancia Mensual</td>
-                                <td><i class="fa-solid fa-circle-xmark text-secondary fs-6"></i></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-primary fs-6"></i></td>
-                                <td><i class="fa-solid fa-circle-check text-primary fs-6"></i></td>
+                                <th scope="row" class="text-start ps-3">Horario de atención</th>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
                             </tr>
                             <tr>
-                                <td class="text-start ps-4 fw-bold">Pases Libres para Invitados al Mes</td>
+                                <th scope="row" class="text-start ps-3">Carnet digital</th>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-start ps-3">Evaluación física y bioimpedancia mensual</th>
+                                <td><i class="fa-solid fa-circle-xmark text-secondary fs-6" aria-hidden="true"></i><span class="visually-hidden">No incluido</span></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-primary fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td><i class="fa-solid fa-circle-check text-primary fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-start ps-3">Pases para invitados cada mes</th>
                                 <td><span class="text-muted text-xs">Sin pases</span></td>
                                 <td class="bg-elevated font-anton text-primary">2 PASES / MES</td>
                                 <td class="font-anton text-light">4 PASES / MES</td>
                             </tr>
                             <tr>
-                                <td class="text-start ps-4 fw-bold">Descuento en Tienda de Suplementos</td>
+                                <th scope="row" class="text-start ps-3">Descuento en suplementos</th>
                                 <td><span class="text-muted text-xs">—</span></td>
                                 <td class="bg-elevated font-anton text-primary">5% DSCTO</td>
                                 <td class="font-anton text-light">10% DSCTO</td>
                             </tr>
                             <tr>
-                                <td class="text-start ps-4 fw-bold">Congelamiento de Membresía por Viaje o Salud</td>
-                                <td><span class="text-muted text-xs">No aplica</span></td>
+                                <th scope="row" class="text-start ps-3">Pausa por viaje o salud</th>
+                                <td><span class="text-muted text-xs">Hasta 15 días</span></td>
                                 <td class="bg-elevated font-anton text-xs text-light">Hasta 15 días</td>
-                                <td class="font-anton text-xs text-primary">Hasta 30 días</td>
+                                <td class="font-anton text-xs text-primary">Hasta 15 días</td>
                             </tr>
                             <tr>
-                                <td class="text-start ps-4 fw-bold">Opción de Pago Presencial en Recepción o Pasarela Online</td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6"></i></td>
+                                <th scope="row" class="text-start ps-3">Pago en línea o en recepción</th>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -221,11 +223,11 @@
                             <div class="card p-3 mb-3 border-secondary bg-card">
                                 <button type="button" class="btn btn-link text-decoration-none text-start p-0 font-anton text-light w-100 d-flex justify-content-between align-items-center"
                                         data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
-                                    <span>¿LOS PAGOS Y COMPROBANTES EN LÍNEA SON REALES O ACADÉMICOS?</span>
+                                    <span>¿QUÉ DOCUMENTO RECIBO DESPUÉS DE CONFIRMAR?</span>
                                     <i class="fa-solid fa-chevron-down text-primary" aria-hidden="true"></i>
                                 </button>
                                 <div id="faq4" class="collapse pt-3 text-muted text-xs">
-                                    Este sistema corresponde a un prototipo académico (Grupo 04 UTP). Los pagos en línea y constancias/comprobantes generados son de demostración académica: no ejecutan cargos bancarios reales ni tienen validez tributaria ante SUNAT.
+                                    Puedes descargar una constancia del registro. Es un documento interno sin validez tributaria.
                                 </div>
                             </div>
                         </div>

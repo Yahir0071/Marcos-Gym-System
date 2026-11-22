@@ -437,6 +437,7 @@ export function initAdminCrudModals() {
             const nombreInput = document.getElementById("prodNombre");
             const precioInput = document.getElementById("prodPrecio");
             const stockInput = document.getElementById("prodStock");
+            const categoriaInput = document.getElementById("prodCategoria");
             const imagenInput = document.getElementById("prodImagen");
             const descInput = document.getElementById("prodDescripcion");
             const activoInput = document.getElementById("prodActivo");
@@ -446,6 +447,7 @@ export function initAdminCrudModals() {
             if (nombreInput) nombreInput.value = btn.dataset.nombre || "";
             if (precioInput) precioInput.value = btn.dataset.precio || "";
             if (stockInput) stockInput.value = btn.dataset.stock || "";
+            if (categoriaInput) categoriaInput.value = btn.dataset.categoria || "OTROS";
             if (imagenInput) imagenInput.value = btn.dataset.imagen || "";
             if (descInput) descInput.value = btn.dataset.descripcion || "";
             if (activoInput) activoInput.value = btn.dataset.activo || "true";
@@ -556,17 +558,17 @@ export function initAdminCrudModals() {
             const fecha = btn.dataset.fecha || "—";
 
             const wrapper = createDomElement("div", "p-2 text-center");
-            const demoBadge = createDomElement(
+            const voucherBadge = createDomElement(
                 "div",
                 "badge bg-dark text-warning border border-warning font-anton text-2xs px-3 py-1 mb-2",
-                "COMPROBANTE ACADÉMICO DE DEMOSTRACIÓN"
+                "CONSTANCIA DE PAGO EN RECEPCIÓN"
             );
             const brand = createDomElement("h3", "font-anton text-primary mb-1", "ENERGY GYM");
-            const address = createDomElement("p", "text-muted text-xs mb-2", "Sede Av. Las Américas, Ate — Lima · Proyecto Académico UTP");
+            const address = createDomElement("p", "text-muted text-xs mb-2", "Sede Av. Las Américas, Ate — Lima");
             const disclaimer = createDomElement(
                 "p",
                 "text-warning text-2xs mb-3",
-                "Documento interno de demostración académica. Sin validez tributaria ante SUNAT ni respaldo bancario real."
+                "Documento interno sin validez tributaria."
             );
 
             const details = createDomElement("div", "text-start mb-3 p-3 rounded bg-elevated border border-secondary text-xs");
@@ -592,7 +594,7 @@ export function initAdminCrudModals() {
             printBtn.append(createIcon("fa-solid fa-print me-1"), document.createTextNode("IMPRIMIR CONSTANCIA"));
             printBtn.addEventListener("click", () => window.print());
 
-            wrapper.append(demoBadge, brand, address, disclaimer, details, totalBox, printBtn);
+            wrapper.append(voucherBadge, brand, address, disclaimer, details, totalBox, printBtn);
 
             openSafeGymModal(
                 `CONSTANCIA DE CAJA N° ${String(pagoId).padStart(5, "0")}`,

@@ -1,79 +1,51 @@
 package pe.edu.utp.Grupo04.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import pe.edu.utp.Grupo04.model.Membresia;
-import pe.edu.utp.Grupo04.service.MembresiaService;
-import pe.edu.utp.Grupo04.service.PromocionService;
-import pe.edu.utp.Grupo04.service.ReservaService;
-import pe.edu.utp.Grupo04.service.SocioService;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
+import pe.edu.utp.Grupo04.service.NotificacionService;
 
 @Controller
 public class NotificacionController {
+    private final NotificacionService notificaciones;
 
-    private final SocioService socioService;
-    private final MembresiaService membresiaService;
-    private final ReservaService reservaService;
-    private final PromocionService promocionService;
-
-    public NotificacionController(SocioService socioService,
-                                  MembresiaService membresiaService,
-                                  ReservaService reservaService,
-                                  PromocionService promocionService) {
-        this.socioService = socioService;
-        this.membresiaService = membresiaService;
-        this.reservaService = reservaService;
-        this.promocionService = promocionService;
+    public NotificacionController(NotificacionService notificaciones) {
+        this.notificaciones = notificaciones;
     }
 
     @GetMapping("/cliente/notificaciones")
-    public String notificacionesCliente(Authentication authentication, Model model) {
-        String username = authentication.getName();
-        List<Map<String, String>> notificaciones = new ArrayList<>();
-
-        // 1. Alerta si la membresía está por vencer
-        Optional<Membresia> membresiaOpt = membresiaService.obtenerMembresiaActivaPorUsername(username);
-        if (membresiaOpt.isPresent()) {
-            Membresia m = membresiaOpt.get();
-            long dias = membresiaService.calcularDiasRestantes(m);
-            if (dias <= 7) {
-                Map<String, String> notif = new HashMap<>();
-                notif.put("tipo", "alerta");
-                notif.put("titulo", "Membresía próxima a vencer");
-                notif.put("mensaje", "Te quedan " + dias + " días de membresía (" + m.getPlan().getNombre() + "). ¡Renueva pronto!");
-                notificaciones.add(notif);
-            }
-        }
-
-        // 2. Avisos de estado de reservas
-        reservaService.listarPorSocioUsername(username).forEach(r -> {
-            Map<String, String> notif = new HashMap<>();
-            notif.put("tipo", "info");
-            notif.put("titulo", "Reserva de " + r.getProducto().getNombre());
-            notif.put("mensaje", "Estado actual: " + r.getEstado().name() + " (" + r.getCantidad() + " unidad(es)).");
-            notificaciones.add(notif);
-        });
-
-        // 3. Avisos de promociones vigentes
-        promocionService.listarVigentes().forEach(p -> {
-            Map<String, String> notif = new HashMap<>();
-            notif.put("tipo", "promocion");
-            notif.put("titulo", "¡Nueva Promoción: " + p.getTitulo() + "!");
-            notif.put("mensaje", p.getDescripcion() != null ? p.getDescripcion() : "Aprovecha los descuentos vigentes.");
-            notificaciones.add(notif);
-        });
-
-        model.addAttribute("notificaciones", notificaciones);
-        socioService.buscarPorUsername(username).ifPresent(s -> model.addAttribute("socio", s));
-
+    public String listar(Authentication autenticacion, Model model) {
+        String username = autenticacion.getName();
+        model.addAttribute("notificaciones", notificaciones.listarVisibles(username));
         return "cliente/notificaciones";
+    }
+
+    @PostMapping("/cliente/api/notificaciones/leer")
+    @ResponseBody
+    public ResponseEntity<Void> leer(Authentication autenticacion, @RequestParam(required = false) String clave) {
+        return actualizar(autenticacion, clave, false);
+    }
+
+    @PostMapping("/cliente/api/notificaciones/archivar")
+    @ResponseBody
+    public ResponseEntity<Void> archivar(Authentication autenticacion, @RequestParam String clave) {
+        return actualizar(autenticacion, clave, true);
+    }
+
+    private ResponseEntity<Void> actualizar(Authentication autenticacion, String clave, boolean archivar) {
+        if (clave != null && (clave.isBlank() || clave.length() > 80)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El identificador del aviso no es válido.");
+        }
+        if (!notificaciones.actualizar(autenticacion.getName(), clave, archivar)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El aviso no está disponible.");
+        }
+        return ResponseEntity.noContent().build();
     }
 }

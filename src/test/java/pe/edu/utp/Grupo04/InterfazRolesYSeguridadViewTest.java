@@ -181,7 +181,7 @@ public class InterfazRolesYSeguridadViewTest {
         mockMvc.perform(get("/planes"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Las Américas")))
-                .andExpect(content().string(containsString("prototipo académico")))
+                .andExpect(content().string(containsString("Documento interno sin validez tributaria".toLowerCase())))
                 .andExpect(content().string(not(containsString("\ufffd"))));
     }
 

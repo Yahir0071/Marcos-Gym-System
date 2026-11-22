@@ -37,7 +37,7 @@ export function initAfluenciaSelector() {
             if (dayLbl) {
                 dayLbl.textContent = isLive
                     ? "REGISTRO VIGENTE EN SISTEMA (DATOS REALES)"
-                    : `PROYECCIÓN REFERENCIAL (DEMO): ${day}`;
+                    : `AFLUENCIA ESTIMADA: ${day}`;
             }
 
             const updateBar = (barId, valId, lblId, val) => {

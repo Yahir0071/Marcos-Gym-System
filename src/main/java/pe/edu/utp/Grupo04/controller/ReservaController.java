@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.ReservaDTO;
 import pe.edu.utp.Grupo04.exception.AccesoDenegadoException;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
 import pe.edu.utp.Grupo04.model.Reserva;
 import pe.edu.utp.Grupo04.model.enums.EstadoReserva;
 import pe.edu.utp.Grupo04.service.ReservaService;
@@ -81,7 +82,7 @@ public class ReservaController {
     public ResponseEntity<?> crearReservaApi(@Valid @RequestBody ReservaDTO payload,
                                              BindingResult result,
                                              Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (CompraApiResponder.username(authentication) == null) {
             return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
         }
         if (result.hasErrors()) {
@@ -89,13 +90,16 @@ public class ReservaController {
         }
         try {
             Reserva reserva = reservaService.crearReserva(authentication.getName(), payload.getProductoId(), payload.getCantidad());
-            return ResponseEntity.ok(Map.of(
+            return ResponseEntity.status(201).body(Map.of(
                     "success", true,
                     "code", "#RES-" + String.format("%05d", reserva.getId()),
                     "producto", reserva.getProducto().getNombre(),
                     "cantidad", reserva.getCantidad(),
+                    "total", reserva.getProducto().getPrecio() * reserva.getCantidad(),
                     "estado", reserva.getEstado().name()
             ));
+        } catch (RecursoNoEncontradoException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

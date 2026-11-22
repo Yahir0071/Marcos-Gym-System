@@ -1,6 +1,9 @@
 package pe.edu.utp.Grupo04.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.PagoDTO;
-import pe.edu.utp.Grupo04.service.MembresiaService;
+import pe.edu.utp.Grupo04.exception.ValidacionNegocioException;
 import pe.edu.utp.Grupo04.service.OrdenCompraService;
 import pe.edu.utp.Grupo04.service.PagoService;
 
@@ -28,22 +31,34 @@ import java.util.Map;
 public class PagoController {
 
     private final PagoService pagoService;
-    private final MembresiaService membresiaService;
     private final OrdenCompraService ordenCompraService;
 
-    public PagoController(PagoService pagoService,
-                          MembresiaService membresiaService,
-                          OrdenCompraService ordenCompraService) {
+    public PagoController(PagoService pagoService, OrdenCompraService ordenCompraService) {
         this.pagoService = pagoService;
-        this.membresiaService = membresiaService;
         this.ordenCompraService = ordenCompraService;
     }
 
     @GetMapping("/admin/pagos")
-    public String pagosAdmin(Model model) {
-        model.addAttribute("pagos", pagoService.listarTodos());
-        model.addAttribute("membresias", membresiaService.listarTodas());
-        model.addAttribute("comprasOnline", ordenCompraService.listarTodas());
+    public String pagosAdmin(@RequestParam(defaultValue = "0") int caja,
+                             @RequestParam(defaultValue = "0") int linea,
+                             @RequestParam(defaultValue = "") String buscar,
+                             @RequestParam(defaultValue = "") String pendiente,
+                             @RequestParam(defaultValue = "CAJA") String tab,
+                             Model model) {
+        String filtro = buscar.strip();
+        String filtroPendiente = pendiente.strip();
+        var pagos = pagoService.listarEnCaja(filtro,
+                PageRequest.of(paginaValida(caja), 25, Sort.by(Sort.Direction.DESC, "fechaPago", "id")));
+        var compras = ordenCompraService.listarPagina(
+                PageRequest.of(paginaValida(linea), 25, Sort.by(Sort.Direction.DESC, "fecha", "id")));
+        model.addAttribute("pagos", pagos.getContent());
+        model.addAttribute("paginaCaja", pagos);
+        model.addAttribute("membresias", pagoService.listarPreinscripcionesPorCobrar(filtroPendiente));
+        model.addAttribute("comprasOnline", compras.getContent());
+        model.addAttribute("paginaLinea", compras);
+        model.addAttribute("buscar", filtro);
+        model.addAttribute("pendiente", filtroPendiente);
+        model.addAttribute("tabLinea", "LINEA".equals(tab));
         return "admin/pagos";
     }
 
@@ -57,10 +72,12 @@ public class PagoController {
         }
 
         try {
-            pagoService.registrarPagoPresencial(pagoDTO.getMembresiaId(), pagoDTO.getMonto(), pagoDTO.getMetodoPago());
-            flash.addFlashAttribute("mensajeExito", "Pago registrado y membresía actualizada.");
-        } catch (Exception e) {
+            pagoService.registrarPagoPresencial(pagoDTO.getMembresiaId(), pagoDTO.getMonto(), pagoDTO.getMetodoPago(), pagoDTO.getReferencia());
+            flash.addFlashAttribute("mensajeExito", "Pago confirmado. La membresía está activa.");
+        } catch (ValidacionNegocioException e) {
             flash.addFlashAttribute("mensajeError", e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            flash.addFlashAttribute("mensajeError", "La referencia ya está registrada. Verifica el historial antes de cobrar.");
         }
         return "redirect:/admin/pagos";
     }
@@ -69,11 +86,19 @@ public class PagoController {
 
     @GetMapping("/admin/api/compras")
     @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> listarComprasOnlineAdmin(@RequestParam(required = false) String filtro) {
-        if (filtro != null && !filtro.isBlank()) {
-            return ResponseEntity.ok(ordenCompraService.listarPorCliente(filtro));
-        }
-        return ResponseEntity.ok(ordenCompraService.listarTodas());
+    public ResponseEntity<List<Map<String, Object>>> listarComprasOnlineAdmin(
+            @RequestParam(defaultValue = "") String filtro,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "25") int size) {
+        var compras = ordenCompraService.listarPaginaPorCliente(filtro,
+                PageRequest.of(paginaValida(page), Math.clamp(size, 1, 100)));
+        return ResponseEntity.ok()
+                .header("X-Total-Count", Long.toString(compras.getTotalElements()))
+                .body(compras.getContent());
+    }
+
+    private int paginaValida(int pagina) {
+        return Math.clamp(pagina, 0, 100_000);
     }
 
     @GetMapping("/admin/boleta-venta/descargar")
