@@ -1,28 +1,26 @@
 package pe.edu.utp.Grupo04.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.ModelAndView;
 import pe.edu.utp.Grupo04.dto.ProductoDTO;
 import pe.edu.utp.Grupo04.model.Producto;
+import pe.edu.utp.Grupo04.model.enums.CategoriaProducto;
 import pe.edu.utp.Grupo04.service.ProductoService;
-import pe.edu.utp.Grupo04.service.SocioService;
 
 
 @Controller
 public class ProductoController {
 
     private final ProductoService productoService;
-    private final SocioService socioService;
 
-    public ProductoController(ProductoService productoService,
-                              SocioService socioService) {
+    public ProductoController(ProductoService productoService) {
         this.productoService = productoService;
-        this.socioService = socioService;
     }
 
     // --- CATÁLOGO PÚBLICO ---
@@ -34,23 +32,26 @@ public class ProductoController {
 
     // --- DETALLE DE PRODUCTO PÚBLICO ---
     @GetMapping({"/detalle-producto", "/public/detalle-producto"})
-    public String detalleProductoPublico(@RequestParam(required = false) Long id, Model model, Authentication auth) {
-        if (id != null) {
-            productoService.buscarPorId(id).ifPresent(p -> model.addAttribute("producto", p));
-        }
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-            socioService.buscarPorUsername(auth.getName()).ifPresent(s -> model.addAttribute("socio", s));
-        }
-        return "public/detalle-producto";
+    public ModelAndView detalleProductoPublico(@RequestParam(required = false) Long id) {
+        return detalleProducto(id, "public/detalle-producto", "/productos");
     }
 
     // --- DETALLE DE PRODUCTO CLIENTE ---
     @GetMapping("/cliente/detalle-producto")
-    public String detalleProductoCliente(@RequestParam(required = false) Long id, Model model) {
+    public ModelAndView detalleProductoCliente(@RequestParam(required = false) Long id) {
+        return detalleProducto(id, "cliente/detalle-producto", "/cliente/productos");
+    }
+
+    private ModelAndView detalleProducto(Long id, String vista, String catalogo) {
         if (id != null) {
-            productoService.buscarPorId(id).ifPresent(p -> model.addAttribute("producto", p));
+            var producto = productoService.buscarPorId(id).filter(p -> Boolean.TRUE.equals(p.getActivo()));
+            if (producto.isPresent()) {
+                return new ModelAndView(vista, "producto", producto.get());
+            }
         }
-        return "cliente/detalle-producto";
+        ModelAndView respuesta = new ModelAndView("public/producto-no-disponible", "catalogo", catalogo);
+        respuesta.setStatus(HttpStatus.NOT_FOUND);
+        return respuesta;
     }
 
     // --- CATÁLOGO PARA CLIENTE AUTENTICADO ---
@@ -64,6 +65,7 @@ public class ProductoController {
     @GetMapping("/admin/productos")
     public String productosAdmin(Model model) {
         model.addAttribute("productos", productoService.listarTodos());
+        model.addAttribute("categoriasProducto", CategoriaProducto.values());
         return "admin/productos";
     }
 
@@ -86,6 +88,7 @@ public class ProductoController {
         producto.setStock(productoDTO.getStock());
         producto.setImagenUrl(productoDTO.getImagenUrl() != null ? productoDTO.getImagenUrl().trim() : null);
         producto.setActivo(productoDTO.getActivo() != null ? productoDTO.getActivo() : true);
+        producto.setCategoria(productoDTO.getCategoria());
 
         productoService.guardar(producto);
         flash.addFlashAttribute("mensajeExito", "Producto actualizado en el inventario.");

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,8 @@ import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name = "registros_afluencia")
+@Table(name = "registros_afluencia", uniqueConstraints = @UniqueConstraint(
+        name = "uq_afluencia_fecha_franja", columnNames = {"fecha", "franja_horaria"}))
 @Getter
 @Setter
 @NoArgsConstructor

@@ -83,6 +83,7 @@
                         <button type="button" class="btn-table-action btn-edit-producto"
                                 th:data-id="${prod.id}"
                                 th:data-nombre="${prod.nombre}"
+                                th:data-categoria="${prod.categoria}"
                                 th:data-precio="${prod.precio}"
                                 th:data-stock="${prod.stock}"
                                 th:data-imagen="${prod.imagenUrl}"
@@ -130,6 +131,14 @@
                                 <label for="prodStock" class="form-label">STOCK DISPONIBLE</label>
                                 <input type="number" id="prodStock" name="stock" min="0" class="form-control" placeholder="Ej. 25" required>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="prodCategoria" class="form-label">CATEGORÍA</label>
+                            <select id="prodCategoria" name="categoria" class="form-select" required>
+                                <option th:each="categoria : ${categoriasProducto}"
+                                        th:value="${categoria}" th:text="${categoria}"
+                                        th:selected="${categoria.name() == 'OTROS'}"></option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="prodImagen" class="form-label">URL DE IMAGEN (O RUTA)</label>

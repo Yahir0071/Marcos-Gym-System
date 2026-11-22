@@ -1,0 +1,18 @@
+BEGIN;
+
+ALTER TABLE productos ADD COLUMN IF NOT EXISTS categoria varchar(20);
+UPDATE productos
+SET categoria = CASE
+    WHEN upper(nombre) ~ 'SHAKER|BOTELLA' THEN 'BOTELLAS'
+    WHEN upper(nombre) ~ 'CORREA|GUANTE|STRAP|CINTUR' THEN 'ACCESORIOS'
+    WHEN upper(nombre) ~ 'CAMISETA|POLO|ROPA|SHORT' THEN 'ROPA'
+    WHEN upper(nombre) ~ 'PROTE[IÍ]NA|WHEY|CREATINA|SUPLEMENTO|BCAA|PRE.?ENTRENO' THEN 'SUPLEMENTOS'
+    ELSE 'OTROS'
+END
+WHERE categoria IS NULL;
+ALTER TABLE productos ALTER COLUMN categoria SET DEFAULT 'OTROS';
+ALTER TABLE productos ALTER COLUMN categoria SET NOT NULL;
+
+ALTER TABLE ordenes ADD COLUMN IF NOT EXISTS periodo_membresia varchar(15);
+
+COMMIT;

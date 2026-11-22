@@ -1,6 +1,8 @@
 package pe.edu.utp.Grupo04.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +12,7 @@ import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
 import pe.edu.utp.Grupo04.exception.StockInsuficienteException;
 import pe.edu.utp.Grupo04.model.*;
 import pe.edu.utp.Grupo04.model.enums.EstadoReserva;
+import pe.edu.utp.Grupo04.model.enums.PeriodoMembresia;
 import pe.edu.utp.Grupo04.repository.OrdenRepository;
 import pe.edu.utp.Grupo04.repository.ReservaRepository;
 import pe.edu.utp.Grupo04.repository.SocioRepository;
@@ -109,12 +112,13 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
         o.setTipoConcepto(tipo);
         o.setEstadoPago(estado);
         o.setReservaId(req.getReservaId());
-        o.setCompradorNombre((socio.getNombres() + " " + socio.getApellidos()).trim());
+        o.setCompradorNombre(importeInscripcion != null && req.getBuyerName() != null
+                ? req.getBuyerName()
+                : (socio.getNombres() + " " + socio.getApellidos()).trim());
         o.setCompradorDocTipo(importeInscripcion != null ? req.getBuyerDocType() : "DNI");
         o.setCompradorDocNum(importeInscripcion != null ? req.getBuyerDocNum() : socio.getDni());
         o.setCompradorEmail(socio.getUsuario() != null ? socio.getUsuario().getUsername() : username);
-        o.setCardBrand(req.getCardBrand() == null || req.getCardBrand().isBlank() ? "VISA" : req.getCardBrand());
-        o.setCardLast4(req.getCardLast4() == null || req.getCardLast4().isBlank() ? "4242" : req.getCardLast4());
+        o.setCardBrand("SIMULADO");
 
         // 3) Conceptos y precios SIEMPRE desde la base de datos
         if ("MEMBRESIA".equals(tipo)) {
@@ -126,17 +130,19 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
                     .orElseThrow(() -> new RecursoNoEncontradoException("El plan seleccionado no existe"));
             o.setPlanId(plan.getId());
             o.setDuracionDias(plan.getDuracionDias());
+            PeriodoMembresia periodo = PeriodoMembresia.interpretar(req.getPeriodo());
+            o.setPeriodoMembresia(periodo);
             String descripcion = importeInscripcion != null ? req.getItems().getFirst().getName()
-                    : "Membresía " + plan.getNombre() + " (" + plan.getDuracionDias() + " días)";
+                    : "Membresía " + plan.getNombre() + " · " + periodo.getEtiqueta();
             o.agregarDetalle(null, descripcion, "Membresías", "/img/login-bg.jpg",
-                    importeInscripcion != null ? importeInscripcion : plan.getPrecio(), 1);
+                    importeInscripcion != null ? importeInscripcion : periodo.total(plan.getPrecio()), 1);
         } else if (req.getReservaId() != null) {
             Reserva reserva = reservaPendiente(req.getReservaId(), socio.getId());
             if (ordenRepository.existsByReservaIdAndEstadoPagoIn(reserva.getId(), List.of("PAGADO", "EN_PROCESO"))) {
                 throw new IllegalStateException("La reserva ya tiene un pago registrado. Revísalo en Mis compras.");
             }
             Producto p = reserva.getProducto();
-            o.agregarDetalle(p.getId(), p.getNombre(), "Productos", p.getImagenUrl(), p.getPrecio(), reserva.getCantidad());
+            o.agregarDetalle(p.getId(), p.getNombre(), p.getCategoria().name(), p.getImagenUrl(), p.getPrecio(), reserva.getCantidad());
         } else {
             if (req.getItems() == null || req.getItems().isEmpty()) {
                 throw new IllegalArgumentException("El carrito está vacío");
@@ -159,7 +165,7 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
                 if (stock < e.getValue()) {
                     throw new StockInsuficienteException(p.getNombre(), stock);   // se rechaza TODO
                 }
-                o.agregarDetalle(p.getId(), p.getNombre(), "Productos",
+                o.agregarDetalle(p.getId(), p.getNombre(), p.getCategoria().name(),
                         p.getImagenUrl() != null ? p.getImagenUrl() : "/img/whey.jpg",
                         p.getPrecio(), e.getValue());
             }
@@ -177,7 +183,7 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
             }
             case "EN_PROCESO" -> {
                 reservarStock(o);
-                o.setEstadoEntrega("EN VALIDACIÓN BANCARIA");
+                o.setEstadoEntrega("PENDIENTE DE CONFIRMACIÓN");
             }
             default -> o.setEstadoEntrega("SIN CARGO");   // RECHAZADO o CANCELADO: sin efectos
         }
@@ -244,26 +250,26 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listarTodas() {
-        return ordenRepository.findAllByOrderByFechaDesc().stream()
-                .filter(this::esHistorial)
-                .map(this::aMapa)
-                .toList();
+        return listarPaginaPorCliente("", Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Map<String, Object>> listarPagina(Pageable pageable) {
+        return ordenRepository.findAll(pageable).map(this::aMapa);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Map<String, Object>> listarPaginaPorCliente(String filtro, Pageable pageable) {
+        String normalizado = filtro == null ? "" : filtro.trim().toLowerCase(Locale.ROOT);
+        return ordenRepository.buscarHistorialPorCliente(normalizado, pageable).map(this::aMapa);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listarPorCliente(String filtro) {
-        if (filtro == null || filtro.isBlank()) {
-            return listarTodas();
-        }
-        String f = filtro.trim().toLowerCase();
-        return ordenRepository.findAllByOrderByFechaDesc().stream()
-                .filter(this::esHistorial)
-                .filter(o -> o.getCompradorEmail().toLowerCase().contains(f)
-                        || o.getCompradorDocNum().toLowerCase().contains(f)
-                        || o.getCompradorNombre().toLowerCase().contains(f))
-                .map(this::aMapa)
-                .toList();
+        return listarPaginaPorCliente(filtro, Pageable.unpaged()).getContent();
     }
 
     @Override
@@ -359,7 +365,14 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
         if ("MEMBRESIA".equals(o.getTipoConcepto())) {
             socioRepository.findLockedById(socio.getId())
                     .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado."));
-            membresiaService.asignarPlanASocio(socio.getId(), o.getPlanId(), LocalDate.now());
+            PeriodoMembresia periodo = o.getPeriodoMembresia();
+            LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
+            if (periodo == null) {
+                membresiaService.asignarPlanASocio(socio.getId(), o.getPlanId(), hoy);
+            } else {
+                membresiaService.asignarPlanASocio(socio.getId(), o.getPlanId(), hoy,
+                        periodo.name(), periodo.getMeses());
+            }
         } else if (o.getReservaId() != null) {
             reservaPendiente(o.getReservaId(), socio.getId());
             reservaService.actualizarEstado(o.getReservaId(), EstadoReserva.CONFIRMADA);
@@ -424,7 +437,7 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
         m.put("referencia", o.getReferencia());
         m.put("fecha", o.getFecha().format(FMT));
         m.put("estadoPago", o.getEstadoPago());
-        m.put("estadoEntrega", o.getEstadoEntrega());
+        m.put("estadoEntrega", "EN_PROCESO".equals(o.getEstadoPago()) ? "PENDIENTE DE CONFIRMACIÓN" : o.getEstadoEntrega());
         m.put("buyerName", o.getCompradorNombre());
         m.put("buyerDocType", o.getCompradorDocTipo());
         m.put("buyerDocNum", o.getCompradorDocNum());
@@ -432,6 +445,8 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
         m.put("cardBrand", o.getCardBrand());
         m.put("cardLast4", o.getCardLast4());
         m.put("tipoConcepto", o.getTipoConcepto());
+        m.put("planId", o.getPlanId());
+        m.put("periodoMembresia", o.getPeriodoMembresia() == null ? null : o.getPeriodoMembresia().name());
         m.put("items", items);
         m.put("totalUnidades", unidades);
         m.put("resumenItems", String.join(" • ", resumen));
@@ -441,7 +456,7 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
         m.put("baseFormatted", String.format(Locale.US, "%.2f", base));
         m.put("igvFormatted", String.format(Locale.US, "%.2f", igv));
         m.put("totalFormatted", String.format(Locale.US, "%.2f", total));
-        m.put("leyendaLegal", "SIMULACIÓN ACADÉMICA — SIN VALIDEZ TRIBUTARIA");
+        m.put("leyendaLegal", "Documento interno sin validez tributaria.");
         if (o.getReservaId() != null) {
             m.put("reservaId", o.getReservaId());
         }

@@ -11,7 +11,7 @@
                     <div>
                         <div class="section-subtitle mb-2 text-primary text-2xs">HISTORIAL DE PEDIDOS EN MEMORIA</div>
                         <h1 class="display-3 font-anton leading-none mb-1 text-light">MIS COMPRAS</h1>
-                        <p class="font-anton text-muted m-0 tracking-wide text-md">PEDIDOS DE PRODUCTOS Y SUS COMPROBANTES ELECTRÓNICOS ASOCIADOS (<span th:text="${#lists.size(ordenesMemoria)}">4</span> REGISTRADOS)</p>
+                        <p class="font-anton text-muted m-0 tracking-wide text-md">COMPRAS Y SUS COMPROBANTES INTERNOS (<span th:text="${#lists.size(ordenesMemoria)}">4</span> REGISTRADOS)</p>
                     </div>
                     <div class="d-flex gap-2">
                         <a th:href="@{/cliente/carrito}" class="btn btn-primary py-2 px-3">
@@ -42,34 +42,32 @@
                                               class="badge bg-dark text-primary border border-primary font-anton px-2 py-1 text-2xs">POR RECOGER EN GIMNASIO</span>
                                         <span th:if="${ord['estadoEntrega'] == 'ENTREGADO'}"
                                               class="badge bg-dark text-muted border border-secondary font-anton px-2 py-1 text-2xs">ENTREGADO</span>
-                                        <span th:if="${ord['estadoEntrega'] == 'EN VALIDACIÓN BANCARIA'}"
-                                              class="badge bg-dark text-warning border border-warning font-anton px-2 py-1 text-2xs">EN VALIDACIÓN BANCARIA</span>
+                                        <span th:if="${ord['estadoPago'] == 'EN_PROCESO'}"
+                                              class="badge bg-dark text-warning border border-warning font-anton px-2 py-1 text-2xs">Pendiente de confirmación</span>
 
                                         <span th:if="${ord['estadoPago'] == 'PAGADO'}"
                                               class="badge bg-dark text-success border border-success font-anton px-2 py-1 text-2xs">PAGO APROBADO</span>
-                                        <span th:if="${ord['estadoPago'] == 'EN_PROCESO'}"
-                                              class="badge bg-dark text-primary border border-primary font-anton px-2 py-1 text-2xs">PAGO EN PROCESO</span>
                                     </div>
                                     <div class="text-muted text-2xs mb-1">
                                         <span th:text="${ord['fecha']}">20 Ene 2025 · 10:45</span> &bull;
-                                        <i class="fa-brands fa-cc-visa text-primary"></i>
-                                        <span th:text="${ord['cardBrand'] + ' •••• ' + ord['cardLast4']}">VISA •••• 4242</span> &bull;
-                                        Boleta <span class="text-light" th:text="${ord['boleta']}">B001-00000521</span>
+
+                                    <span>Pago simulado</span> &bull;
+                                        <span th:if="${ord['estadoPago'] == 'PAGADO'}" th:text="${'Comprobante ' + ord['boleta']}"></span>
                                     </div>
                                     <div class="text-light text-xs fw-bold" th:text="${ord['resumenItems']}">1 × Whey Protein 2 LB • 1 × Shaker 700ml</div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center gap-4 ms-auto">
                                 <div class="text-end">
-                                    <div class="text-muted font-anton text-2xs">TOTAL PAGADO</div>
+                                    <div class="text-muted font-anton text-2xs">TOTAL SIMULADO</div>
                                     <h4 class="font-anton text-primary m-0" th:text="${'S/ ' + ord['totalFormatted']}">S/ 194.00</h4>
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <a th:href="@{/cliente/detalle-pedido(codigo=${ord['codigo']})}" class="btn btn-outline py-2 px-3 text-xs">
+                                    <a th:href="${ord['estadoPago'] == 'EN_PROCESO'} ? @{/cliente/pago-en-proceso(codigo=${ord['codigo']})} : @{/cliente/detalle-pedido(codigo=${ord['codigo']})}" class="btn btn-outline py-2 px-3 text-xs">
                                         VER DETALLE
                                     </a>
-                                    <a th:href="@{/cliente/boleta-venta(codigo=${ord['codigo']})}" class="btn btn-primary py-2 px-3 text-xs">
-                                        VER BOLETA
+                                    <a th:if="${ord['estadoPago'] == 'PAGADO'}" th:href="@{/cliente/boleta-venta(codigo=${ord['codigo']})}" class="btn btn-primary py-2 px-3 text-xs">
+                                        VER COMPROBANTE
                                     </a>
                                 </div>
                             </div>
@@ -79,8 +77,8 @@
 
                 <!-- Footer Disclaimer -->
                 <div class="mt-5 pt-3 border-top border-secondary text-muted text-2xs">
-                    <div>Demostración visual. Pagos y facturación requieren integración posterior.</div>
-                    <div>Pagos online solo para productos. Activación y renovación de membresías presenciales.</div>
+
+                    <div>Pago simulado. No genera cargos.</div>
                 </div>
             </div>
         </div>

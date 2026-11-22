@@ -962,6 +962,41 @@ video {
     -webkit-overflow-scrolling: touch;
 }
 
+.plan-comparison {
+    position: relative;
+    min-inline-size: 0;
+    overflow: auto;
+}
+
+.plan-comparison:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+.plan-comparison .custom-table {
+    min-inline-size: 42rem;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.plan-comparison .custom-table tr > :first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    inline-size: 10rem;
+    background: var(--bg-card);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.plan-comparison .custom-table tbody th {
+    color: var(--text-main);
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 600;
+}
+
 .card,
 .page-header,
 .filters-bar,

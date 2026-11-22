@@ -7,14 +7,6 @@ import { getJson, postJson } from "../core/api-client.js";
 import { openSafeGymModal, closeGymModal, createDomElement, createIcon } from "../core/modal.js";
 import { showGymToast } from "../core/toast.js";
 
-function getTodayIsoDate() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-}
-
 function renderCongelamientoList(container, solicitudes) {
     if (!container) return;
     container.replaceChildren();
@@ -110,8 +102,8 @@ export async function initCongelamiento() {
             fechaInput.type = "date";
             fechaInput.id = "congelamientoFechaInicio";
             fechaInput.name = "fechaInicioSolicitada";
-            fechaInput.min = getTodayIsoDate();
-            fechaInput.value = getTodayIsoDate();
+            fechaInput.min = triggerBtn.dataset.fechaMinima;
+            fechaInput.value = fechaInput.min;
             fechaInput.required = true;
             fechaGroup.append(fechaLabel, fechaInput);
 
@@ -216,7 +208,7 @@ export function initSafeReservaVoucher() {
             const note = createDomElement(
                 "p",
                 "text-muted text-2xs mb-3",
-                "Presenta esta constancia académica en el counter de recepción de sede Av. Las Américas, Ate para gestionar tu reserva."
+                "Presenta esta constancia en recepción de la sede de Las Américas, Ate, para gestionar tu reserva."
             );
             const closeBtn = createDomElement("button", "btn btn-primary w-100", "CERRAR CONSTANCIA");
             closeBtn.type = "button";

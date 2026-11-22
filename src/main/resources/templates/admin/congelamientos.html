@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{admin/fragments :: layout(~{::title}, 'congelamientos', ~{::main})}">
+<head><title>Pausas de membresía - Energy Gym</title></head>
+<body>
+<main class="admin-page" id="main-content">
+    <div class="page-header">
+        <div>
+            <h1>Pausas de membresía</h1>
+            <p>Consulta las solicitudes enviadas por los socios.</p>
+        </div>
+    </div>
+
+    <p th:if="${mensajeExito}" th:text="${mensajeExito}" class="alert alert-success" role="status"></p>
+    <p th:if="${mensajeError}" th:text="${mensajeError}" class="alert alert-danger" role="alert"></p>
+
+    <nav class="d-flex flex-wrap gap-2 mb-3" aria-label="Estado de las solicitudes">
+        <a th:each="opcion : ${estados}"
+           th:href="@{/admin/membresias/congelamientos(estado=${opcion})}"
+           th:class="${opcion == estado ? 'btn btn-primary' : 'btn btn-outline'}"
+           th:attr="aria-current=${opcion == estado ? 'page' : null}"
+           th:text="${#strings.capitalize(#strings.toLowerCase(opcion.name()))}"></a>
+    </nav>
+
+    <p th:if="${solicitudes.empty}" class="card p-4 text-muted">No hay solicitudes en este estado.</p>
+    <div th:unless="${solicitudes.empty}" class="table-container" tabindex="0" role="region" aria-label="Solicitudes de pausa">
+        <table class="custom-table w-100">
+            <thead>
+                <tr>
+                    <th scope="col">Socio</th>
+                    <th scope="col">Plan</th>
+                    <th scope="col">Desde</th>
+                    <th scope="col">Días</th>
+                    <th scope="col">Motivo</th>
+                    <th scope="col">Revisión</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="solicitud : ${solicitudes.content}">
+                    <th scope="row" th:text="${solicitud.socio.nombres + ' ' + solicitud.socio.apellidos}"></th>
+                    <td th:text="${solicitud.membresia.plan.nombre}"></td>
+                    <td th:text="${#temporals.format(solicitud.fechaInicioSolicitada, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${solicitud.diasSolicitados}"></td>
+                    <td class="text-break" th:text="${solicitud.motivo}"></td>
+                    <td>
+                        <form sec:authorize="hasRole('RECEPCION')" th:if="${estado.name() == 'PENDIENTE'}"
+                              th:action="@{/admin/membresias/congelamientos/{id}/resolver(id=${solicitud.id})}"
+                              method="post" class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-sm btn-primary" type="submit" name="decision" value="APROBADA">Aprobar</button>
+                            <button class="btn btn-sm btn-outline" type="submit" name="decision" value="RECHAZADA">Rechazar</button>
+                        </form>
+                        <span th:if="${estado.name() == 'PENDIENTE'}" sec:authorize="hasRole('ADMINISTRACION')">Pendiente</span>
+                        <span th:if="${solicitud.fechaResolucion != null}"
+                              th:text="${#temporals.format(solicitud.fechaResolucion, 'dd/MM/yyyy HH:mm') + ' · ' + solicitud.resueltoPor}"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <nav class="d-flex flex-wrap gap-2 mt-3" th:if="${solicitudes.hasPrevious() or solicitudes.hasNext()}" aria-label="Páginas de solicitudes">
+        <a th:if="${solicitudes.hasPrevious()}" class="btn btn-outline"
+           th:href="@{/admin/membresias/congelamientos(estado=${estado},pagina=${solicitudes.number - 1})}">Anterior</a>
+        <a th:if="${solicitudes.hasNext()}" class="btn btn-outline"
+           th:href="@{/admin/membresias/congelamientos(estado=${estado},pagina=${solicitudes.number + 1})}">Siguiente</a>
+    </nav>
+</main>
+</body>
+</html>

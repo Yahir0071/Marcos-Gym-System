@@ -15,11 +15,14 @@ import pe.edu.utp.Grupo04.model.SolicitudCongelamiento;
 import pe.edu.utp.Grupo04.model.enums.EstadoMembresia;
 import pe.edu.utp.Grupo04.model.enums.EstadoSolicitudCongelamiento;
 import pe.edu.utp.Grupo04.repository.SolicitudCongelamientoRepository;
+import pe.edu.utp.Grupo04.repository.MembresiaRepository;
+import pe.edu.utp.Grupo04.repository.SocioRepository;
 import pe.edu.utp.Grupo04.service.MembresiaService;
 import pe.edu.utp.Grupo04.service.SocioService;
 import pe.edu.utp.Grupo04.service.impl.CongelamientoServiceImpl;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +35,10 @@ public class CongelamientoServiceTest {
 
     @Mock
     private SolicitudCongelamientoRepository congelamientoRepository;
+    @Mock
+    private SocioRepository socioRepository;
+    @Mock
+    private MembresiaRepository membresiaRepository;
     @Mock
     private SocioService socioService;
     @Mock
@@ -74,6 +81,7 @@ public class CongelamientoServiceTest {
         );
 
         when(socioService.buscarPorUsername("carlos@energygym.pe")).thenReturn(Optional.of(socio));
+        when(socioRepository.findLockedById(10L)).thenReturn(Optional.of(socio));
         when(membresiaService.obtenerMembresiaActivaPorUsername("carlos@energygym.pe")).thenReturn(Optional.of(membresiaActiva));
         when(congelamientoRepository.existsBySocioIdAndEstado(10L, EstadoSolicitudCongelamiento.PENDIENTE)).thenReturn(false);
         when(congelamientoRepository.save(any(SolicitudCongelamiento.class))).thenAnswer(inv -> {
@@ -97,6 +105,7 @@ public class CongelamientoServiceTest {
     void testRegistrarSolicitud_SinMembresiaActiva() {
         SolicitudCongelamientoDTO dto = new SolicitudCongelamientoDTO(7, LocalDate.now(), "Descanso médico");
         when(socioService.buscarPorUsername("carlos@energygym.pe")).thenReturn(Optional.of(socio));
+        when(socioRepository.findLockedById(10L)).thenReturn(Optional.of(socio));
         when(membresiaService.obtenerMembresiaActivaPorUsername("carlos@energygym.pe")).thenReturn(Optional.empty());
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
@@ -111,6 +120,7 @@ public class CongelamientoServiceTest {
     void testRegistrarSolicitud_DuplicadaPendiente() {
         SolicitudCongelamientoDTO dto = new SolicitudCongelamientoDTO(15, LocalDate.now().plusDays(1), "Viaje familiar");
         when(socioService.buscarPorUsername("carlos@energygym.pe")).thenReturn(Optional.of(socio));
+        when(socioRepository.findLockedById(10L)).thenReturn(Optional.of(socio));
         when(membresiaService.obtenerMembresiaActivaPorUsername("carlos@energygym.pe")).thenReturn(Optional.of(membresiaActiva));
         when(congelamientoRepository.existsBySocioIdAndEstado(10L, EstadoSolicitudCongelamiento.PENDIENTE)).thenReturn(true);
 
@@ -126,11 +136,46 @@ public class CongelamientoServiceTest {
     void testRegistrarSolicitud_FechaPasada() {
         SolicitudCongelamientoDTO dto = new SolicitudCongelamientoDTO(7, LocalDate.now().minusDays(1), "Motivo válido");
         when(socioService.buscarPorUsername("carlos@energygym.pe")).thenReturn(Optional.of(socio));
+        when(socioRepository.findLockedById(10L)).thenReturn(Optional.of(socio));
         when(membresiaService.obtenerMembresiaActivaPorUsername("carlos@energygym.pe")).thenReturn(Optional.of(membresiaActiva));
 
         assertThrows(IllegalArgumentException.class,
                 () -> congelamientoService.registrarSolicitud("carlos@energygym.pe", dto));
         verify(congelamientoRepository, never()).save(any());
+    }
+
+    @Test
+    void aprobarExtiendeMembresiaUnaSolaVezYRegistraResponsable() {
+        LocalDate inicioPausa = LocalDate.now(ZoneId.of("America/Lima"));
+        LocalDate finOriginal = membresiaActiva.getFechaFin();
+        var solicitud = new SolicitudCongelamiento();
+        solicitud.setSocio(socio);
+        solicitud.setDiasSolicitados(7);
+        solicitud.setFechaInicioSolicitada(inicioPausa);
+        var titular = mock(SolicitudCongelamientoRepository.Titular.class);
+        when(titular.getMembresiaId()).thenReturn(100L);
+        when(titular.getSocioId()).thenReturn(10L);
+        when(congelamientoRepository.buscarTitular(44L)).thenReturn(Optional.of(titular));
+        when(socioRepository.findLockedById(10L)).thenReturn(Optional.of(socio));
+        when(membresiaRepository.buscarParaActualizar(100L)).thenReturn(Optional.of(membresiaActiva));
+        when(congelamientoRepository.findById(44L)).thenReturn(Optional.of(solicitud));
+        var siguiente = new Membresia();
+        siguiente.setEstado(EstadoMembresia.PENDIENTE);
+        siguiente.setFechaInicio(finOriginal.plusDays(1));
+        siguiente.setFechaFin(finOriginal.plusDays(31));
+        when(membresiaRepository.findBySocioId(10L)).thenReturn(List.of(membresiaActiva, siguiente));
+
+        congelamientoService.resolver(44L, EstadoSolicitudCongelamiento.APROBADA, "recepcion@example.test");
+        assertEquals(EstadoSolicitudCongelamiento.APROBADA, solicitud.getEstado());
+        assertEquals("recepcion@example.test", solicitud.getResueltoPor());
+        assertNotNull(solicitud.getFechaResolucion());
+        assertEquals(finOriginal.plusDays(7), membresiaActiva.getFechaFin());
+        assertEquals(finOriginal.plusDays(8), siguiente.getFechaInicio());
+        assertEquals(finOriginal.plusDays(38), siguiente.getFechaFin());
+
+        assertThrows(IllegalStateException.class,
+                () -> congelamientoService.resolver(44L, EstadoSolicitudCongelamiento.APROBADA, "recepcion@example.test"));
+        assertEquals(finOriginal.plusDays(7), membresiaActiva.getFechaFin());
     }
 
     @Test

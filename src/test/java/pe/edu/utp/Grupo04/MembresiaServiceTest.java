@@ -14,6 +14,7 @@ import pe.edu.utp.Grupo04.model.enums.EstadoMembresia;
 import pe.edu.utp.Grupo04.repository.MembresiaRepository;
 import pe.edu.utp.Grupo04.repository.PlanRepository;
 import pe.edu.utp.Grupo04.repository.SocioRepository;
+import pe.edu.utp.Grupo04.service.TarifaInscripcion;
 import pe.edu.utp.Grupo04.service.impl.MembresiaServiceImpl;
 
 import java.time.LocalDate;
@@ -129,5 +130,46 @@ public class MembresiaServiceTest {
         long dias = membresiaService.calcularDiasRestantes(membresia);
 
         assertEquals(15, dias);
+    }
+
+    @Test
+    void activaProgramadaEnSuFechaYConservaPreinscripcionPendiente() {
+        LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
+        Membresia programada = new Membresia();
+        programada.setEstado(EstadoMembresia.PENDIENTE);
+        programada.setFechaInicio(hoy);
+        programada.setFechaFin(hoy.plusDays(30));
+        Membresia preinscripcion = new Membresia();
+        preinscripcion.setEstado(EstadoMembresia.PENDIENTE);
+        preinscripcion.setFechaInicio(hoy);
+        preinscripcion.setFechaFin(hoy.plusDays(30));
+        preinscripcion.setCodigoPreinscripcion("INS-QA");
+        when(socioRepository.findByUsuarioUsername("socio@example.test")).thenReturn(Optional.of(socio));
+        when(membresiaRepository.findBySocioId(socio.getId())).thenReturn(List.of(preinscripcion, programada));
+
+        assertEquals(programada, membresiaService.obtenerMembresiaActivaPorUsername("socio@example.test").orElseThrow());
+        assertEquals(EstadoMembresia.ACTIVA, programada.getEstado());
+        assertEquals(EstadoMembresia.PENDIENTE, preinscripcion.getEstado());
+        verify(membresiaRepository, never()).save(preinscripcion);
+    }
+
+    @Test
+    void programaSiguienteRenovacionDespuesDeLaUltimaVigencia() {
+        LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
+        Membresia primera = new Membresia();
+        primera.setFechaFin(hoy.plusDays(15));
+        primera.setEstado(EstadoMembresia.ACTIVA);
+        Membresia segunda = new Membresia();
+        segunda.setFechaFin(hoy.plusDays(45));
+        segunda.setEstado(EstadoMembresia.PENDIENTE);
+        when(socioRepository.findById(1L)).thenReturn(Optional.of(socio));
+        when(planRepository.findById(1L)).thenReturn(Optional.of(plan));
+        when(membresiaRepository.findBySocioId(1L)).thenReturn(List.of(primera, segunda));
+        when(membresiaRepository.save(any(Membresia.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Membresia renovacion = membresiaService.asignarPlanASocio(1L, 1L, hoy);
+
+        assertEquals(hoy.plusDays(46), renovacion.getFechaInicio());
+        assertEquals(EstadoMembresia.PENDIENTE, renovacion.getEstado());
     }
 }

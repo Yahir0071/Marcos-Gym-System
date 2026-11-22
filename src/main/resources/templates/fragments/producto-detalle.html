@@ -1,0 +1,46 @@
+<div th:fragment="contenido" class="grid-2-col align-items-center">
+            <div class="card product-detail-box border-secondary p-4">
+                <img th:if="${producto.imagenUrl != null and !#strings.isEmpty(producto.imagenUrl)}"
+                     th:src="@{${producto.imagenUrl}}" th:alt="${producto.nombre}" class="img-fluid h-100 obj-contain">
+                <span th:unless="${producto.imagenUrl != null and !#strings.isEmpty(producto.imagenUrl)}"
+                      class="text-muted mx-auto">Sin imagen disponible</span>
+            </div>
+            <div>
+                <p class="font-anton text-primary mb-2" th:text="${producto.categoria}"></p>
+                <h1 id="detailName" class="display-4 font-anton text-light" th:text="${producto.nombre}"></h1>
+                <p th:if="${!#strings.isEmpty(producto.descripcion)}" class="text-muted" th:text="${producto.descripcion}"></p>
+                <p class="font-anton fs-2 text-primary mb-1" id="detailUnitPrice"
+                   th:attr="data-unit-price=${producto.precio}"
+                   th:text="'S/ ' + ${#numbers.formatDecimal(producto.precio, 1, 2, 'POINT')}"></p>
+                <p class="text-light"><span id="detailStockCount" th:text="${producto.stock}"></span> unidades disponibles</p>
+                <div th:if="${producto.stock > 0}" class="d-flex flex-column gap-3 mt-3">
+                    <div sec:authorize="hasRole('CLIENTE')" class="d-flex flex-column gap-3">
+                        <div class="d-flex gap-3 align-items-end flex-wrap">
+                            <div>
+                                <label for="detailQtyInput" class="form-label">Cantidad</label>
+                                <div class="d-flex align-items-center border border-secondary rounded" style="width: 145px;">
+                                    <button type="button" class="btn btn-link text-light" id="btnQtyMinus" aria-label="Disminuir cantidad">−</button>
+                                    <input id="detailQtyInput" type="number" class="form-control text-center border-0 bg-transparent" value="1"
+                                           min="1" th:max="${producto.stock}" readonly>
+                                    <button type="button" class="btn btn-link text-light" id="btnQtyPlus" aria-label="Aumentar cantidad">+</button>
+                                </div>
+                            </div>
+                            <div>Subtotal <strong id="detailTotalPrice" class="text-primary font-anton"
+                                                   th:text="'S/ ' + ${#numbers.formatDecimal(producto.precio, 1, 2, 'POINT')}"></strong></div>
+                        </div>
+                        <a th:href="@{/cliente/carrito}" class="btn btn-primary" id="btnAddToCartDetail"
+                           th:attr="data-id=${producto.id},data-name=${producto.nombre},data-category=${producto.categoria},
+                                    data-price=${producto.precio},data-img=${producto.imagenUrl}">
+                            Agregar al carrito
+                        </a>
+                        <button type="button" class="btn btn-outline" id="btnConfirmProductReserve" th:attr="data-id=${producto.id}">
+                            Reservar para recoger en recepción
+                        </button>
+                        <p class="text-muted text-sm mb-0">Consulta el código y el estado de tu reserva en Mis reservas.</p>
+                    </div>
+                    <a sec:authorize="isAnonymous()" th:href="@{/cliente/detalle-producto(id=${producto.id})}" class="btn btn-primary">
+                        Iniciar sesión para comprar o reservar
+                    </a>
+                </div>
+            </div>
+        </div>

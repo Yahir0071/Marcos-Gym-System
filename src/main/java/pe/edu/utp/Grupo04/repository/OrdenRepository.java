@@ -1,10 +1,13 @@
 package pe.edu.utp.Grupo04.repository;
 
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import pe.edu.utp.Grupo04.model.Orden;
 
 import java.util.List;
@@ -30,8 +33,15 @@ public interface OrdenRepository extends JpaRepository<Orden, Long> {
     @EntityGraph(attributePaths = "detalles")
     List<Orden> findBySocioIdOrderByFechaDesc(Long socioId);
 
-    @EntityGraph(attributePaths = "detalles")
-    List<Orden> findAllByOrderByFechaDesc();
+    @Query("""
+            select o from Orden o
+            where o.estadoPago in ('PAGADO', 'EN_PROCESO')
+              and (:filtro = '' or locate(:filtro, lower(o.compradorEmail)) > 0
+                or locate(:filtro, lower(o.compradorDocNum)) > 0
+                or locate(:filtro, lower(o.compradorNombre)) > 0)
+            order by o.fecha desc, o.id desc
+            """)
+    Page<Orden> buscarHistorialPorCliente(@Param("filtro") String filtro, Pageable pageable);
 
     @Query("select coalesce(max(o.id), 0) from Orden o")
     Long maxId();

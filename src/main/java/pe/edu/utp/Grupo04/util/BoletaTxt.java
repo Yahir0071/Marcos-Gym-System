@@ -13,7 +13,7 @@ public final class BoletaTxt {
         StringBuilder sb = new StringBuilder();
         sb.append(doble).append('\n')
           .append("             ENERGY GYM - COMPROBANTE DE PAGO SIMULADO\n")
-          .append("         SIMULACIÓN ACADÉMICA — SIN VALIDEZ TRIBUTARIA\n")
+          .append("          DOCUMENTO INTERNO SIN VALIDEZ TRIBUTARIA\n")
           .append(doble).append('\n')
           .append("Comprobante        : ").append(o.get("boleta")).append('\n')
           .append("Código de Pedido   : ").append(o.get("codigo")).append('\n')
@@ -26,7 +26,7 @@ public final class BoletaTxt {
           .append("Cliente            : ").append(o.get("buyerName")).append('\n')
           .append("Documento          : ").append(o.get("buyerDocType")).append(' ').append(o.get("buyerDocNum")).append('\n')
           .append("Correo             : ").append(o.get("buyerEmail")).append('\n')
-          .append("Método (simulado)  : Tarjeta ").append(o.get("cardBrand")).append(" **** ").append(o.get("cardLast4")).append('\n')
+          .append("Método             : Pago simulado\n")
           .append(simple).append('\n')
           .append("DETALLE\n")
           .append(o.get("resumenItems")).append('\n')
@@ -34,9 +34,11 @@ public final class BoletaTxt {
           .append(String.format("Base               : S/ %s%n", o.get("baseFormatted")))
           .append(String.format("IGV (18%%)          : S/ %s%n", o.get("igvFormatted")))
           .append(String.format("IMPORTE TOTAL      : S/ %s%n", o.get("totalFormatted")))
-          .append(doble).append('\n')
-          .append("Lugar de Recojo    : Recepción Central Energy Gym (Sede Las Américas, Ate)\n")
-          .append("Aviso              : Documento generado para evaluación académica. No es un comprobante oficial.\n")
+          .append(doble).append('\n');
+        if ("PRODUCTO".equals(o.get("tipoConcepto"))) {
+            sb.append("Lugar de recojo    : Recepción de Energy Gym (sede Las Américas, Ate)\n");
+        }
+        sb.append("Aviso              : Documento interno sin validez tributaria.\n")
           .append(doble).append('\n');
         return sb.toString();
     }

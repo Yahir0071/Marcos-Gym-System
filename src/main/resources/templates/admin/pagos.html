@@ -5,9 +5,9 @@
 <main class="admin-page" id="main-content">
     <div class="page-header">
         <div>
-            <small class="subtitle">AUDITORÍA Y CONTROL DE COBROS (PROTOTIPO ACADÉMICO)</small>
+            <small class="subtitle">AUDITORÍA Y CONTROL DE PAGOS</small>
             <h1>GESTIÓN DE PAGOS Y COMPROBANTES</h1>
-            <p>PAGOS PRESENCIALES EN CAJA Y REGISTRO DE OPERACIONES EN LÍNEA SIMULADAS</p>
+            <p>PAGOS PRESENCIALES EN CAJA Y OPERACIONES EN LÍNEA</p>
         </div>
         <div>
             <button type="button" sec:authorize="hasRole('RECEPCION')"
@@ -21,8 +21,8 @@
     <div class="info-banner mb-4" role="note">
         <span class="info-icon fs-5 text-warning"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
         <div>
-            <strong>ENTORNO ACADÉMICO DE DEMOSTRACIÓN</strong>
-            <small>Los pagos en línea y constancias/comprobantes generados en este módulo tienen fines exclusivamente académicos. No poseen validez tributaria ante SUNAT ni ejecutan cargos bancarios reales.</small>
+            <strong>INFORMACIÓN SOBRE LOS COMPROBANTES</strong>
+            <small>Documento interno sin validez tributaria. No genera cargos.</small>
         </div>
     </div>
 
@@ -39,51 +39,45 @@
     <!-- Pestañas de Navegación -->
     <ul class="nav nav-pills custom-tabs mb-4" id="pagosTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active font-anton tracking-wide" id="tab-presencial-btn" data-bs-toggle="pill" data-bs-target="#tab-presencial" type="button" role="tab" aria-controls="tab-presencial" aria-selected="true">
+            <button class="nav-link font-anton tracking-wide" id="tab-presencial-btn" data-bs-toggle="pill" data-bs-target="#tab-presencial" type="button" role="tab" aria-controls="tab-presencial" th:classappend="${!tabLinea} ? 'active'" th:aria-selected="${!tabLinea}">
                 <i class="fa-solid fa-cash-register me-2" aria-hidden="true"></i> PAGOS EN CAJA (PRESENCIAL)
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link font-anton tracking-wide" id="tab-online-btn" data-bs-toggle="pill" data-bs-target="#tab-online" type="button" role="tab" aria-controls="tab-online" aria-selected="false">
-                <i class="fa-solid fa-credit-card me-2" aria-hidden="true"></i> OPERACIONES Y COMPROBANTES SIMULADOS
-                <span class="badge bg-primary text-dark ms-2" th:text="${#lists.size(comprasOnline)}">0</span>
+            <button class="nav-link font-anton tracking-wide" id="tab-online-btn" data-bs-toggle="pill" data-bs-target="#tab-online" type="button" role="tab" aria-controls="tab-online" th:classappend="${tabLinea} ? 'active'" th:aria-selected="${tabLinea}">
+                <i class="fa-solid fa-credit-card me-2" aria-hidden="true"></i> OPERACIONES Y COMPROBANTES
+                <span class="badge bg-primary text-dark ms-2" th:text="${paginaLinea.totalElements}">0</span>
             </button>
         </li>
     </ul>
 
     <div class="tab-content" id="pagosTabsContent">
         <!-- TAB 1: PAGOS PRESENCIALES EN CAJA -->
-        <div class="tab-pane fade show active" id="tab-presencial" role="tabpanel" aria-labelledby="tab-presencial-btn">
+        <div class="tab-pane fade" id="tab-presencial" role="tabpanel" aria-labelledby="tab-presencial-btn" th:classappend="${!tabLinea} ? 'show active'">
             <div class="info-banner mb-4">
                 <span class="info-icon fs-5 text-primary"><i class="fa-solid fa-receipt" aria-hidden="true"></i></span>
                 <div>
                     <strong>REGISTRO DE PAGOS PRESENCIALES EN RECEPCIÓN</strong>
-                    <small>Registra abonos de membresías en Efectivo, Tarjeta, Transferencia, Yape o Plin con constancia académica.</small>
+                    <small>Registra el pago completo de una preinscripción vigente. No genera cargos.</small>
                 </div>
             </div>
 
             <!-- Filters Presencial -->
-            <div class="filters-bar">
+            <form class="filters-bar" th:action="@{/admin/pagos}" method="get">
                 <div class="filter-group filter-large">
                     <label for="buscarPagoInput">BUSCAR PAGO EN CAJA</label>
-                    <input type="text" id="buscarPagoInput" class="table-search-input" placeholder="Buscar por socio, concepto o método...">
+                    <input type="search" id="buscarPagoInput" name="buscar" th:value="${buscar}" maxlength="80" class="table-search-input" placeholder="Socio, DNI o referencia">
                 </div>
-                <div class="filter-group">
-                    <label for="filtroMetodoPago">MÉTODO DE PAGO</label>
-                    <select id="filtroMetodoPago" class="table-filter-select" data-filter-col="5">
-                        <option value="">TODOS LOS MÉTODOS</option>
-                        <option value="EFECTIVO">EFECTIVO</option>
-                        <option value="TARJETA">TARJETA</option>
-                        <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                        <option value="YAPE">YAPE</option>
-                        <option value="PLIN">PLIN</option>
-                    </select>
+                <div class="filter-group filter-large" sec:authorize="hasRole('RECEPCION')">
+                    <label for="preinscripcionBuscar">PREINSCRIPCIÓN PARA COBRAR</label>
+                    <input type="search" id="preinscripcionBuscar" name="pendiente" th:value="${pendiente}" maxlength="40" class="table-search-input" placeholder="Código de preinscripción o DNI">
                 </div>
-            </div>
+                <button type="submit" class="btn btn-outline">Buscar</button>
+            </form>
 
             <!-- Table Presencial -->
             <div class="table-container">
-                <table class="custom-table filterable-table" id="tablaPagos">
+                <table class="custom-table" id="tablaPagos">
                     <thead>
                     <tr>
                         <th>N°</th>
@@ -98,7 +92,10 @@
                     </thead>
                     <tbody>
                     <tr th:each="pago : ${pagos}">
-                        <td class="code-cell" th:text="${#numbers.formatInteger(pago.id, 3)}">001</td>
+                        <td class="code-cell">
+                            <div th:text="${#numbers.formatInteger(pago.id, 3)}">001</div>
+                            <small th:if="${pago.referencia}" th:text="${pago.referencia}"></small>
+                        </td>
                         <td th:text="${#temporals.format(pago.fechaPago, 'dd MMM yyyy, HH:mm')}">20 Ene 2026, 14:30</td>
                         <td>
                             <div class="fw-bold" th:text="${pago.membresia.socio.nombres + ' ' + pago.membresia.socio.apellidos}">Socio</div>
@@ -127,15 +124,20 @@
                     </tbody>
                 </table>
             </div>
+            <nav th:if="${paginaCaja.totalPages > 1}" class="d-flex align-items-center gap-3 mt-3" aria-label="Páginas de caja">
+                <a th:if="${paginaCaja.hasPrevious()}" th:href="@{/admin/pagos(caja=${paginaCaja.number - 1},buscar=${buscar},pendiente=${pendiente},linea=${paginaLinea.number})}" class="btn btn-outline">Anterior</a>
+                <span th:text="|${paginaCaja.number + 1} de ${paginaCaja.totalPages}|"></span>
+                <a th:if="${paginaCaja.hasNext()}" th:href="@{/admin/pagos(caja=${paginaCaja.number + 1},buscar=${buscar},pendiente=${pendiente},linea=${paginaLinea.number})}" class="btn btn-outline">Siguiente</a>
+            </nav>
         </div>
 
         <!-- TAB 2: AUDITORÍA DE COMPRAS SIMULADAS -->
-        <div class="tab-pane fade" id="tab-online" role="tabpanel" aria-labelledby="tab-online-btn">
+        <div class="tab-pane fade" id="tab-online" role="tabpanel" aria-labelledby="tab-online-btn" th:classappend="${tabLinea} ? 'show active'">
             <div class="info-banner mb-4">
                 <span class="info-icon fs-5 text-warning"><i class="fa-solid fa-flask" aria-hidden="true"></i></span>
                 <div>
-                    <strong>AUDITORÍA DE COMPRAS SIMULADAS Y CONSTANCIAS ACADÉMICAS</strong>
-                    <small>Trazabilidad de pedidos simulados, referencias y control de entrega presencial en sede Av. Las Américas, Ate.</small>
+                    <strong>OPERACIONES Y CONSTANCIAS</strong>
+                    <small>Consulta las referencias y confirma las entregas de pedidos en sede.</small>
                 </div>
             </div>
 
@@ -145,7 +147,7 @@
                     <thead>
                     <tr>
                         <th>PEDIDO</th>
-                        <th>COMPROBANTE DEMO</th>
+                        <th>COMPROBANTE</th>
                         <th>FECHA</th>
                         <th>CLIENTE / SOCIO</th>
                         <th>CONCEPTO</th>
@@ -169,7 +171,7 @@
                         </td>
                         <td class="text-primary fw-bold font-anton fs-6" th:text="${'S/ ' + ord.totalFormatted}">S/ 0.00</td>
                         <td>
-                            <span th:if="${ord.estadoPago == 'PAGADO'}" class="badge bg-success">PAGADO (DEMO)</span>
+                            <span th:if="${ord.estadoPago == 'PAGADO'}" class="badge bg-success">PAGADO</span>
                             <span th:if="${ord.estadoPago == 'EN_PROCESO'}" class="badge bg-warning text-dark">EN REVISIÓN</span>
                             <span th:if="${ord.estadoPago == 'RECHAZADO'}" class="badge bg-danger">RECHAZADO</span>
                             <span th:if="${ord.estadoPago == 'CANCELADO'}" class="badge bg-secondary">CANCELADO</span>
@@ -208,11 +210,16 @@
                     </tbody>
                 </table>
             </div>
+            <nav th:if="${paginaLinea.totalPages > 1}" class="d-flex align-items-center gap-3 mt-3" aria-label="Páginas de operaciones en línea">
+                <a th:if="${paginaLinea.hasPrevious()}" th:href="@{/admin/pagos(tab='LINEA',linea=${paginaLinea.number - 1},caja=${paginaCaja.number},buscar=${buscar},pendiente=${pendiente})}" class="btn btn-outline">Anterior</a>
+                <span th:text="|${paginaLinea.number + 1} de ${paginaLinea.totalPages}|"></span>
+                <a th:if="${paginaLinea.hasNext()}" th:href="@{/admin/pagos(tab='LINEA',linea=${paginaLinea.number + 1},caja=${paginaCaja.number},buscar=${buscar},pendiente=${pendiente})}" class="btn btn-outline">Siguiente</a>
+            </nav>
         </div>
     </div>
 
     <!-- Modal Registrar Pago Presencial -->
-    <div class="modal fade" id="modalRegistrarPago" tabindex="-1" aria-labelledby="modalRegistrarPagoTitle" aria-hidden="true">
+    <div class="modal fade" sec:authorize="hasRole('RECEPCION')" id="modalRegistrarPago" tabindex="-1" aria-labelledby="modalRegistrarPagoTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content gym-modal">
                 <div class="modal-header">
@@ -222,20 +229,21 @@
                 <form th:action="@{/admin/pagos/registrar}" method="post">
                     <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label for="selectMembresiaPago" class="form-label">SELECCIONAR MEMBRESÍA DEL SOCIO</label>
+                            <label for="selectMembresiaPago" class="form-label">PREINSCRIPCIÓN VIGENTE</label>
                             <select name="membresiaId" id="selectMembresiaPago" class="form-select" required>
-                                <option value="" disabled selected>-- Elija la membresía a cobrar --</option>
+                                <option value="" disabled selected>Elige la preinscripción a cobrar</option>
                                 <option th:each="m : ${membresias}" th:value="${m.id}"
-                                        th:data-monto="${m.plan.precio}"
-                                        th:text="${m.socio.nombres + ' ' + m.socio.apellidos + ' - ' + m.plan.nombre + ' (S/ ' + #numbers.formatDecimal(m.plan.precio, 1, 2) + ')'}">
+                                        th:data-monto="${m.montoReservado}"
+                                        th:text="|${m.socio.nombres} ${m.socio.apellidos} · ${m.plan.nombre} ${m.periodoReservado} · S/ ${#numbers.formatDecimal(m.montoReservado, 1, 2)} · ${m.codigoPreinscripcion}|">
                                     Membresía
                                 </option>
                             </select>
+                            <small th:if="${#lists.isEmpty(membresias)}" class="text-muted">No hay preinscripciones vigentes para este filtro.</small>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label for="inputMontoPago" class="form-label">MONTO COBRADO (S/)</label>
-                                <input type="number" id="inputMontoPago" name="monto" step="0.01" min="0.01" class="form-control" placeholder="0.00" required>
+                                <input type="number" id="inputMontoPago" name="monto" step="0.01" min="0.01" class="form-control" placeholder="0.00" aria-describedby="pagoCompletoAyuda" required>
                             </div>
                             <div class="col-6">
                                 <label for="selectMetodoPagoCaja" class="form-label">MÉTODO DE PAGO</label>
@@ -243,18 +251,23 @@
                                     <option value="Efectivo" selected>Efectivo</option>
                                     <option value="Tarjeta">Tarjeta (POS)</option>
                                     <option value="Transferencia">Transferencia</option>
-                                    <option value="Yape">Yape</option>
-                                    <option value="Plin">Plin</option>
+                                    <option value="BILLETERA">Billetera digital</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="alert alert-secondary bg-dark text-muted border-secondary p-2 mb-0">
-                            <small><i class="fa-solid fa-receipt me-1" aria-hidden="true"></i> Registro académico: al confirmar, la membresía pendiente pasa a estado ACTIVA.</small>
+                        <div class="mb-3">
+                            <label for="referenciaPagoCaja" class="form-label">REFERENCIA DEL COBRO</label>
+                            <input class="form-control" id="referenciaPagoCaja" name="referencia" maxlength="80" required
+                                   aria-describedby="referenciaPagoAyuda">
+                            <small id="referenciaPagoAyuda" class="text-muted">Usa el código de la operación. Conserva la misma referencia si repites el envío.</small>
+                        </div>
+                        <div class="alert alert-secondary bg-dark text-muted border-secondary p-2 mb-0" id="pagoCompletoAyuda">
+                            <small>Se requiere el monto completo para activar la membresía. No genera cargos.</small>
                         </div>
                     </div>
                     <div class="modal-footer border-secondary">
                         <button type="button" class="btn btn-outline" data-bs-dismiss="modal">CANCELAR</button>
-                        <button type="submit" class="btn btn-primary">REGISTRAR Y EMITIR</button>
+                        <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(membresias)}">REGISTRAR PAGO</button>
                     </div>
                 </form>
             </div>

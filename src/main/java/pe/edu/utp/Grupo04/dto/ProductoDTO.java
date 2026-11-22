@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pe.edu.utp.Grupo04.model.enums.CategoriaProducto;
 
 @Getter
 @Setter
@@ -37,4 +38,7 @@ public class ProductoDTO {
     private String imagenUrl;
 
     private Boolean activo = true;
+
+    @NotNull(message = "Selecciona la categoría del producto")
+    private CategoriaProducto categoria;
 }

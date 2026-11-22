@@ -34,6 +34,7 @@
                 <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="ACCESORIOS">ACCESORIOS</button>
                 <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="ROPA">ROPA</button>
                 <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="BOTELLAS">BOTELLAS</button>
+                <button type="button" class="btn btn-outline px-4 cat-filter-btn" data-category="OTROS">OTROS</button>
             </div>
 
             <!-- Product Grid -->
@@ -41,7 +42,7 @@
                 <!-- Producto Dinámico desde Supabase -->
                 <div th:each="prod : ${productos}"
                      class="card d-flex flex-column border-secondary overflow-hidden product-item-card"
-                     th:attr="data-category=${prod.nombre != null and (prod.nombre.toUpperCase().contains('SHAKER') or prod.nombre.toUpperCase().contains('BOTELLA')) ? 'BOTELLAS ACCESORIOS' : (prod.nombre != null and (prod.nombre.toUpperCase().contains('CORREA') or prod.nombre.toUpperCase().contains('GUANTE') or prod.nombre.toUpperCase().contains('STRAP')) ? 'ACCESORIOS' : (prod.nombre != null and (prod.nombre.toUpperCase().contains('CAMISETA') or prod.nombre.toUpperCase().contains('ROPA')) ? 'ROPA' : 'SUPLEMENTOS'))}, data-name=${prod.nombre}, data-price=${prod.precio}">
+                     th:attr="data-category=${prod.categoria}, data-name=${prod.nombre}, data-price=${prod.precio}">
                     
                     <div class="bg-deep-dark p-3 text-center position-relative">
                         <span th:if="${prod.stock != null and prod.stock > 10}" class="badge bg-primary text-dark position-absolute top-0 end-0 m-3 font-anton">DESTACADO</span>
@@ -59,16 +60,16 @@
                             <span th:if="${prod.stock != null and prod.stock > 5}" class="badge text-success border border-success bg-transparent tracking-wide text-2xs" th:text="'DISPONIBLE (' + ${prod.stock} + ' UDS)'">DISPONIBLE (12 UDS)</span>
                             <span th:if="${prod.stock != null and prod.stock > 0 and prod.stock <= 5}" class="badge text-warning border border-warning bg-transparent tracking-wide text-2xs" th:text="'ÚLTIMAS ' + ${prod.stock} + ' UDS'">ÚLTIMAS 4 UDS</span>
                             <span th:if="${prod.stock == null or prod.stock <= 0}" class="badge text-danger border border-danger bg-transparent tracking-wide text-2xs">AGOTADO</span>
-                            <small class="text-muted text-2xs fw-bold" th:text="${prod.nombre != null and (prod.nombre.toUpperCase().contains('SHAKER') or prod.nombre.toUpperCase().contains('BOTELLA')) ? 'BOTELLAS' : (prod.nombre != null and (prod.nombre.toUpperCase().contains('CORREA') or prod.nombre.toUpperCase().contains('GUANTE')) ? 'ACCESORIOS' : (prod.nombre != null and prod.nombre.toUpperCase().contains('CAMISETA') ? 'ROPA' : 'SUPLEMENTOS'))}">SUPLEMENTOS</small>
+                            <small class="text-muted text-2xs fw-bold" th:text="${prod.categoria}">SUPLEMENTOS</small>
                         </div>
                         <h5 class="font-anton mb-1 text-light" th:text="${prod.nombre != null ? prod.nombre.toUpperCase() : 'PRODUCTO'}">WHEY PROTEIN 2 LB</h5>
                         <p class="text-muted text-xs mb-3" th:text="${prod.descripcion}">24g de proteína aislada por servicio para máxima recuperación.</p>
-                        <h4 class="font-anton text-primary mb-4 mt-auto" th:text="'S/ ' + ${#numbers.formatDecimal(prod.precio, 1, 'POINT', 0, 'POINT')}">S/ 149</h4>
+                        <h4 class="font-anton text-primary mb-4 mt-auto" th:text="'S/ ' + ${#numbers.formatDecimal(prod.precio, 1, 2, 'POINT')}">S/ 149</h4>
                         <div class="d-flex gap-2">
                             <a th:href="@{/detalle-producto(id=${prod.id})}" class="btn btn-outline flex-grow-1 font-anton text-xs">
                                 <i class="fa-solid fa-eye me-1"></i> DETALLE
                             </a>
-                            <a th:href="@{/detalle-producto(id=${prod.id})}" class="btn btn-primary px-3 font-anton text-xs d-flex align-items-center gap-1" title="Comprar en línea con pasarela de pago">
+                            <a th:href="@{/detalle-producto(id=${prod.id})}" class="btn btn-primary px-3 font-anton text-xs d-flex align-items-center gap-1" title="Ver las opciones de compra y reserva">
                                 <i class="fa-solid fa-credit-card"></i> COMPRAR
                             </a>
                         </div>

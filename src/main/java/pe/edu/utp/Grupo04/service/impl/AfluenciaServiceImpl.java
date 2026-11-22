@@ -40,22 +40,8 @@ public class AfluenciaServiceImpl implements AfluenciaService {
     public RegistroAfluencia registrarOActualizar(LocalDate fecha, FranjaHoraria franjaHoraria, Integer concurrencia) {
         LocalDate fechaRegistro = (fecha != null) ? fecha : LocalDate.now();
 
-        Optional<RegistroAfluencia> existente = afluenciaRepository.findByFechaAndFranjaHoraria(fechaRegistro, franjaHoraria);
-
-        RegistroAfluencia registro;
-        if (existente.isPresent()) {
-            registro = existente.get();
-            registro.setConcurrenciaAprox(concurrencia);
-            registro.setFechaRegistro(LocalDateTime.now());
-        } else {
-            registro = new RegistroAfluencia();
-            registro.setFecha(fechaRegistro);
-            registro.setFranjaHoraria(franjaHoraria);
-            registro.setConcurrenciaAprox(concurrencia);
-            registro.setFechaRegistro(LocalDateTime.now());
-        }
-
-        return afluenciaRepository.save(registro);
+        afluenciaRepository.registrarOActualizar(fechaRegistro, franjaHoraria.name(), concurrencia, LocalDateTime.now());
+        return afluenciaRepository.findByFechaAndFranjaHoraria(fechaRegistro, franjaHoraria).orElseThrow();
     }
 
     @Override

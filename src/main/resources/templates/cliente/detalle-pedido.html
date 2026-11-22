@@ -37,8 +37,8 @@
                     <div class="col-lg-8">
                         <div class="card p-4 border-secondary mb-4">
                             <h5 class="font-anton text-light mb-3"
-                                th:text="${'PRODUCTOS DEL PEDIDO (' + ordenActual['totalUnidades'] + ')'}">
-                                PRODUCTOS DEL PEDIDO (2)
+                                th:text="${'CONCEPTOS DEL PEDIDO (' + ordenActual['totalUnidades'] + ')'}">
+                                CONCEPTOS DEL PEDIDO (2)
                             </h5>
 
                             <div th:each="it, iterStat : ${ordenActual['items']}"
@@ -86,8 +86,8 @@
                             <div class="d-flex justify-content-between text-xs mb-2">
                                 <span class="text-muted">Método de pago</span>
                                 <span class="text-light fw-bold">
-                                    <i class="fa-brands fa-cc-visa text-primary me-1"></i>
-                                    <span th:text="${ordenActual['cardBrand'] + ' •••• ' + ordenActual['cardLast4']}">VISA •••• 4242</span>
+
+                                    <span>Pago simulado</span>
                                 </span>
                             </div>
                             <div class="d-flex justify-content-between text-xs mb-2">
@@ -95,12 +95,12 @@
                                 <span class="text-light fw-bold" th:text="${ordenActual['operacion']}">OP-EJ-00521</span>
                             </div>
                             <div class="d-flex justify-content-between text-xs mb-2">
-                                <span class="text-muted">Fecha de pago</span>
+                                <span class="text-muted">Fecha de la operación</span>
                                 <span class="text-light fw-bold" th:text="${ordenActual['fecha']}">20 Ene 2025 · 10:45</span>
                             </div>
                             <div class="d-flex justify-content-between text-xs pb-3 mb-3 border-bottom border-secondary">
-                                <span class="text-muted">Boleta electrónica</span>
-                                <span class="text-primary font-anton" th:text="${ordenActual['boleta']}">B001-00000521</span>
+                                <span class="text-muted">Comprobante interno</span>
+                                <span class="text-primary font-anton" th:text="${ordenActual['estadoPago'] == 'PAGADO' ? ordenActual['boleta'] : 'No disponible'}">B001-00000521</span>
                             </div>
 
                             <div class="d-flex justify-content-between text-xs mb-2">
@@ -111,30 +111,26 @@
                                 <span class="text-muted">IGV (18%)</span>
                                 <span class="text-light fw-bold" th:text="${'S/ ' + ordenActual['igvFormatted']}">S/ 29.59</span>
                             </div>
-                            <div class="d-flex justify-content-between text-xs pb-3 mb-3 border-bottom border-secondary">
-                                <span class="text-muted">Descuento</span>
-                                <span class="text-muted">S/ 0.00</span>
-                            </div>
 
                             <div class="d-flex justify-content-between align-items-baseline mb-4">
-                                <span class="text-muted font-anton text-xs tracking-wide">TOTAL PAGADO</span>
+                                <span class="text-muted font-anton text-xs tracking-wide">TOTAL SIMULADO</span>
                                 <h3 class="font-anton text-primary m-0" th:text="${'S/ ' + ordenActual['totalFormatted']}">S/ 194.00</h3>
                             </div>
 
-                            <a th:href="@{/cliente/boleta-venta(codigo=${ordenActual['codigo']})}" class="btn btn-primary w-100 py-3 text-center mb-2">
-                                <i class="fa-solid fa-file-invoice me-2"></i> VER BOLETA DE VENTA
+                            <a th:if="${ordenActual['estadoPago'] == 'PAGADO'}" th:href="@{/cliente/boleta-venta(codigo=${ordenActual['codigo']})}" class="btn btn-primary w-100 py-3 text-center mb-2">
+                                <i class="fa-solid fa-file-invoice me-2"></i> VER COMPROBANTE
                             </a>
-                            <button type="button" class="btn btn-outline w-100 py-2 text-center btn-download-boleta">
-                                <i class="fa-solid fa-download me-2"></i> DESCARGAR BOLETA (PDF)
-                            </button>
+                            <a th:if="${ordenActual['estadoPago'] == 'PAGADO'}" th:href="@{/cliente/boleta-venta/descargar(codigo=${ordenActual['codigo']})}" class="btn btn-outline w-100 py-2 text-center">
+                                <i class="fa-solid fa-download me-2"></i> DESCARGAR COMPROBANTE (TXT)
+                            </a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer Disclaimer -->
                 <div class="mt-5 pt-3 border-top border-secondary text-muted text-2xs">
-                    <div>Demostración visual. Pagos y facturación requieren integración posterior.</div>
-                    <div>Pagos online solo para productos. Activación y renovación de membresías presenciales.</div>
+
+                    <div>Pago simulado. No genera cargos.</div>
                 </div>
             </div>
         </div>

@@ -42,9 +42,12 @@ public class AfluenciaServiceTest {
     @Test
     @DisplayName("RF16 - Debe crear un nuevo registro de afluencia si no existe para la fecha y franja")
     void testRegistrarOActualizar_NuevoRegistro() {
+        var esperado = new RegistroAfluencia();
+        esperado.setFecha(hoy);
+        esperado.setFranjaHoraria(FranjaHoraria.TARDE_NOCHE);
+        esperado.setConcurrenciaAprox(55);
         when(afluenciaRepository.findByFechaAndFranjaHoraria(hoy, FranjaHoraria.TARDE_NOCHE))
-                .thenReturn(Optional.empty());
-        when(afluenciaRepository.save(any(RegistroAfluencia.class))).thenAnswer(i -> i.getArgument(0));
+                .thenReturn(Optional.of(esperado));
 
         RegistroAfluencia reg = afluenciaService.registrarOActualizar(hoy, FranjaHoraria.TARDE_NOCHE, 55);
 
@@ -52,7 +55,7 @@ public class AfluenciaServiceTest {
         assertEquals(hoy, reg.getFecha());
         assertEquals(FranjaHoraria.TARDE_NOCHE, reg.getFranjaHoraria());
         assertEquals(55, reg.getConcurrenciaAprox());
-        verify(afluenciaRepository, times(1)).save(any(RegistroAfluencia.class));
+        verify(afluenciaRepository).registrarOActualizar(eq(hoy), eq("TARDE_NOCHE"), eq(55), any(LocalDateTime.class));
     }
 
     @Test
@@ -62,18 +65,17 @@ public class AfluenciaServiceTest {
         existente.setId(20L);
         existente.setFecha(hoy);
         existente.setFranjaHoraria(FranjaHoraria.MANANA);
-        existente.setConcurrenciaAprox(30);
+        existente.setConcurrenciaAprox(42);
 
         when(afluenciaRepository.findByFechaAndFranjaHoraria(hoy, FranjaHoraria.MANANA))
                 .thenReturn(Optional.of(existente));
-        when(afluenciaRepository.save(any(RegistroAfluencia.class))).thenAnswer(i -> i.getArgument(0));
 
         RegistroAfluencia actualizado = afluenciaService.registrarOActualizar(hoy, FranjaHoraria.MANANA, 42);
 
         assertNotNull(actualizado);
         assertEquals(42, actualizado.getConcurrenciaAprox(), "La concurrencia debió actualizarse a 42");
         assertEquals(20L, actualizado.getId(), "Debe conservar el mismo ID existente");
-        verify(afluenciaRepository, times(1)).save(existente);
+        verify(afluenciaRepository).registrarOActualizar(eq(hoy), eq("MANANA"), eq(42), any(LocalDateTime.class));
     }
 
     @Test

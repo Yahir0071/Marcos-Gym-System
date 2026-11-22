@@ -15,16 +15,8 @@
 
     <div class="d-flex align-items-center gap-2 gap-md-3">
         <button type="button" class="btn btn-outline py-2 px-3 text-xs" id="btnTopbarQr"
-                aria-label="Abrir mi pase digital QR"
-                th:attr="data-socio-name=${socio != null ? socio.nombre + ' ' + socio.apellido : (#authentication != null ? #authentication.name : 'Socio')},
-                         data-socio-dni=${socio != null ? socio.dni : '—'},
-                         data-socio-code=${socio != null ? '#SOC-00' + socio.id : '—'},
-                         data-socio-initials=${socio != null ? #strings.substring(socio.nombre, 0, 1) + #strings.substring(socio.apellido, 0, 1) : 'EG'},
-                         data-plan-name=${membresia != null and membresia.plan != null ? membresia.plan.nombre : 'SIN MEMBRESÍA ACTIVA'},
-                         data-plan-estado=${membresia != null and membresia.estado != null ? membresia.estado.name() : 'INACTIVA'},
-                         data-plan-vence=${membresia != null and membresia.fechaFin != null ? #temporals.format(membresia.fechaFin, 'dd/MM/yyyy') : '—'},
-                         data-dias-restantes=${diasRestantes != null ? diasRestantes : 0}">
-            <i class="fa-solid fa-qrcode text-primary" aria-hidden="true"></i> <span class="d-none d-sm-inline">MI PASE QR</span>
+                aria-label="Abrir carnet digital" aria-haspopup="dialog" aria-controls="carnetDigital">
+            <i class="fa-solid fa-qrcode text-primary" aria-hidden="true"></i> <span class="d-none d-sm-inline">CARNET DIGITAL</span>
         </button>
         <a th:href="@{/cliente/notificaciones}" class="btn btn-outline py-2 px-3 position-relative" aria-label="Ver notificaciones">
             <i class="fa-solid fa-bell" aria-hidden="true"></i>
@@ -43,4 +35,30 @@
             </div>
         </div>
     </div>
+    <dialog id="carnetDigital" class="bg-dark text-light rounded-4 border border-secondary p-0"
+            style="width: min(27rem, calc(100% - 2rem)); max-height: calc(100% - 2rem);"
+            th:attr="data-validar-url=@{/cliente/api/torniquete/validar}"
+            aria-labelledby="carnetTitulo">
+        <div class="p-3 p-sm-4">
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                <h2 id="carnetTitulo" class="font-anton fs-4 mb-0">Carnet digital</h2>
+                <form method="dialog">
+                    <button type="submit" class="btn btn-outline btn-sm" autofocus>Cerrar</button>
+                </form>
+            </div>
+            <div class="border rounded-3 p-3 mb-3 border-secondary">
+                <p class="text-primary small mb-1">ENERGY GYM · SEDE LAS AMÉRICAS, ATE</p>
+                <p class="fw-bold mb-1 text-break" th:text="${socio != null ? socio.nombre + ' ' + socio.apellido : 'Socio Energy Gym'}">Socio Energy Gym</p>
+                <p class="text-muted small mb-0" th:if="${membresia != null and membresia.plan != null and membresia.fechaFin != null}"
+                   th:text="${membresia.plan.nombre + ' · Vigencia hasta ' + #temporals.format(membresia.fechaFin, 'dd/MM/yyyy')}"></p>
+            </div>
+            <div class="text-center mb-3">
+                <img id="carnetCodigo" width="192" height="192" class="rounded-3" hidden
+                     alt="Código QR del carnet digital">
+            </div>
+            <p class="small text-muted">Consulta si tu membresía está vigente para acceder a la sede.</p>
+            <button id="carnetValidar" type="button" class="btn btn-primary w-100 mb-2">Comprobar acceso</button>
+            <p id="carnetResultado" class="small mb-0" role="status"></p>
+        </div>
+    </dialog>
 </header>

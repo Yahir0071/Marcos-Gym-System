@@ -3,24 +3,31 @@ package pe.edu.utp.Grupo04.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import pe.edu.utp.Grupo04.dto.CompraItemDTO;
 import pe.edu.utp.Grupo04.dto.CompraRequestDTO;
+import pe.edu.utp.Grupo04.exception.ValidacionNegocioException;
 import pe.edu.utp.Grupo04.model.Plan;
 import pe.edu.utp.Grupo04.model.Socio;
 import pe.edu.utp.Grupo04.service.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Controlador para las vistas públicas, inicio, login y flujo completo de contratación de membresías.
@@ -67,259 +74,203 @@ public class HomeController {
         return "login";
     }
 
-    /**
-     * Pantalla de inscripción y contratación de membresía en pasos (Estilo Smart Fit).
-     * Preserva la duración y tarifa seleccionada en /planes (Mensual, Trimestral o Anual).
-     */
+    private static final Set<String> PERIODOS = Set.of("MENSUAL", "TRIMESTRAL", "ANUAL");
+    private static final Set<String> GENEROS = Set.of("MASCULINO", "FEMENINO", "OTRO", "PREFIERO_NO_DECIR");
+    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     @GetMapping({"/registrarse", "/register"})
     public String vistaRegistro(@RequestParam(required = false) Long planId,
-                                @RequestParam(required = false, defaultValue = "MENSUAL") String periodo,
-                                @RequestParam(required = false) Integer meses,
-                                @RequestParam(required = false) Double precio,
+                                @RequestParam(defaultValue = "MENSUAL") String periodo,
                                 Model model) {
         var planes = planService.listarActivos();
-        model.addAttribute("planes", planes);
-
-        Plan selectedPlan = null;
-        if (planId != null) {
-            selectedPlan = planService.buscarPorId(planId).orElse(null);
-        }
-        if (selectedPlan == null && !planes.isEmpty()) {
-            selectedPlan = planes.stream()
-                    .filter(p -> p.getNombre() != null && p.getNombre().toUpperCase().contains("PLUS"))
-                    .findFirst()
-                    .orElse(planes.get(0));
-        }
-
-        String per = (periodo != null && !periodo.isBlank()) ? periodo.toUpperCase().trim() : "MENSUAL";
-        int m = 1;
-        if (meses != null && meses > 0) {
-            m = meses;
-        } else if ("TRIMESTRAL".equalsIgnoreCase(per)) {
-            m = 3;
-        } else if ("ANUAL".equalsIgnoreCase(per)) {
-            m = 12;
-        }
-
-        double baseMensual = (selectedPlan != null && selectedPlan.getPrecio() != null) ? selectedPlan.getPrecio() : 119.0;
-        double discFactor = (m == 3) ? 0.90 : ((m >= 12) ? 0.80 : 1.0);
-        int discPct = (m == 3) ? 10 : ((m >= 12) ? 20 : 0);
-
-        double precioCalculado;
-        if (precio != null && precio > 0) {
-            precioCalculado = precio;
-        } else {
-            precioCalculado = Math.round(baseMensual * m * discFactor);
-        }
-
-        double subtotalSinDescuento = Math.round(baseMensual * m);
-        double ahorroEstimado = subtotalSinDescuento - precioCalculado;
-
-        LocalDate hoy = LocalDate.now();
-        LocalDate finEstimada = "ANUAL".equalsIgnoreCase(per) ? hoy.plusYears(1) : hoy.plusMonths(m);
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        model.addAttribute("selectedPlan", selectedPlan);
-        model.addAttribute("planId", selectedPlan != null ? selectedPlan.getId() : null);
-        model.addAttribute("periodo", per);
-        model.addAttribute("meses", m);
-        model.addAttribute("baseMensual", baseMensual);
-        model.addAttribute("precioTotal", precioCalculado);
-        model.addAttribute("subtotalSinDescuento", subtotalSinDescuento);
-        model.addAttribute("discPct", discPct);
-        model.addAttribute("ahorroEstimado", ahorroEstimado);
-        model.addAttribute("fechaInicio", hoy.format(dtf));
-        model.addAttribute("fechaFinEstimada", finEstimada.format(dtf));
-
+        Plan elegido = planes.stream().filter(p -> p.getId().equals(planId)).findFirst().orElseGet(() ->
+                planes.stream().filter(p -> p.getNombre().toUpperCase(Locale.ROOT).contains("PLUS"))
+                        .findFirst().orElseGet(() -> planes.isEmpty() ? null : planes.getFirst()));
+        prepararResumen(model, elegido != null && elegido.getPrecio() != null && elegido.getPrecio() >= 1 ? elegido : null,
+                PERIODOS.contains(periodo) ? periodo : "MENSUAL", "");
         return "register";
     }
 
-    /**
-     * Procesa la contratación completa de membresía con validaciones estrictas y persistencia (M01 / C09).
-     */
     @PostMapping({"/registrarse", "/registro"})
-    public String procesarRegistro(@RequestParam String nombres,
-                                   @RequestParam String apellidos,
-                                   @RequestParam String dni,
-                                   @RequestParam(required = false) String telefono,
-                                   @RequestParam(required = false) String genero,
-                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaNacimiento,
-                                   @RequestParam String email,
-                                   @RequestParam String password,
-                                   @RequestParam(required = false) String confirmPassword,
-                                   @RequestParam(required = false) Long planId,
-                                   @RequestParam(required = false, defaultValue = "MENSUAL") String periodo,
-                                   @RequestParam(required = false, defaultValue = "1") Integer meses,
-                                   @RequestParam(required = false, defaultValue = "ONLINE") String metodoPago,
-                                   @RequestParam(required = false, defaultValue = "BOLETA") String tipoComprobante,
-                                   @RequestParam(required = false) String rucFactura,
-                                   @RequestParam(required = false) String razonSocialFactura,
-                                   @RequestParam(required = false) String cupon,
-                                   Model model,
-                                   RedirectAttributes flash) {
+    public String procesarRegistro(@ModelAttribute RegistroForm datos, Model model, RedirectAttributes flash) {
+        var planes = planService.listarActivos();
+        Plan elegido = planes.stream().filter(p -> p.getId().toString().equals(datos.planId()))
+                .findFirst().orElse(null);
+        String periodo = texto(datos.periodo());
+        String metodo = texto(datos.metodoPago());
+        String comprobante = texto(datos.tipoComprobante());
+        String cupon = texto(datos.cupon()).toUpperCase(Locale.ROOT);
+        boolean cuponValido = cupon.isEmpty() || TarifaInscripcion.CUPONES_DEMO.contains(cupon);
+        boolean planValido = elegido != null && elegido.getPrecio() != null && elegido.getPrecio() >= 1;
+        prepararResumen(model, planValido ? elegido : null,
+                PERIODOS.contains(periodo) ? periodo : "MENSUAL", cuponValido ? cupon : "");
+        preservarCampos(model, datos, metodo, comprobante);
 
-        int mesesContratados = switch (periodo) {
-            case "ANUAL" -> 12;
-            case "TRIMESTRAL" -> 3;
-            default -> 1;
-        };
-        vistaRegistro(planId, periodo, mesesContratados, null, model);
-        Plan selectedPlan = planId != null ? planService.buscarPorId(planId)
-                .filter(p -> Boolean.TRUE.equals(p.getActivo())).orElse(null) : null;
-        if (selectedPlan == null || selectedPlan.getPrecio() == null || selectedPlan.getPrecio() <= 0) {
-            model.addAttribute("mensajeError", "Selecciona un plan disponible antes de inscribirte.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
+        if (!planValido || !PERIODOS.contains(periodo)) {
+            return volverAlRegistro(model, 1, "Selecciona un plan disponible y una duración válida.");
         }
-        if ((!periodo.equals("MENSUAL") && !periodo.equals("TRIMESTRAL") && !periodo.equals("ANUAL"))
-                || meses != mesesContratados || (!metodoPago.equals("ONLINE") && !metodoPago.equals("RECEPCION"))) {
-            model.addAttribute("mensajeError", "Revisa la duración del plan y la forma de pago.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
+        if (!Set.of("ONLINE", "RECEPCION").contains(metodo) || !cuponValido) {
+            return volverAlRegistro(model, 3, "Revisa la forma de pago y el cupón aplicado.");
+        }
+        String nombres = texto(datos.nombres()), apellidos = texto(datos.apellidos()), dni = texto(datos.dni());
+        String telefono = texto(datos.telefono()), genero = texto(datos.genero()), email = texto(datos.email());
+        if (nombres.isEmpty() || apellidos.isEmpty() || nombres.length() > 100 || apellidos.length() > 100) {
+            return volverAlRegistro(model, 1, "Ingresa nombres y apellidos de hasta 100 caracteres cada uno.");
+        }
+        if (!dni.matches("[0-9]{8}") || (!telefono.isEmpty() && !telefono.matches("[0-9]{9}"))) {
+            return volverAlRegistro(model, 1, "El DNI debe tener 8 dígitos y el teléfono 9, si lo ingresas.");
+        }
+        if (!genero.isEmpty() && !GENEROS.contains(genero)) {
+            return volverAlRegistro(model, 1, "Selecciona una opción de género válida.");
         }
 
-        // M01: Validación de Nombres y Apellidos no vacíos ni solo espacios
-        if (nombres == null || nombres.trim().isEmpty()) {
-            model.addAttribute("mensajeError", "Los nombres son obligatorios y no pueden contener solo espacios.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
-        }
-        if (apellidos == null || apellidos.trim().isEmpty()) {
-            model.addAttribute("mensajeError", "Los apellidos son obligatorios y no pueden contener solo espacios.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
-        }
-
-        // M01: Validación de DNI (8 dígitos exactos)
-        if (dni == null || !dni.trim().matches("^\\d{8}$")) {
-            model.addAttribute("mensajeError", "El DNI del socio debe contener exactamente 8 dígitos numéricos.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
-        }
-
-        // M01: Validación de Email
-        if (email == null || !email.trim().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            model.addAttribute("mensajeError", "El formato del correo electrónico ingresado no es válido.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
-        }
-
-        // M01: Validación de Teléfono (9 dígitos numéricos si se envía)
-        if (telefono != null && !telefono.trim().isEmpty() && !telefono.trim().matches("^\\d{9}$")) {
-            model.addAttribute("mensajeError", "El teléfono celular debe contener exactamente 9 dígitos numéricos.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
-        }
-
-        // M01: Validación de Contraseña (mínimo 6 caracteres y no solo espacios)
-        if (password == null || password.trim().length() < 6) {
-            model.addAttribute("mensajeError", "La contraseña debe tener al menos 6 caracteres y no puede consistir únicamente en espacios.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
-        }
-
-        // M01: Validación de Confirmación de Contraseña
-        if (confirmPassword != null && !password.equals(confirmPassword)) {
-            model.addAttribute("mensajeError", "La confirmación de la contraseña no coincide con la contraseña ingresada.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
-        }
-
-        // Validación de Factura si corresponde
-        if ("FACTURA".equalsIgnoreCase(tipoComprobante) && (rucFactura == null || !rucFactura.trim().matches("^\\d{11}$"))) {
-            model.addAttribute("mensajeError", "Para emitir factura electrónica se requiere un RUC válido de 11 dígitos.");
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
-        }
-
-        try {
-            // 1. Crear nuevo Socio y Usuario (Rol CLIENTE forzoso por seguridad)
-            Socio nuevo = new Socio();
-            nuevo.setNombres(nombres.trim());
-            nuevo.setApellidos(apellidos.trim());
-            nuevo.setDni(dni.trim());
-            nuevo.setTelefono(telefono != null && !telefono.trim().isEmpty() ? telefono.trim() : null);
-            nuevo.setGenero(genero != null && !genero.trim().isEmpty() ? genero.trim() : null);
-            nuevo.setFechaNacimiento(fechaNacimiento);
-
-            String codInscripcion = "#INS-" + (10000 + (int)(Math.random() * 90000));
-            LocalDate hoy = LocalDate.now();
-            String planNombre = selectedPlan.getNombre();
-            double descuento = mesesContratados == 12 ? 0.80 : mesesContratados == 3 ? 0.90 : 1.0;
-            double montoFinal = Math.round(selectedPlan.getPrecio() * mesesContratados * descuento);
-
-            // Validación opcional de cupón
-            if (cupon != null && !cupon.isBlank()) {
-                String cUpper = cupon.toUpperCase().trim();
-                if (cUpper.contains("2X1") || cUpper.contains("PROMO") || cUpper.contains("APERTURA")) {
-                    log.info("Cupón promocional aplicado en contratación: {}", cUpper);
+        LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
+        LocalDate nacimiento = null;
+        if (!texto(datos.fechaNacimiento()).isEmpty()) {
+            try {
+                nacimiento = LocalDate.parse(datos.fechaNacimiento());
+                if (nacimiento.isAfter(hoy) || nacimiento.isBefore(hoy.minusYears(120))) {
+                    return volverAlRegistro(model, 1, "Ingresa una fecha de nacimiento válida.");
                 }
+            } catch (DateTimeParseException e) {
+                return volverAlRegistro(model, 1, "Ingresa una fecha de nacimiento válida.");
             }
+        }
 
-            // 2. Manejo según Forma de Pago (ONLINE vs RECEPCION)
-            if ("ONLINE".equalsIgnoreCase(metodoPago)) {
-                CompraRequestDTO req = new CompraRequestDTO();
-                req.setTipoConcepto("MEMBRESIA");
-                req.setPlanId(planId);
-                req.setBuyerName(nombres.trim() + " " + apellidos.trim());
-                req.setBuyerEmail(email.trim());
-                req.setBuyerDocType("FACTURA".equalsIgnoreCase(tipoComprobante) ? "RUC" : "DNI");
-                req.setBuyerDocNum("FACTURA".equalsIgnoreCase(tipoComprobante) ? rucFactura.trim() : dni.trim());
-                req.setCardBrand("VISA");
-                req.setCardLast4("4242");
-                req.setEstado("PAGADO");
+        String password = datos.password();
+        if (email.length() > 120 || !email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) {
+            return volverAlRegistro(model, 2, "Ingresa un correo válido de hasta 120 caracteres.");
+        }
+        if (password == null || password.strip().length() < 6 || password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            return volverAlRegistro(model, 2, "Usa una contraseña de al menos 6 caracteres y hasta 72 bytes.");
+        }
+        if (!password.equals(datos.confirmPassword())) {
+            return volverAlRegistro(model, 2, "Confirma la contraseña. Ambos campos deben coincidir.");
+        }
+        String ruc = texto(datos.rucFactura()), razonSocial = texto(datos.razonSocialFactura());
+        if (!Set.of("BOLETA", "FACTURA").contains(comprobante)
+                || ("FACTURA".equals(comprobante) && (!ruc.matches("[0-9]{11}") || razonSocial.isEmpty() || razonSocial.length() > 120))) {
+            return volverAlRegistro(model, 2, "Para elegir factura, ingresa un RUC de 11 dígitos y una razón social de hasta 120 caracteres.");
+        }
+        if (!"true".equals(datos.aceptaTerminos())) {
+            return volverAlRegistro(model, 4, "Confirma que aceptas las condiciones para completar la inscripción.");
+        }
 
-                pe.edu.utp.Grupo04.dto.CompraItemDTO item = new pe.edu.utp.Grupo04.dto.CompraItemDTO();
-                item.setId(planId != null ? planId : 1L);
-                item.setName("MEMBRESIA " + planNombre + " (" + periodo + ")");
-                item.setCategory("MEMBRESIA");
-                item.setPrice(montoFinal);
-                item.setQty(1);
-                req.getItems().add(item);
-
-                Map<String, Object> orden = transacciones.execute(status -> {
-                    Socio socio = socioService.registrarSocio(nuevo, email.trim(), password);
-                    membresiaService.asignarPlanASocio(socio.getId(), planId, hoy, periodo, mesesContratados);
-                    return ordenCompraService.registrarCompraDeInscripcion(req, socio.getUsuario().getUsername(), montoFinal);
+        Socio nuevo = new Socio();
+        nuevo.setNombres(nombres);
+        nuevo.setApellidos(apellidos);
+        nuevo.setDni(dni);
+        nuevo.setTelefono(telefono.isEmpty() ? null : telefono);
+        nuevo.setGenero(genero.isEmpty() ? null : genero);
+        nuevo.setFechaNacimiento(nacimiento);
+        TarifaInscripcion tarifa = TarifaInscripcion.calcular(elegido, periodo, cupon);
+        try {
+            if ("RECEPCION".equals(metodo)) {
+                var reserva = transacciones.execute(status -> {
+                    Socio socio = socioService.registrarSocio(nuevo, email, password);
+                    return membresiaService.crearPreinscripcion(socio, elegido, tarifa);
                 });
-                String boleta = (String) orden.get("boleta");
-
-                flash.addFlashAttribute("mensajeExito", "¡Inscripción confirmada! Membresía activada exitosamente con comprobante " + boleta + ".");
-                flash.addFlashAttribute("codigoInscripcion", codInscripcion);
-                flash.addFlashAttribute("boleta", boleta);
-                flash.addFlashAttribute("modoPago", "ONLINE");
-                flash.addFlashAttribute("planNombre", planNombre);
-                return "redirect:/login?activado=true&boleta=" + boleta;
-
-            } else {
-                socioService.registrarSocio(nuevo, email.trim(), password);
-                // Pago en Recepción: Preinscripción reservada con fecha límite de 72 horas
-                String fechaLimite = hoy.plusDays(3).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-                flash.addFlashAttribute("mensajeExito", "¡Preinscripción generada con éxito! Tu tarifa está reservada por 72 horas.");
-                flash.addFlashAttribute("codigoInscripcion", codInscripcion);
-                flash.addFlashAttribute("modoPago", "RECEPCION");
-                flash.addFlashAttribute("fechaLimite", fechaLimite);
-                flash.addFlashAttribute("montoPagar", montoFinal);
-                flash.addFlashAttribute("planNombre", planNombre);
-                return "redirect:/login?preinscrito=true&codigo=" + codInscripcion;
+                flash.addFlashAttribute("mensajeExito", "Tu preinscripción quedó registrada. La tarifa se conserva por 72 horas.");
+                flash.addFlashAttribute("codigoInscripcion", reserva.getCodigoPreinscripcion());
+                flash.addFlashAttribute("fechaLimite", reserva.getPreinscripcionVence().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+                flash.addFlashAttribute("montoPagar", reserva.getMontoReservado());
+                flash.addFlashAttribute("planNombre", elegido.getNombre());
+                return "redirect:/login?preinscrito=true";
             }
 
+            CompraRequestDTO compra = new CompraRequestDTO();
+            compra.setTipoConcepto("MEMBRESIA");
+            compra.setPlanId(elegido.getId());
+            compra.setPeriodo(periodo);
+            compra.setBuyerName("FACTURA".equals(comprobante) ? razonSocial : nombres + " " + apellidos);
+            compra.setBuyerEmail(email);
+            compra.setBuyerDocType("FACTURA".equals(comprobante) ? "RUC" : "DNI");
+            compra.setBuyerDocNum("FACTURA".equals(comprobante) ? ruc : dni);
+            compra.setCardBrand("SIMULADO");
+            compra.setEstado("PAGADO");
+
+            CompraItemDTO item = new CompraItemDTO();
+            item.setId(elegido.getId());
+            item.setName("MEMBRESÍA " + elegido.getNombre() + " (" + periodo + ")");
+            item.setCategory("MEMBRESIA");
+            item.setPrice(tarifa.total().doubleValue());
+            item.setQty(1);
+            compra.getItems().add(item);
+
+            Map<String, Object> orden = transacciones.execute(status -> {
+                Socio socio = socioService.registrarSocio(nuevo, email, password);
+                membresiaService.asignarPlanASocio(socio.getId(), elegido.getId(), hoy, periodo, tarifa.meses());
+                return ordenCompraService.registrarCompraDeInscripcion(compra, socio.getUsuario().getUsername(),
+                        tarifa.total().doubleValue());
+            });
+            flash.addFlashAttribute("boleta", orden.get("boleta"));
+            flash.addFlashAttribute("planNombre", elegido.getNombre());
+            return "redirect:/login?activado=true";
+        } catch (ValidacionNegocioException e) {
+            return volverAlRegistro(model, 1, e.getMessage());
+        } catch (IllegalArgumentException | DataIntegrityViolationException e) {
+            return volverAlRegistro(model, 1, "Verifica que el DNI y el correo no estén registrados y que el plan siga disponible.");
         } catch (Exception e) {
-            log.warn("Fallo al registrar contratación de socio: {}", e.getMessage());
-            model.addAttribute("mensajeError", e.getMessage());
-            rellenarCamposModel(model, nombres, apellidos, dni, telefono, email, genero, fechaNacimiento);
-            return "register";
+            log.error("No se pudo completar la inscripción", e);
+            return volverAlRegistro(model, 2, "No se pudo completar la inscripción. Revisa tus datos e inténtalo de nuevo.");
         }
     }
 
-    private void rellenarCamposModel(Model model, String nombres, String apellidos, String dni, String telefono, String email, String genero, LocalDate fechaNacimiento) {
-        model.addAttribute("nombres", nombres);
-        model.addAttribute("apellidos", apellidos);
-        model.addAttribute("dni", dni);
-        model.addAttribute("telefono", telefono);
-        model.addAttribute("email", email);
-        model.addAttribute("genero", genero);
-        model.addAttribute("fechaNacimiento", fechaNacimiento);
+    private void prepararResumen(Model model, Plan plan, String periodo, String cupon) {
+        model.addAttribute("selectedPlan", plan);
+        model.addAttribute("planId", plan == null ? null : plan.getId());
+        model.addAttribute("cupon", cupon);
+        model.addAttribute("periodo", periodo);
+        model.addAttribute("fechaNacimientoMax", LocalDate.now(TarifaInscripcion.ZONA_LIMA));
+        model.addAttribute("cuponesValidos", TarifaInscripcion.CUPONES_DEMO);
+        if (plan == null || plan.getPrecio() == null || plan.getPrecio() < 1) {
+            return;
+        }
+        TarifaInscripcion tarifa = TarifaInscripcion.calcular(plan, periodo, cupon);
+        LocalDate hoy = LocalDate.now(TarifaInscripcion.ZONA_LIMA);
+        int dias = plan.getDuracionDias() != null && plan.getDuracionDias() > 0 ? plan.getDuracionDias() : 30;
+        model.addAttribute("meses", tarifa.meses());
+        model.addAttribute("baseMensual", plan.getPrecio());
+        model.addAttribute("diasPlanMensual", dias);
+        model.addAttribute("precioTotal", tarifa.total());
+        model.addAttribute("subtotalSinDescuento", tarifa.subtotal());
+        model.addAttribute("discPct", tarifa.porcentajePeriodo());
+        model.addAttribute("descuentoCupon", tarifa.descuentoCupon());
+        model.addAttribute("ahorroEstimado", tarifa.subtotal().subtract(tarifa.total()).subtract(tarifa.descuentoCupon()));
+        model.addAttribute("fechaInicioIso", hoy.toString());
+        model.addAttribute("fechaInicio", hoy.format(FECHA));
+        model.addAttribute("fechaFinEstimada", tarifa.fechaFin(hoy, dias).format(FECHA));
+    }
+
+    private void preservarCampos(Model model, RegistroForm datos, String metodo, String comprobante) {
+        model.addAttribute("nombres", datos.nombres());
+        model.addAttribute("apellidos", datos.apellidos());
+        model.addAttribute("dni", datos.dni());
+        model.addAttribute("telefono", datos.telefono());
+        model.addAttribute("genero", datos.genero());
+        model.addAttribute("fechaNacimiento", datos.fechaNacimiento());
+        model.addAttribute("email", datos.email());
+        model.addAttribute("tipoComprobante", comprobante);
+        model.addAttribute("rucFactura", datos.rucFactura());
+        model.addAttribute("razonSocialFactura", datos.razonSocialFactura());
+        model.addAttribute("metodoPago", metodo);
+        model.addAttribute("aceptaTerminos", "true".equals(datos.aceptaTerminos()));
+    }
+
+    private String volverAlRegistro(Model model, int paso, String mensaje) {
+        model.addAttribute("pasoError", paso);
+        model.addAttribute("mensajeError", mensaje);
+        return "register";
+    }
+
+    private static String texto(String valor) {
+        return valor == null ? "" : valor.strip();
+    }
+
+    public record RegistroForm(String nombres, String apellidos, String dni, String telefono, String genero,
+                               String fechaNacimiento, String email, String password, String confirmPassword,
+                               String planId, String periodo, String metodoPago, String tipoComprobante,
+                               String rucFactura, String razonSocialFactura, String cupon, String aceptaTerminos) {
     }
 
     @GetMapping("/logout")

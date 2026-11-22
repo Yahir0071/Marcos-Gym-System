@@ -72,7 +72,8 @@ public class ReservaServiceImpl implements ReservaService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Socio no encontrado para el usuario: " + username));
 
         Producto producto = productoRepository.findById(productoId)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + productoId));
+                .filter(p -> Boolean.TRUE.equals(p.getActivo()))
+                .orElseThrow(() -> new RecursoNoEncontradoException("El producto no está disponible."));
 
         if (!productoService.hayStockSuficiente(productoId, cantidad)) {
             throw new IllegalStateException("No hay suficiente stock disponible para: " + producto.getNombre());
