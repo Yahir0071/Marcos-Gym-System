@@ -129,9 +129,14 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
                     .filter(p -> Boolean.TRUE.equals(p.getActivo()))
                     .orElseThrow(() -> new RecursoNoEncontradoException("El plan seleccionado no existe"));
             o.setPlanId(plan.getId());
-            o.setDuracionDias(plan.getDuracionDias());
             PeriodoMembresia periodo = PeriodoMembresia.interpretar(req.getPeriodo());
             o.setPeriodoMembresia(periodo);
+            int duracionReal = switch (periodo) {
+                case ANUAL -> 365;
+                case TRIMESTRAL -> 90;
+                case MENSUAL -> plan.getDuracionDias() != null ? plan.getDuracionDias() : 30;
+            };
+            o.setDuracionDias(duracionReal);
             String descripcion = importeInscripcion != null ? req.getItems().getFirst().getName()
                     : "Membresía " + plan.getNombre() + " · " + periodo.getEtiqueta();
             o.agregarDetalle(null, descripcion, "Membresías", "/img/login-bg.jpg",

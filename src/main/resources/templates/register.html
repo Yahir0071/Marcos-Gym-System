@@ -451,9 +451,11 @@
 
             function actualizarResumen() {
                 const { meses, factor, porcentaje, etiqueta } = periodos[fieldPeriodo.value];
-                const subtotal = Math.round(baseMensual * meses);
-                const conModalidad = Math.round(baseMensual * meses * factor);
-                const descuentoCupon = fieldCupon.value ? Math.min(30, Math.max(0, conModalidad - 1)) : 0;
+                const subtotal = Math.round(baseMensual * meses * 100) / 100;
+                const conModalidad = Math.round(baseMensual * meses * factor * 100) / 100;
+                const descuentoCupon = fieldCupon.value
+                    ? Math.round(Math.min(30, Math.max(0, conModalidad - 1)) * 100) / 100
+                    : 0;
 
                 element("summaryPeriodBadge").textContent = etiqueta.toUpperCase();
                 element("summaryDurationText").textContent = meses === 1 ? diasMensual + " días" : meses + " meses";

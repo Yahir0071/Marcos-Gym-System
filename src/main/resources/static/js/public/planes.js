@@ -16,7 +16,6 @@ export function initBillingSwitcher() {
             const isAuth = link.getAttribute("data-auth") === "true";
             const targetBase = isAuth ? "/cliente/pago-en-linea" : "/registrarse";
             const params = new URLSearchParams({ planId, periodo: mode });
-            if (!isAuth) params.set("meses", String(mult));
             link.href = `${targetBase}?${params}`;
         });
     }
@@ -39,7 +38,28 @@ export function initBillingSwitcher() {
 
             document.querySelectorAll(".plan-price").forEach((priceEl) => {
                 const base = Number(priceEl.dataset.basePrice);
-                if (Number.isFinite(base)) priceEl.textContent = `S/ ${formatoPrecio.format(base * mult * disc)}`;
+                if (!Number.isFinite(base)) return;
+                const total = Math.round(base * mult * disc * 100) / 100;
+                priceEl.textContent = `S/ ${formatoPrecio.format(total)}`;
+
+                const equivEl = priceEl.closest(".card")?.querySelector(".plan-monthly-equiv");
+                if (equivEl) {
+                    if (mult > 1) {
+                        const mensualEquiv = Math.round((total / mult) * 100) / 100;
+                        const ahorro = Math.round((base * mult - total) * 100) / 100;
+                        equivEl.textContent = `Equivalente a S/ ${formatoPrecio.format(mensualEquiv)}/mes · Ahorras S/ ${formatoPrecio.format(ahorro)}`;
+                        equivEl.classList.remove("d-none");
+                    } else {
+                        equivEl.textContent = "";
+                        equivEl.classList.add("d-none");
+                    }
+                }
+            });
+            document.querySelectorAll(".plan-duration-text").forEach((durEl) => {
+                const baseDays = Number(durEl.dataset.baseDays) || 30;
+                durEl.textContent = mult === 12
+                    ? "12 meses (1 año)"
+                    : (mult === 3 ? "3 meses (90 días)" : `${baseDays} días`);
             });
             document.querySelectorAll(".plan-period-label").forEach((lbl) => {
                 lbl.textContent = label;

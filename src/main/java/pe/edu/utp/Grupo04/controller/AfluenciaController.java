@@ -22,7 +22,7 @@ import java.util.Map;
 @Controller
 public class AfluenciaController {
 
-    private static final int CAPACIDAD_MAXIMA = 80;
+    private static final int CAPACIDAD_MAXIMA = AfluenciaService.CAPACIDAD_MAXIMA;
 
     private final AfluenciaService afluenciaService;
 

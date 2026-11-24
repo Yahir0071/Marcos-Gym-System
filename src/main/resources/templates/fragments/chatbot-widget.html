@@ -1,0 +1,38 @@
+<div th:fragment="widget"
+     sec:authorize="isAnonymous() or hasRole('CLIENTE')"
+     class="gym-chatbot-wrapper" id="gymChatbotWrapper">
+    <button type="button" class="gym-chatbot-fab" id="gymChatbotToggle"
+            aria-label="Abrir asistente virtual de Energy Gym"
+            aria-expanded="false" aria-controls="gymChatbotPanel">
+        <i class="fa-solid fa-comments" aria-hidden="true"></i>
+        <span class="gym-chatbot-fab-label d-none d-sm-inline">ASISTENTE</span>
+    </button>
+
+    <section class="gym-chatbot-panel d-none" id="gymChatbotPanel"
+             role="dialog" aria-label="Asistente Virtual Energy Gym">
+        <header class="gym-chatbot-header">
+            <div class="d-flex align-items-center gap-2">
+                <span class="gym-chatbot-avatar" aria-hidden="true">⚡</span>
+                <div>
+                    <h6 class="font-anton m-0 text-light tracking-wide">ENERGY GYM BOT</h6>
+                    <span class="badge bg-dark border border-secondary text-primary text-2xs" id="gymChatbotModeBadge">ASISTENTE</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white btn-sm" id="gymChatbotClose"
+                    aria-label="Cerrar asistente"></button>
+        </header>
+
+        <div class="gym-chatbot-messages" id="gymChatbotMessages" aria-live="polite"></div>
+
+        <div class="gym-chatbot-suggestions" id="gymChatbotSuggestions"></div>
+
+        <form class="gym-chatbot-form" id="gymChatbotForm" autocomplete="off">
+            <label for="gymChatbotInput" class="visually-hidden">Escribe tu consulta</label>
+            <input type="text" id="gymChatbotInput" class="form-control form-control-sm"
+                   maxlength="400" placeholder="Pregunta sobre planes, horarios, rutinas..." required>
+            <button type="submit" class="btn btn-primary btn-sm px-3" id="gymChatbotSend" aria-label="Enviar mensaje">
+                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+            </button>
+        </form>
+    </section>
+</div>

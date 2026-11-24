@@ -8,6 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pe.edu.utp.Grupo04.model.enums.BeneficioPlan;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -31,4 +35,6 @@ public class PlanDTO {
     private Double precio;
 
     private Boolean activo = true;
+
+    private List<BeneficioPlan> beneficios = new ArrayList<>();
 }

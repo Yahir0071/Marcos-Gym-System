@@ -30,6 +30,16 @@ public interface RegistroAfluenciaRepository extends JpaRepository<RegistroAflue
             """, nativeQuery = true)
     void registrarOActualizar(LocalDate fecha, String franja, Integer concurrencia, LocalDateTime actualizado);
 
+    @Modifying
+    @Query(value = """
+            INSERT INTO registros_afluencia (fecha, franja_horaria, concurrencia_aprox, fecha_registro)
+            VALUES (:fecha, :franja, 1, :actualizado)
+            ON CONFLICT (fecha, franja_horaria) DO UPDATE
+            SET concurrencia_aprox = LEAST(:capacidadMaxima, COALESCE(registros_afluencia.concurrencia_aprox, 0) + 1),
+                fecha_registro = EXCLUDED.fecha_registro
+            """, nativeQuery = true)
+    void incrementarAfluencia(LocalDate fecha, String franja, LocalDateTime actualizado, int capacidadMaxima);
+
     @Query("SELECT MAX(r.fecha) FROM RegistroAfluencia r")
     Optional<LocalDate> findUltimaFechaRegistrada();
 }

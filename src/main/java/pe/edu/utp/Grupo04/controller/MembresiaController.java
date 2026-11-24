@@ -9,22 +9,21 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.MembresiaAsignacionDTO;
 import pe.edu.utp.Grupo04.model.Membresia;
 import pe.edu.utp.Grupo04.model.Socio;
-import pe.edu.utp.Grupo04.model.enums.EstadoMembresia;
+import pe.edu.utp.Grupo04.service.AccesoService;
 import pe.edu.utp.Grupo04.service.MembresiaService;
 import pe.edu.utp.Grupo04.service.CongelamientoService;
 import pe.edu.utp.Grupo04.service.PlanService;
 import pe.edu.utp.Grupo04.service.SocioService;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
@@ -36,15 +35,18 @@ public class MembresiaController {
     private final CongelamientoService congelamientoService;
     private final SocioService socioService;
     private final PlanService planService;
+    private final AccesoService accesoService;
 
     public MembresiaController(MembresiaService membresiaService,
                                SocioService socioService,
                                PlanService planService,
-                               CongelamientoService congelamientoService) {
+                               CongelamientoService congelamientoService,
+                               AccesoService accesoService) {
         this.membresiaService = membresiaService;
         this.socioService = socioService;
         this.planService = planService;
         this.congelamientoService = congelamientoService;
+        this.accesoService = accesoService;
     }
 
     // --- CONSULTA DE MEMBRESÍA PARA CLIENTE ---
@@ -77,54 +79,21 @@ public class MembresiaController {
         return "cliente/mi-membresia";
     }
 
-    // --- C06: VALIDACIÓN DE TORNIQUETE Y CONTROL DE ACCESO (SIMULACIÓN ACADÉMICA) ---
+    // --- C06: VALIDACIÓN DE TORNIQUETE Y CONTROL DE ACCESO + AFLUENCIA ---
+    @GetMapping("/cliente/api/carnet/qr")
+    @ResponseBody
+    public ResponseEntity<?> generarPaseQr(Authentication authentication) {
+        String username = (authentication != null && authentication.isAuthenticated()) ? authentication.getName() : null;
+        return ResponseEntity.ok(accesoService.generarPaseQr(username));
+    }
+
     @PostMapping("/cliente/api/torniquete/validar")
     @ResponseBody
-    public ResponseEntity<?> validarAccesoTorniquete(Authentication authentication) {
+    public ResponseEntity<?> validarAccesoTorniquete(Authentication authentication,
+                                                     @RequestBody(required = false) Map<String, String> body) {
         String username = (authentication != null && authentication.isAuthenticated()) ? authentication.getName() : null;
-        Socio socio = null;
-        if (username != null && !"anonymousUser".equals(username)) {
-            socio = socioService.buscarPorUsername(username).orElse(null);
-        }
-
-        if (socio == null) {
-            return ResponseEntity.ok(Map.of(
-                    "success", false,
-                    "status", "DENEGADO",
-                    "mensaje", "Acceso denegado: Socio no registrado en el sistema.",
-                    "sede", "Sede Las Américas, Ate"
-            ));
-        }
-
-        // C06: Verificar membresía estrictamente activa y vigente en el servidor
-        LocalDate hoy = LocalDate.now(ZONA_GIMNASIO);
-        Optional<Membresia> memOpt = membresiaService.obtenerMembresiaActivaPorUsername(username)
-                .filter(m -> m.getEstado() == EstadoMembresia.ACTIVA
-                        && m.getFechaInicio() != null
-                        && !m.getFechaInicio().isAfter(hoy)
-                        && m.getFechaFin() != null
-                        && !m.getFechaFin().isBefore(hoy));
-
-        boolean congelada = memOpt.map(m -> congelamientoService.membresiaCongelada(m.getId(), hoy)).orElse(false);
-        String horaActual = LocalTime.now(ZONA_GIMNASIO).format(DateTimeFormatter.ofPattern("hh:mm a"));
-
-        if (memOpt.isPresent() && !congelada) {
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "status", "CONCEDIDO",
-                    "mensaje", "Acceso concedido.",
-                    "sede", "Sede Las Américas, Ate - Ingreso Central",
-                    "hora", horaActual
-            ));
-        } else {
-            return ResponseEntity.ok(Map.of(
-                    "success", false,
-                    "status", "DENEGADO",
-                    "mensaje", congelada ? "La membresía está en pausa en esta fecha."
-                            : "Acceso denegado: El socio no cuenta con una membresía activa y vigente en el gimnasio.",
-                    "sede", "Sede Las Américas, Ate"
-            ));
-        }
+        String token = body != null ? body.get("token") : null;
+        return ResponseEntity.ok(accesoService.validarAcceso(username, token));
     }
 
     // --- GESTIÓN DE MEMBRESÍAS PARA ADMINISTRADOR ---
