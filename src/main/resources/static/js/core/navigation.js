@@ -108,15 +108,22 @@ export function initQrPass() {
         if (carnet.open) return;
         imagen.hidden = true;
         imagen.removeAttribute("src");
+        delete carnet.dataset.qrToken;
         informar("", "");
         carnet.showModal();
         try {
-            const { qrcode } = await import("../vendor/qrcode-generator.js");
+            const [{ qrcode }, resp] = await Promise.all([
+                import("../vendor/qrcode-generator.js"),
+                fetch(carnet.dataset.qrUrl || "/cliente/api/carnet/qr", { headers: getCsrfHeaders(false) })
+            ]);
             if (!carnet.open) return;
-            const referencia = Array.from(crypto.getRandomValues(new Uint8Array(8)),
-                byte => byte.toString(16).padStart(2, "0")).join("");
+            const datos = await resp.json().catch(() => ({}));
+            if (!resp.ok || !datos.success || !datos.contenidoQr) {
+                throw new Error(datos.mensaje || "QR no disponible");
+            }
+            carnet.dataset.qrToken = datos.token || "";
             const codigo = qrcode(0, "M");
-            codigo.addData("ENERGY GYM CARNET " + referencia.toUpperCase(), "Alphanumeric");
+            codigo.addData(datos.contenidoQr, "Alphanumeric");
             codigo.make();
             imagen.src = codigo.createDataURL(6, 24);
             imagen.hidden = false;
@@ -133,7 +140,8 @@ export function initQrPass() {
         try {
             const respuesta = await fetch(carnet.dataset.validarUrl, {
                 method: "POST",
-                headers: getCsrfHeaders(false),
+                headers: getCsrfHeaders(true),
+                body: JSON.stringify({ token: carnet.dataset.qrToken || "" }),
                 signal: solicitud.signal
             });
             const datos = await respuesta.json().catch(() => ({}));

@@ -414,6 +414,10 @@ export function initAdminCrudModals() {
             if (duracionInput) duracionInput.value = btn.dataset.duracion || "";
             if (descInput) descInput.value = btn.dataset.descripcion || "";
             if (activoInput) activoInput.value = btn.dataset.activo || "true";
+            const seleccionados = new Set((btn.dataset.beneficios || "").split(",").map(s => s.trim()).filter(Boolean));
+            document.querySelectorAll(".plan-benefit-checkbox").forEach((cb) => {
+                cb.checked = seleccionados.has(cb.value);
+            });
             if (title) title.textContent = "EDITAR PLAN";
         });
     });
@@ -425,6 +429,10 @@ export function initAdminCrudModals() {
             if (form) form.reset();
             const idInput = document.getElementById("planId");
             if (idInput) idInput.value = "";
+            const baseBeneficios = new Set(["MUSCULACION_PESO_LIBRE", "ZONA_CARDIO_HIIT", "CARNET_DIGITAL", "PAUSA_VIAJE_SALUD"]);
+            document.querySelectorAll(".plan-benefit-checkbox").forEach((cb) => {
+                cb.checked = baseBeneficios.has(cb.value);
+            });
             const title = document.getElementById("modalPlanTitle");
             if (title) title.textContent = "NUEVO PLAN";
         });

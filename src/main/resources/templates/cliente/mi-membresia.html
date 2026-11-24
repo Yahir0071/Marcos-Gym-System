@@ -105,12 +105,17 @@
                             </button>
                         </div>
                         <ul class="list-unstyled m-0 mb-4">
-                            <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Acceso a todas las áreas habilitadas del gimnasio</li>
-                            <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Uso de máquinas biomecánicas y peso olímpico</li>
                             <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Horario vigente: Lun–Vie 06:00–23:00 · Sáb 07:00–20:00 · Dom 08:00–14:00</li>
-                            <li class="mb-3 text-light text-sm" th:if="${membresia != null and (membresia.plan.nombre.contains('PLUS') or membresia.plan.nombre.contains('PREMIUM'))}"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Acceso preferencial a Zona Premium</li>
-                            <li class="mb-0 text-light text-sm" th:if="${membresia != null and membresia.plan.nombre.contains('PREMIUM')}"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> 1 Evaluación antropométrica mensual incluida</li>
-                            <li class="mb-0 text-light text-sm" th:if="${membresia == null or (!membresia.plan.nombre.contains('PLUS') and !membresia.plan.nombre.contains('PREMIUM'))}"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Lockers de uso diario y duchas con agua caliente</li>
+                            <th:block th:if="${membresia != null and membresia.plan != null}">
+                                <li class="mb-3 text-light text-sm" th:each="ben : ${membresia.plan.listaBeneficios}">
+                                    <i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>
+                                    <span th:text="${ben.etiqueta}">Beneficio incluido</span>
+                                </li>
+                            </th:block>
+                            <th:block th:if="${membresia == null or membresia.plan == null}">
+                                <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Acceso a todas las áreas habilitadas del gimnasio al activar un plan</li>
+                                <li class="mb-0 text-light text-sm"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Lockers de uso diario y duchas con agua caliente</li>
+                            </th:block>
                         </ul>
 
                         <!-- Historial Persistente de Solicitudes de Congelamiento (M08) -->

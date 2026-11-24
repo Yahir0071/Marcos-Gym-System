@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.PlanDTO;
 import pe.edu.utp.Grupo04.model.Plan;
+import pe.edu.utp.Grupo04.model.enums.BeneficioPlan;
 import pe.edu.utp.Grupo04.service.PlanService;
 
 @Controller
@@ -20,6 +21,11 @@ public class PlanController {
 
     public PlanController(PlanService planService) {
         this.planService = planService;
+    }
+
+    @ModelAttribute("catalogoBeneficios")
+    public BeneficioPlan[] catalogoBeneficios() {
+        return BeneficioPlan.values();
     }
 
     // --- VISTA PÚBLICA DE PLANES ---
@@ -51,6 +57,7 @@ public class PlanController {
         }
         plan.setNombre(planDTO.getNombre());
         plan.setDescripcion(planDTO.getDescripcion());
+        plan.setBeneficios(BeneficioPlan.serializar(planDTO.getBeneficios()));
         plan.setDuracionDias(planDTO.getDuracionDias());
         plan.setPrecio(planDTO.getPrecio());
         plan.setActivo(planDTO.getActivo() != null ? planDTO.getActivo() : true);
