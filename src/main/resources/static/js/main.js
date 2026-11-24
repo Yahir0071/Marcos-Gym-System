@@ -1,67 +1,70 @@
-/**
- * main.js - Energy Gym Core Orchestrator (ES6 Modular Architecture)
- * Responsabilidad: Orquestación limpia y arranque condicional de submódulos según la vista activa.
- */
-
-// Core Modules
 import { showGymToast, initDataToastTriggers } from "./core/toast.js";
-import { openGymModal, closeGymModal } from "./core/modal.js";
+import { openGymModal, openSafeGymModal, closeGymModal } from "./core/modal.js";
 import { initNavbar, initLiveClock, initSidebars, initQrPass } from "./core/navigation.js";
 
-// Public Modules
-import { initBmiCalculator } from "./public/calculator.js";
-import { initBillingSwitcher, initPreEnrollment } from "./public/planes.js";
-import { initPromoCountdown, initPromoCoupons } from "./public/promociones.js";
-import { initAfluenciaSelector } from "./public/afluencia.js";
-import { initProductCatalog, initProductDetail } from "./public/catalogo.js";
+// Los scripts de las vistas usan estas utilidades para los avisos y modales.
+Object.assign(window, { showGymToast, openGymModal, openSafeGymModal, closeGymModal });
 
-// Auth Module
-import { initLoginControls } from "./auth/login.js";
-
-// Client Portal Modules
-import { initWorkoutTracker, initPlanActions, initReservasClient, initNotifications, initCartAndCompras } from "./cliente/portal.js";
-
-// Admin Module
-import { initTableFilters, initDashboardChart, initAdminTabs, initAdminCrudModals } from "./admin/tables-crud.js";
-
-// Exponer utilidades globales en window para compatibilidad con triggers dinámicos
-window.showGymToast = showGymToast;
-window.openGymModal = openGymModal;
-window.closeGymModal = closeGymModal;
+const cargar = (modulo, iniciar) => {
+    modulo.then(iniciar).catch(error => console.error("No se pudo iniciar un componente de la página.", error));
+};
 
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("⚡ Energy Gym ES6 Modular System Bootstrapped");
-
-    // 1. Inicialización de componentes base (presentes en todas las vistas)
     initNavbar();
     initLiveClock();
     initSidebars();
     initQrPass();
     initDataToastTriggers();
 
-    // 2. Módulos Públicos (arranque bajo demanda si los elementos existen en el DOM)
-    initBmiCalculator();
-    initBillingSwitcher();
-    initPreEnrollment();
-    initPromoCountdown();
-    initPromoCoupons();
-    initAfluenciaSelector();
-    initProductCatalog();
-    initProductDetail();
-
-    // 3. Módulo de Autenticación
-    initLoginControls();
-
-    // 4. Módulos del Portal del Cliente
-    initWorkoutTracker();
-    initPlanActions();
-    initReservasClient();
-    initNotifications();
-    initCartAndCompras();
-
-    // 5. Módulo del Panel de Administración
-    initTableFilters();
-    initDashboardChart();
-    initAdminTabs();
-    initAdminCrudModals();
+    const ruta = window.location.pathname;
+    if (document.getElementById("bmiCalculatorForm")) {
+        cargar(import("./public/calculator.js"), m => m.initBmiCalculator());
+    }
+    if (document.getElementById("billingSwitcher")) {
+        cargar(import("./public/planes.js"), m => m.initBillingSwitcher());
+    }
+    if (ruta === "/promociones") {
+        cargar(import("./public/promociones.js"), m => {
+            m.initPromoCountdown();
+            m.initPromoCoupons();
+        });
+    }
+    if (document.querySelector(".day-afluencia-btn")) {
+        cargar(import("./public/afluencia.js"), m => m.initAfluenciaSelector());
+    }
+    if (["/productos", "/detalle-producto", "/public/detalle-producto",
+        "/cliente/productos", "/cliente/detalle-producto"].includes(ruta)) {
+        cargar(import("./public/catalogo.js"), m => {
+            m.initProductCatalog();
+            m.initProductDetail();
+        });
+    }
+    if (document.getElementById("togglePasswordBtn")) {
+        cargar(import("./auth/login.js"), m => m.initLoginControls());
+    }
+    if (document.getElementById("weeklyWorkoutGrid")) {
+        cargar(import("./cliente/rutina.js"), m => m.initWorkoutTracker());
+    }
+    if (ruta === "/cliente/mi-membresia" || ruta === "/cliente/mis-reservas") {
+        cargar(import("./cliente/congelamiento.js"), m => {
+            m.initCongelamiento();
+            m.initSafeReservaVoucher();
+        });
+    }
+    if (ruta === "/cliente/notificaciones") {
+        cargar(import("./cliente/notificaciones.js"), m => m.initNotificaciones());
+    } else if (ruta.startsWith("/cliente/") &&
+        !["/cliente/mi-membresia", "/cliente/mis-reservas", "/cliente/afluencia"].includes(ruta)) {
+        cargar(import("./cliente/portal.js"), m => m.initCartAndCompras());
+    }
+    if (ruta === "/admin" || ruta.startsWith("/admin/")) {
+        cargar(import("./admin/tables-crud.js"), m => {
+            m.initTableFilters();
+            m.initDashboardChart();
+            m.initAdminTabs();
+            m.initAdminCrudModals();
+        });
+    } else if (ruta === "/cliente/mis-reservas") {
+        cargar(import("./admin/tables-crud.js"), m => m.initTableFilters());
+    }
 });

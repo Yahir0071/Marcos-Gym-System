@@ -1,6 +1,8 @@
 package pe.edu.utp.Grupo04.service;
 
 import pe.edu.utp.Grupo04.model.Membresia;
+import pe.edu.utp.Grupo04.model.Plan;
+import pe.edu.utp.Grupo04.model.Socio;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,6 +14,8 @@ public interface MembresiaService {
     Optional<Membresia> obtenerMembresiaActivaPorUsername(String username);
     Optional<Membresia> buscarPorId(Long id);
     Membresia asignarPlanASocio(Long socioId, Long planId, LocalDate fechaInicio);
+    Membresia asignarPlanASocio(Long socioId, Long planId, LocalDate fechaInicio, String periodo, Integer meses);
+    Membresia crearPreinscripcion(Socio socio, Plan plan, TarifaInscripcion tarifa);
     long calcularDiasRestantes(Membresia membresia);
     boolean estaPorVencer(Membresia membresia, int diasUmbral);
     List<Membresia> listarProximasAVencer(int diasUmbral);

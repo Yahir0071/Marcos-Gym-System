@@ -31,4 +31,7 @@ public class Pago {
     private LocalDateTime fechaPago = LocalDateTime.now();
 
     private String metodoPago;
+
+    @Column(length = 80, unique = true)
+    private String referencia;
 }

@@ -4,33 +4,28 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import pe.edu.utp.Grupo04.service.DashboardService;
-import pe.edu.utp.Grupo04.service.MembresiaService;
 import pe.edu.utp.Grupo04.service.ReservaService;
-import pe.edu.utp.Grupo04.service.SocioService;
+
+import java.util.Collections;
+import java.util.Map;
 
 @Controller
 public class DashboardController {
 
     private final DashboardService dashboardService;
-    private final SocioService socioService;
-    private final MembresiaService membresiaService;
     private final ReservaService reservaService;
 
     public DashboardController(DashboardService dashboardService,
-                               SocioService socioService,
-                               MembresiaService membresiaService,
                                ReservaService reservaService) {
         this.dashboardService = dashboardService;
-        this.socioService = socioService;
-        this.membresiaService = membresiaService;
         this.reservaService = reservaService;
     }
 
     @GetMapping({"/admin", "/admin/dashboard"})
     public String dashboard(Model model) {
-        model.addAttribute("metricas", dashboardService.obtenerMetricasDashboard());
-        model.addAttribute("socios", socioService.listarTodos());
-        model.addAttribute("proximasAVencer", membresiaService.listarProximasAVencer(7));
+        Map<String, Object> metricas = dashboardService.obtenerMetricasDashboard();
+        model.addAttribute("metricas", metricas);
+        model.addAttribute("proximasAVencer", metricas.getOrDefault("proximasAVencerLista", Collections.emptyList()));
         model.addAttribute("reservas", reservaService.listarTodas());
         return "admin/dashboard";
     }

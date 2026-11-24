@@ -45,13 +45,20 @@ public class PromocionController {
             return "redirect:/admin/promociones";
         }
 
+        if (dto.getFechaInicio() != null && dto.getFechaFin() != null) {
+            if (dto.getFechaFin().isBefore(dto.getFechaInicio())) {
+                flash.addFlashAttribute("mensajeError", "La fecha de fin no puede ser anterior a la fecha de inicio.");
+                return "redirect:/admin/promociones";
+            }
+        }
+
         try {
             Promocion promocion = new Promocion();
             if (dto.getId() != null) {
                 promocion.setId(dto.getId());
             }
-            promocion.setTitulo(dto.getTitulo());
-            promocion.setDescripcion(dto.getDescripcion());
+            promocion.setTitulo(dto.getTitulo().trim());
+            promocion.setDescripcion(dto.getDescripcion() != null ? dto.getDescripcion().trim() : null);
             promocion.setPorcentajeDescuento(dto.getPorcentajeDescuento());
             promocion.setFechaInicio(dto.getFechaInicio());
             promocion.setFechaFin(dto.getFechaFin());
@@ -71,9 +78,9 @@ public class PromocionController {
                                              RedirectAttributes flash) {
         try {
             promocionService.cambiarEstado(id, activa);
-            flash.addFlashAttribute("mensajeExito", "Estado de la promoción actualizado con éxito.");
+            flash.addFlashAttribute("mensajeExito", activa ? "Promoción activada exitosamente." : "Promoción desactivada exitosamente.");
         } catch (Exception e) {
-            flash.addFlashAttribute("mensajeError", "Error al actualizar estado: " + e.getMessage());
+            flash.addFlashAttribute("mensajeError", e.getMessage());
         }
         return "redirect:/admin/promociones";
     }

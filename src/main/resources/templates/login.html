@@ -4,9 +4,9 @@
 <body>
     <section class="d-flex flex-column min-vh-100 bg-dark">
         <div th:replace="~{fragments/navbar :: navbar}"></div>
-        <div class="row g-0 flex-grow-1">
+        <main class="row g-0 flex-grow-1" id="main-content">
             <!-- LADO IZQUIERDO: Imagen y mensaje motivacional -->
-            <div class="col-lg-7 d-flex flex-column justify-content-center p-5 login-split-left position-relative">
+            <div class="col-lg-7 d-flex flex-column justify-content-center p-4 p-lg-5 login-split-left position-relative">
                 <div class="login-split-divider"></div>
 
                 <div class="w-100 ms-auto pe-lg-5 mw-550px z-index-2 mr-2rem mt-5">
@@ -25,21 +25,21 @@
                     <p class="text-muted text-xs mb-4">Ingresa tu correo electrónico y contraseña para acceder a tu portal:</p>
 
                     <!-- Alerta de Activación Online Exitosa -->
-                    <div th:if="${param.activado}" class="p-3 rounded border border-success mb-3 bg-elevated text-xs">
+                    <div th:if="${boleta}" class="p-3 rounded border border-success mb-3 bg-elevated text-xs" role="status">
                         <div class="d-flex align-items-center gap-2 text-success fw-bold font-anton mb-1">
                             <i class="fa-solid fa-circle-check fs-5"></i> ¡MEMBRESÍA ACTIVADA CON ÉXITO!
                         </div>
-                        <p class="text-muted text-2xs mb-0">Tu suscripción ha sido confirmada. Inicia sesión a continuación para acceder a tu portal y utilizar tu <strong>código QR de acceso</strong> en los torniquetes.</p>
+                        <p class="text-muted text-2xs mb-0">Tu inscripción simulada quedó registrada. Inicia sesión para consultar tu membresía y tu comprobante <strong th:text="${boleta}"></strong>. No genera cargos.</p>
                     </div>
 
                     <!-- Alerta de Preinscripción para Pago en Recepción -->
-                    <div th:if="${param.preinscrito}" class="p-3 rounded border border-primary mb-3 bg-elevated text-xs">
+                    <div th:if="${codigoInscripcion}" class="p-3 rounded border border-primary mb-3 bg-elevated text-xs" role="status">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <span class="text-primary fw-bold font-anton"><i class="fa-solid fa-receipt me-1"></i> PREINSCRIPCIÓN RESERVADA</span>
                             <span class="badge bg-primary text-dark font-anton">72 HORAS</span>
                         </div>
-                        <p class="text-muted text-2xs mb-1">Código de recepción: <strong class="text-primary font-anton fs-6" th:text="${param.codigo != null ? param.codigo : '#INS-OFICIAL'}">#INS-12345</strong></p>
-                        <p class="text-muted text-2xs mb-0">Tu tarifa se encuentra congelada. Acércate a la recepción de sede Las Américas, Ate para abonar en efectivo, POS o Yape/Plin.</p>
+                        <p class="text-muted text-2xs mb-1">Código para recepción <strong class="text-primary text-break" th:text="${codigoInscripcion}"></strong>.</p>
+                        <p class="text-muted text-2xs mb-0" th:text="|Monto reservado S/ ${#numbers.formatDecimal(montoPagar, 1, 2)} hasta el ${fechaLimite} (hora de Lima). Presenta el código en recepción.|"></p>
                     </div>
 
                     <!-- Mensaje de Éxito de Registro -->
@@ -50,12 +50,12 @@
                     </div>
 
                     <!-- Alertas de Spring Security -->
-                    <div th:if="${param.error}" class="alert alert-danger py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;">
-                        <i class="fa-solid fa-triangle-exclamation fs-6"></i>
+                    <div th:if="${param.error}" class="alert alert-danger py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" role="alert" style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;">
+                        <i class="fa-solid fa-triangle-exclamation fs-6" aria-hidden="true"></i>
                         <span>Correo o contraseña incorrectos. Por favor, verifica tus credenciales.</span>
                     </div>
-                    <div th:if="${param.logout}" class="alert alert-info py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" style="background-color: rgba(0, 230, 118, 0.2); color: #00e676;">
-                        <i class="fa-solid fa-circle-check fs-6"></i>
+                    <div th:if="${param.logout}" class="alert alert-info py-2 px-3 text-xs mb-3 d-flex align-items-center gap-2 border-0" role="status" style="background-color: rgba(0, 230, 118, 0.2); color: #00e676;">
+                        <i class="fa-solid fa-circle-check fs-6" aria-hidden="true"></i>
                         <span>Has cerrado sesión correctamente. ¡Vuelve pronto a entrenar!</span>
                     </div>
 
@@ -69,8 +69,8 @@
                             <label for="password" class="form-label text-xs">CONTRASEÑA</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="password" name="password" placeholder="••••••••••" autocomplete="current-password" required>
-                                <button class="btn btn-outline px-3" type="button" id="togglePasswordBtn" title="Mostrar/Ocultar contraseña">
-                                    <i class="fa-regular fa-eye"></i>
+                                <button class="btn btn-outline px-3" type="button" id="togglePasswordBtn" title="Mostrar/Ocultar contraseña" aria-label="Mostrar contraseña" aria-pressed="false">
+                                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
@@ -103,7 +103,7 @@
                     </form>
                 </div>
             </div>
-        </div>
+        </main>
     </section>
 </body>
 </html>

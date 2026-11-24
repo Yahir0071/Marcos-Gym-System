@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
 <head><title>Contratación de Membresía - Energy Gym</title></head>
 <body>
@@ -15,7 +15,7 @@
                 <div class="w-100 ms-auto pe-lg-4 mw-550px position-relative z-index-2 my-auto">
                     <!-- Encabezado Motivacional de Marca -->
                     <div class="mb-3">
-                        <div class="section-subtitle has-line mb-2 text-2xs">CONTRATACIÓN OFICIAL</div>
+                        <div class="section-subtitle has-line mb-2 text-2xs">CONTRATACIÓN DE MEMBRESÍA</div>
                         <h1 class="display-5 font-anton leading-none mb-2 text-light text-4xl">
                             MEMBRESÍA<br><span class="text-primary">ENERGY GYM</span>
                         </h1>
@@ -24,9 +24,9 @@
 
                     <!-- Tarjeta Glassmorphic de Resumen de Contratación (Estilo Smart Fit) -->
                     <div class="card p-3 p-xl-4 border-secondary bg-card shadow-lg position-relative"
-                         id="membershipSummaryCard"
+                         id="membershipSummaryCard" th:if="${selectedPlan != null}"
                          style="backdrop-filter: blur(14px); background-color: rgba(17, 21, 30, 0.90);"
-                         th:attr="data-base-price=${baseMensual}, data-meses=${meses}, data-periodo=${periodo}, data-total=${precioTotal}">
+                         th:attr="data-base-price=${baseMensual}, data-meses=${meses}, data-periodo=${periodo}, data-total=${precioTotal}, data-fecha=${fechaInicioIso}, data-dias-mensual=${diasPlanMensual}, data-cupones=${#strings.setJoin(cuponesValidos, ',')}">
                         
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-2xs font-anton tracking-wide text-primary">RESUMEN DEL PLAN</span>
@@ -35,7 +35,7 @@
 
                         <!-- Nombre del Plan Seleccionado -->
                         <h2 class="font-anton text-light text-3xl mb-1" id="summaryPlanName"
-                            th:text="${selectedPlan != null ? selectedPlan.nombre.toUpperCase() : 'PLAN PLUS'}">PLAN PLUS</h2>
+                            th:text="${selectedPlan.nombre.toUpperCase()}">PLAN PLUS</h2>
                         
                         <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded bg-elevated border border-secondary mb-3">
                             <i class="fa-solid fa-clock-rotate-left text-primary text-xs"></i>
@@ -45,8 +45,8 @@
 
                         <!-- Selector Interactivo de Duración (1 Mes, 3 Meses -10%, 1 Año -20%) -->
                         <div class="mb-3">
-                            <label class="form-label text-2xs text-muted fw-bold mb-1">DURACIÓN Y FACTURACIÓN</label>
-                            <div class="d-flex gap-2">
+                            <span class="form-label text-2xs text-muted fw-bold mb-1 d-block">DURACIÓN Y MODALIDAD</span>
+                            <div class="d-flex flex-wrap gap-2">
                                 <button type="button" class="btn btn-sm flex-grow-1 duration-btn py-2" data-mode="MENSUAL" data-mult="1" data-disc="1"
                                         th:classappend="${periodo == 'MENSUAL'} ? 'btn-primary' : 'btn-outline'">
                                     1 MES
@@ -72,13 +72,13 @@
                             </div>
                             <div class="d-flex justify-content-between text-muted">
                                 <span>Periodo de Cobertura:</span>
-                                <span id="summaryDurationText" th:text="${meses + ' mes(es) · ' + (meses * 30) + ' días'}">3 mes(es) · 90 días</span>
+                                <span id="summaryDurationText" th:text="${meses == 1 ? diasPlanMensual + ' días' : meses + ' meses'}">3 mes(es) · 90 días</span>
                             </div>
                             <div class="d-flex justify-content-between text-muted" id="discountRow" th:classappend="${discPct == 0} ? 'd-none' : ''">
                                 <span class="text-success"><i class="fa-solid fa-tag me-1"></i> Descuento de Modalidad:</span>
                                 <span class="text-success fw-bold" id="summaryDiscountText" th:text="'-' + ${discPct} + '% (S/ ' + ${#numbers.formatDecimal(ahorroEstimado, 1, 'POINT', 2, 'POINT')} + ')'">-10%</span>
                             </div>
-                            <div class="d-flex justify-content-between text-muted d-none" id="couponDiscountRow">
+                            <div class="d-flex justify-content-between text-muted d-none" id="couponDiscountRow" role="status">
                                 <span class="text-primary"><i class="fa-solid fa-gift me-1"></i> Cupón Promocional:</span>
                                 <span class="text-primary fw-bold" id="couponDiscountText">-S/ 0.00</span>
                             </div>
@@ -91,31 +91,31 @@
                                 <span class="text-light fw-bold" id="summaryStartDateText" th:text="${fechaInicio}">Hoy</span>
                             </div>
                             <div class="d-flex justify-content-between text-muted">
-                                <span>Vigencia del Ciclo:</span>
+                                <span>Fecha estimada de fin:</span>
                                 <span class="text-light fw-bold" id="summaryEndDateText" th:text="${fechaFinEstimada}">En 90 días</span>
                             </div>
                         </div>
 
                         <!-- Cupón con Validación en Vivo -->
                         <div class="p-2 p-xl-3 rounded bg-elevated border border-secondary mb-3">
-                            <label class="form-label text-2xs text-muted fw-bold mb-1">¿TIENES UN CUPÓN?</label>
+                            <label for="inputPromoCode" class="form-label text-2xs text-muted fw-bold mb-1">¿TIENES UN CUPÓN?</label>
                             <div class="input-group input-group-sm">
-                                <input type="text" class="form-control text-uppercase text-xs" id="inputPromoCode" placeholder="Ej. ENERGY2X1, APERTURA10">
+                                <input type="text" class="form-control text-uppercase text-xs" id="inputPromoCode" th:value="${cupon}" maxlength="24" aria-describedby="couponSuccessMsg couponErrorMsg" placeholder="Ej. ENERGY2X1, APERTURA10">
                                 <button class="btn btn-outline px-3 font-anton text-xs" type="button" id="btnApplyCoupon">APLICAR</button>
                             </div>
-                            <small class="text-success text-2xs d-none mt-1" id="couponSuccessMsg"><i class="fa-solid fa-circle-check"></i> Cupón aplicado: S/ 30 de descuento directo.</small>
-                            <small class="text-danger text-2xs d-none mt-1" id="couponErrorMsg"><i class="fa-solid fa-circle-exclamation"></i> Cupón no válido o expirado.</small>
+                            <small class="text-success text-2xs d-none mt-1" id="couponSuccessMsg" role="status"></small>
+                            <small class="text-danger text-2xs d-none mt-1" id="couponErrorMsg" role="alert">Cupón no válido.</small>
                         </div>
 
                         <!-- Total a Liquidar Destacado -->
                         <div class="p-3 rounded bg-elevated border border-primary d-flex justify-content-between align-items-center">
                             <div>
                                 <small class="text-muted text-2xs d-block fw-bold">TOTAL A LIQUIDAR</small>
-                                <h3 class="font-anton text-primary m-0 fs-3" id="summaryTotalText"
+                                <h3 class="font-anton text-primary m-0 fs-3" id="summaryTotalText" aria-live="polite"
                                     th:text="'S/ ' + ${#numbers.formatDecimal(precioTotal, 1, 'POINT', 2, 'POINT')}">S/ 621.00</h3>
                             </div>
                             <span class="badge bg-dark text-success border border-success font-anton text-2xs px-2 py-2">
-                                <i class="fa-solid fa-check me-1"></i> TARIFA GARANTIZADA
+                                <i class="fa-solid fa-check me-1"></i> TOTAL ESTIMADO
                             </span>
                         </div>
                     </div>
@@ -153,26 +153,31 @@
                     </div>
 
                     <!-- Alertas de Error del Backend -->
-                    <div th:if="${mensajeError}" class="alert alert-danger py-2 px-3 text-xs mb-4 border-0 d-flex align-items-center gap-2"
+                    <div th:if="${mensajeError}" id="mensajeErrorRegistro" role="alert" tabindex="-1" class="alert alert-danger py-2 px-3 text-xs mb-4 border-0 d-flex align-items-center gap-2"
                          style="background-color: rgba(255, 51, 102, 0.2); color: #ff3366;">
                         <i class="fa-solid fa-triangle-exclamation fs-6"></i>
                         <span th:text="${mensajeError}"></span>
                     </div>
 
-                    <form th:action="@{/registrarse}" method="post" id="enrollmentWizardForm">
+                    <div th:unless="${selectedPlan}" class="alert alert-info" role="status">
+                        Elige un plan disponible para comenzar la inscripción.
+                        <a th:href="@{/planes}" class="alert-link">Ver planes</a>
+                    </div>
+                    <form th:if="${selectedPlan}" th:action="@{/registrarse}" method="post" id="enrollmentWizardForm" novalidate
+                          th:attr="data-paso-error=${pasoError}">
                         <!-- Campos Ocultos de Sincronización del Plan -->
                         <input type="hidden" name="planId" id="fieldPlanId" th:value="${planId}">
                         <input type="hidden" name="periodo" id="fieldPeriodo" th:value="${periodo}">
-                        <input type="hidden" name="meses" id="fieldMeses" th:value="${meses}">
-                        <input type="hidden" name="precioTotal" id="fieldPrecioTotal" th:value="${precioTotal}">
-                        <input type="hidden" name="cupon" id="fieldCupon" value="">
+
+
+                        <input type="hidden" name="cupon" id="fieldCupon" th:value="${cupon}">
 
                         <!-- ============================================== -->
                         <!-- PASO 1: DATOS PERSONALES DEL SOCIO             -->
                         <!-- ============================================== -->
                         <div class="wizard-step" id="wizardStep1">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h3 class="font-anton text-light text-2xl m-0">1. DATOS DEL SOCIO</h3>
+                                <h3 class="font-anton text-light text-2xl m-0" tabindex="-1">1. DATOS DEL SOCIO</h3>
                                 <span class="badge bg-elevated text-muted border border-secondary">PASO 1 DE 4</span>
                             </div>
                             <p class="text-muted text-xs mb-4">Ingresa los datos personales del titular que entrenará en el gimnasio:</p>
@@ -180,23 +185,23 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label for="nombres" class="form-label text-xs">NOMBRES COMPLETOS *</label>
-                                    <input type="text" class="form-control" id="nombres" name="nombres" placeholder="Ej. Carlos Eduardo" required>
+                                    <input type="text" class="form-control" id="nombres" name="nombres" th:value="${nombres}" maxlength="100" placeholder="Ej. Carlos Eduardo" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="apellidos" class="form-label text-xs">APELLIDOS COMPLETOS *</label>
-                                    <input type="text" class="form-control" id="apellidos" name="apellidos" placeholder="Ej. Mendoza Rojas" required>
+                                    <input type="text" class="form-control" id="apellidos" name="apellidos" th:value="${apellidos}" maxlength="100" placeholder="Ej. Mendoza Rojas" required>
                                 </div>
                             </div>
 
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
                                     <label for="dni" class="form-label text-xs">DNI / DOCUMENTO (8 DÍGITOS) *</label>
-                                    <input type="text" class="form-control" id="dni" name="dni" placeholder="72563123" maxlength="8" pattern="[0-9]{8}" required>
+                                    <input type="text" class="form-control" id="dni" name="dni" th:value="${dni}" placeholder="72563123" maxlength="8" pattern="[0-9]{8}" required>
                                     <small class="text-muted text-2xs">Obligatorio para la emisión del carnet biométrico.</small>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="telefono" class="form-label text-xs">TELÉFONO MÓVIL (WHATSAPP)</label>
-                                    <input type="tel" class="form-control" id="telefono" name="telefono" placeholder="987654321" maxlength="9">
+                                    <input type="tel" class="form-control" id="telefono" name="telefono" th:value="${telefono}" placeholder="987654321" maxlength="9" pattern="[0-9]{9}">
                                 </div>
                             </div>
 
@@ -204,14 +209,14 @@
                                 <div class="col-md-6">
                                     <label for="genero" class="form-label text-xs">GÉNERO</label>
                                     <select class="form-select" id="genero" name="genero">
-                                        <option value="MASCULINO">Masculino</option>
-                                        <option value="FEMENINO">Femenino</option>
-                                        <option value="OTRO">Prefiero no especificar</option>
+                                        <option value="">Selecciona una opción</option><option value="MASCULINO" th:selected="${genero == 'MASCULINO'}">Masculino</option>
+                                        <option value="FEMENINO" th:selected="${genero == 'FEMENINO'}">Femenino</option>
+                                        <option value="OTRO" th:selected="${genero == 'OTRO'}">Prefiero no especificar</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="fechaNacimiento" class="form-label text-xs">FECHA DE NACIMIENTO</label>
-                                    <input type="date" class="form-control" id="fechaNacimiento" name="fechaNacimiento">
+                                    <input type="date" class="form-control" id="fechaNacimiento" name="fechaNacimiento" th:value="${fechaNacimiento}" th:max="${fechaNacimientoMax}">
                                 </div>
                             </div>
 
@@ -230,56 +235,57 @@
                         <!-- ============================================== -->
                         <div class="wizard-step d-none" id="wizardStep2">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h3 class="font-anton text-light text-2xl m-0">2. CUENTA &amp; FACTURACIÓN</h3>
+                                <h3 class="font-anton text-light text-2xl m-0" tabindex="-1">2. CUENTA &amp; FACTURACIÓN</h3>
                                 <span class="badge bg-elevated text-muted border border-secondary">PASO 2 DE 4</span>
                             </div>
-                            <p class="text-muted text-xs mb-4">Crea tus credenciales de acceso al Portal del Socio y define el tipo de comprobante legal:</p>
+                            <p class="text-muted text-xs mb-4">Crea tus credenciales de acceso al Portal del Cliente y define los datos para tu constancia:</p>
 
                             <!-- Credenciales del Portal -->
                             <div class="card p-3 bg-elevated border-secondary mb-4">
-                                <div class="text-light font-anton text-xs mb-3 tracking-wide"><i class="fa-solid fa-key text-primary me-2"></i>CREDENCIALES PARA EL PORTAL</div>
+                                <div class="text-light font-anton text-xs mb-3 tracking-wide"><i class="fa-solid fa-key text-primary me-2" aria-hidden="true"></i>CREDENCIALES PARA EL PORTAL</div>
                                 <div class="mb-3">
                                     <label for="email" class="form-label text-xs">CORREO ELECTRÓNICO *</label>
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="socio@energygym.pe" required autocomplete="email">
-                                    <small class="text-muted text-2xs">Aquí recibirás tu código de acceso QR y comprobante de pago.</small>
+                                    <input type="email" class="form-control" id="email" name="email" th:value="${email}" maxlength="120" placeholder="socio@energygym.pe" required autocomplete="email">
+                                    <small class="text-muted text-2xs">Este correo será tu usuario de acceso al portal de socio.</small>
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label for="password" class="form-label text-xs">CONTRASEÑA (MÍN. 6 CARACTERES) *</label>
-                                        <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required autocomplete="new-password">
+                                        <input type="password" class="form-control" id="password" name="password" minlength="6" maxlength="72" placeholder="••••••••" required autocomplete="new-password">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="confirmPassword" class="form-label text-xs">CONFIRMAR CONTRASEÑA *</label>
-                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required autocomplete="new-password">
+                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" minlength="6" maxlength="72" placeholder="••••••••" required autocomplete="new-password">
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Facturación Separada (Socio vs Titular Pagador) -->
+                            <!-- Datos de Constancia Académica (M15) -->
                             <div class="card p-3 bg-elevated border-secondary mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="text-light font-anton text-xs tracking-wide"><i class="fa-solid fa-file-invoice text-primary me-2"></i>DATOS DE FACTURACIÓN ELECTRÓNICA</div>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                    <div class="text-light font-anton text-xs tracking-wide"><i class="fa-solid fa-file-invoice text-primary me-2" aria-hidden="true"></i>DATOS DE LA CONSTANCIA</div>
                                     <button type="button" class="btn btn-sm btn-outline text-2xs py-1" id="btnCopySocioData">
-                                        <i class="fa-solid fa-copy me-1"></i> USAR MIS MISMOS DATOS
+                                        <i class="fa-solid fa-copy me-1" aria-hidden="true"></i> USAR MIS MISMOS DATOS
                                     </button>
                                 </div>
+                                <p class="text-warning text-2xs mb-2">Documento interno sin validez tributaria.</p>
 
                                 <div class="mb-3">
-                                    <label for="tipoComprobante" class="form-label text-xs">TIPO DE COMPROBANTE *</label>
+                                    <label for="tipoComprobante" class="form-label text-xs">TIPO DE CONSTANCIA *</label>
                                     <select class="form-select" id="tipoComprobante" name="tipoComprobante">
-                                        <option value="BOLETA" selected>Boleta de Venta Electrónica (DNI)</option>
-                                        <option value="FACTURA">Factura Comercial (RUC 20 / 10)</option>
+                                        <option value="BOLETA" th:selected="${tipoComprobante != 'FACTURA'}">Constancia con DNI</option>
+                                        <option value="FACTURA" th:selected="${tipoComprobante == 'FACTURA'}">Constancia con RUC</option>
                                     </select>
                                 </div>
 
                                 <div class="row g-3" id="boxRucFactura" style="display: none;">
                                     <div class="col-md-6">
                                         <label for="rucFactura" class="form-label text-xs">NÚMERO DE RUC (11 DÍGITOS)</label>
-                                        <input type="text" class="form-control" id="rucFactura" name="rucFactura" placeholder="20601234567" maxlength="11">
+                                        <input type="text" class="form-control" id="rucFactura" name="rucFactura" th:value="${rucFactura}" pattern="[0-9]{11}" placeholder="20601234567" maxlength="11">
                                     </div>
                                     <div class="col-md-6" id="boxRazonSocial">
                                         <label for="razonSocialFactura" class="form-label text-xs">RAZÓN SOCIAL</label>
-                                        <input type="text" class="form-control" id="razonSocialFactura" name="razonSocialFactura" placeholder="EMPRESA S.A.C.">
+                                        <input type="text" class="form-control" id="razonSocialFactura" name="razonSocialFactura" th:value="${razonSocialFactura}" maxlength="120" placeholder="EMPRESA S.A.C.">
                                     </div>
                                 </div>
                             </div>
@@ -299,7 +305,7 @@
                         <!-- ============================================== -->
                         <div class="wizard-step d-none" id="wizardStep3">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h3 class="font-anton text-light text-2xl m-0">3. MÉTODO DE PAGO</h3>
+                                <h3 class="font-anton text-light text-2xl m-0" tabindex="-1">3. MÉTODO DE PAGO</h3>
                                 <span class="badge bg-elevated text-muted border border-secondary">PASO 3 DE 4</span>
                             </div>
                             <p class="text-muted text-xs mb-4">Elige cómo deseas abonar tu membresía. Puedes pagar en línea o reservar para pagar en recepción:</p>
@@ -309,58 +315,30 @@
                                 <div class="col-md-6">
                                     <div class="card p-3 border-primary bg-elevated h-100 cursor-pointer payment-option-card" id="optPayOnline">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="metodoPago" id="radioPayOnline" value="ONLINE" checked>
+                                            <input class="form-check-input" type="radio" name="metodoPago" id="radioPayOnline" value="ONLINE" th:checked="${metodoPago != 'RECEPCION'}">
                                             <label class="form-check-label font-anton text-light text-sm" for="radioPayOnline">
-                                                <i class="fa-solid fa-credit-card text-primary me-2"></i> PAGO EN LÍNEA
+                                                <i class="fa-solid fa-credit-card text-primary me-2"></i> PAGO SIMULADO
                                             </label>
                                         </div>
-                                        <p class="text-muted text-2xs mt-2 mb-0">Activación inmediata. Genera tu carnet QR al instante para entrenar hoy mismo.</p>
+                                        <p class="text-muted text-2xs mt-2 mb-0">La membresía queda activa al confirmar.</p>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="card p-3 border-secondary bg-card h-100 cursor-pointer payment-option-card" id="optPayRecepcion">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="metodoPago" id="radioPayRecepcion" value="RECEPCION">
+                                            <input class="form-check-input" type="radio" name="metodoPago" id="radioPayRecepcion" value="RECEPCION" th:checked="${metodoPago == 'RECEPCION'}">
                                             <label class="form-check-label font-anton text-light text-sm" for="radioPayRecepcion">
                                                 <i class="fa-solid fa-building-columns text-primary me-2"></i> PAGO EN RECEPCIÓN
                                             </label>
                                         </div>
-                                        <p class="text-muted text-2xs mt-2 mb-0">Reserva tu código oficial por 72 horas. Paga en sede con Efectivo, POS o Yape/Plin.</p>
+                                        <p class="text-muted text-2xs mt-2 mb-0">Reserva la tarifa por 72 horas. Recepción registra el pago completo.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Formulario de Tarjeta Simulado (Estilo Pasarela Segura) -->
-                            <div class="card p-4 bg-elevated border-secondary mb-4" id="cardPaymentBox">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="text-light font-anton text-xs tracking-wide"><i class="fa-solid fa-lock text-success me-2"></i>PASARELA SEGURA SSL 256-BIT</span>
-                                    <div class="d-flex gap-2 text-muted fs-5">
-                                        <i class="fa-brands fa-cc-visa text-light"></i>
-                                        <i class="fa-brands fa-cc-mastercard text-light"></i>
-                                        <i class="fa-brands fa-cc-amex text-light"></i>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="numeroTarjeta" class="form-label text-xs">NÚMERO DE TARJETA</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="numeroTarjeta" name="numeroTarjeta" placeholder="•••• •••• •••• 4242" maxlength="19">
-                                        <span class="input-group-text bg-card border-secondary text-muted"><i class="fa-solid fa-credit-card"></i></span>
-                                    </div>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="titularTarjeta" class="form-label text-xs">NOMBRE DEL TITULAR</label>
-                                        <input type="text" class="form-control text-uppercase" id="titularTarjeta" name="titularTarjeta" placeholder="COMO APARECE EN LA TARJETA">
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <label for="expiracionTarjeta" class="form-label text-xs">VENCIMIENTO</label>
-                                        <input type="text" class="form-control" id="expiracionTarjeta" placeholder="MM/AA" maxlength="5">
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <label for="cvvTarjeta" class="form-label text-xs">CVV</label>
-                                        <input type="password" class="form-control" id="cvvTarjeta" placeholder="•••" maxlength="4">
-                                    </div>
-                                </div>
+                            <div class="card p-3 bg-elevated border-secondary mb-4" id="cardPaymentBox">
+                                <strong class="text-warning">Sobre este pago</strong>
+                                <p class="text-muted text-xs mb-0">No genera cargos. No se solicitan datos de tarjeta.</p>
                             </div>
 
                             <!-- Nota para Pago en Recepción -->
@@ -369,9 +347,9 @@
                                     <i class="fa-solid fa-circle-info fs-5"></i> CONDICIONES DE RESERVA EN RECEPCIÓN
                                 </div>
                                 <ul class="text-muted text-xs mb-0 ps-3">
-                                    <li class="mb-1">Se generará un número de preinscripción garantizado con tarifa congelada por <strong>72 horas</strong>.</li>
-                                    <li class="mb-1">Puedes pagar en recepción de sede Las Américas, Ate con Efectivo, Tarjeta física o Yape/Plin.</li>
-                                    <li>Tu carnet QR de acceso se activará en recepción una vez validado el pago.</li>
+                                    <li class="mb-1">Se generará un código referencial de preinscripción válido por <strong>72 horas</strong>.</li>
+                                    <li class="mb-1">Puedes completar el registro en recepción de sede Av. Las Américas, Ate — Lima.</li>
+                                    <li>Tu acceso se activará en recepción una vez confirmado el registro.</li>
                                 </ul>
                             </div>
 
@@ -390,10 +368,10 @@
                         <!-- ============================================== -->
                         <div class="wizard-step d-none" id="wizardStep4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h3 class="font-anton text-light text-2xl m-0">4. REVISIÓN &amp; CONFIRMACIÓN</h3>
+                                <h3 class="font-anton text-light text-2xl m-0" tabindex="-1">4. REVISIÓN &amp; CONFIRMACIÓN</h3>
                                 <span class="badge bg-elevated text-success border border-success">PASO 4 DE 4</span>
                             </div>
-                            <p class="text-muted text-xs mb-4">Revisa todos los datos de tu suscripción antes de confirmar tu inscripción oficial:</p>
+                            <p class="text-muted text-xs mb-4">Revisa todos los datos de tu suscripción antes de confirmar tu inscripción:</p>
 
                             <!-- Resumen Completo de la Suscripción -->
                             <div class="card p-3 bg-elevated border-secondary mb-3">
@@ -414,14 +392,14 @@
                                     </div>
                                     <div class="col-sm-6">
                                         <span class="text-muted d-block text-2xs fw-bold">MODO DE PAGO</span>
-                                        <span class="text-light fw-bold" id="revPaymentMode">PAGO EN LÍNEA CON TARJETA</span>
+                                        <span class="text-light fw-bold" id="revPaymentMode">PAGO SIMULADO</span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Términos y Condiciones -->
                             <div class="form-check p-3 rounded bg-elevated border border-secondary mb-4 ms-0">
-                                <input class="form-check-input ms-0 me-2" type="checkbox" id="termsCheck" required checked>
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="termsCheck" name="aceptaTerminos" value="true" required th:checked="${aceptaTerminos}">
                                 <label class="form-check-label text-xs text-muted" for="termsCheck">
                                     Declaro ser mayor de 18 años, declaro que la información consignada es fidedigna y acepto el reglamento interno, términos de membresía y política de privacidad de Energy Gym.
                                 </label>
@@ -449,266 +427,205 @@
             </div>
         </div>
 
-        <!-- SCRIPT DEL WIZARD INTERACTIVO (DENTRO DE LA SECCIÓN PARA THYMELEAF) -->
-        <script>
+        <script th:inline="none">
         document.addEventListener("DOMContentLoaded", () => {
-            const summaryCard = document.getElementById("membershipSummaryCard");
-            const rawBase = summaryCard ? summaryCard.getAttribute("data-base-price") : "119";
-            const baseMonthly = parseFloat(rawBase ? rawBase.replace(",", ".") : "119") || 119;
-            
-            let activeMultiplier = parseInt(summaryCard.getAttribute("data-meses"), 10) || 1;
-            let activeDiscount = activeMultiplier === 3 ? 0.9 : (activeMultiplier === 12 ? 0.8 : 1.0);
-            let couponDiscountAmount = 0;
+            const element = id => document.getElementById(id);
+            const form = element("enrollmentWizardForm");
+            if (!form) return;
 
-            function updateCalculatedPrices() {
-                const subtotal = Math.round(baseMonthly * activeMultiplier);
-                const discPct = activeMultiplier === 3 ? 10 : (activeMultiplier === 12 ? 20 : 0);
-                const discountedPrice = Math.round(subtotal * activeDiscount);
-                const finalPrice = Math.max(0, discountedPrice - couponDiscountAmount);
-                const ahorro = subtotal - finalPrice;
+            const summary = element("membershipSummaryCard");
+            const baseMensual = Number(summary.dataset.basePrice);
+            const diasMensual = Number(summary.dataset.diasMensual);
+            const cupones = new Set(summary.dataset.cupones.split(","));
+            const fieldCupon = element("fieldCupon");
+            const fieldPeriodo = element("fieldPeriodo");
+            const radioOnline = element("radioPayOnline");
+            const periodos = {
+                MENSUAL: { meses: 1, factor: 1, porcentaje: 0, etiqueta: "Mensual" },
+                TRIMESTRAL: { meses: 3, factor: 0.9, porcentaje: 10, etiqueta: "Trimestral" },
+                ANUAL: { meses: 12, factor: 0.8, porcentaje: 20, etiqueta: "Anual" }
+            };
+            const moneda = importe => new Intl.NumberFormat("es-PE", {
+                style: "currency", currency: "PEN"
+            }).format(importe);
 
-                const fTotal = document.getElementById("fieldPrecioTotal");
-                if (fTotal) fTotal.value = finalPrice;
-                
-                const fMeses = document.getElementById("fieldMeses");
-                if (fMeses) fMeses.value = activeMultiplier;
-                
-                const mode = activeMultiplier === 3 ? "TRIMESTRAL" : (activeMultiplier === 12 ? "ANUAL" : "MENSUAL");
-                const fPeriodo = document.getElementById("fieldPeriodo");
-                if (fPeriodo) fPeriodo.value = mode;
+            function actualizarResumen() {
+                const { meses, factor, porcentaje, etiqueta } = periodos[fieldPeriodo.value];
+                const subtotal = Math.round(baseMensual * meses);
+                const conModalidad = Math.round(baseMensual * meses * factor);
+                const descuentoCupon = fieldCupon.value ? Math.min(30, Math.max(0, conModalidad - 1)) : 0;
 
-                const bBadge = document.getElementById("summaryPeriodBadge");
-                if (bBadge) {
-                    bBadge.textContent = activeMultiplier === 1 
-                        ? "MODALIDAD MENSUAL (1 MES)" 
-                        : (activeMultiplier === 3 ? "MODALIDAD TRIMESTRAL (3 MESES)" : "MODALIDAD ANUAL (12 MESES)");
+                element("summaryPeriodBadge").textContent = etiqueta.toUpperCase();
+                element("summaryDurationText").textContent = meses === 1 ? diasMensual + " días" : meses + " meses";
+                element("summaryTotalText").textContent = moneda(conModalidad - descuentoCupon);
+                element("discountRow").classList.toggle("d-none", !porcentaje);
+                element("summaryDiscountText").textContent = "-" + porcentaje + "% (" + moneda(subtotal - conModalidad) + ")";
+                element("couponDiscountRow").classList.toggle("d-none", !descuentoCupon);
+                element("couponDiscountText").textContent = "-" + moneda(descuentoCupon);
+                element("couponSuccessMsg").textContent = descuentoCupon ? "Cupón aplicado: " + moneda(descuentoCupon) + " de descuento." : "";
+                element("couponSuccessMsg").classList.toggle("d-none", !descuentoCupon);
+
+                const fecha = new Date(summary.dataset.fecha + "T00:00:00Z");
+                if (meses === 1) {
+                    fecha.setUTCDate(fecha.getUTCDate() + diasMensual);
+                } else {
+                    const dia = fecha.getUTCDate();
+                    fecha.setUTCDate(1);
+                    fecha.setUTCMonth(fecha.getUTCMonth() + meses);
+                    const ultimoDia = new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth() + 1, 0)).getUTCDate();
+                    fecha.setUTCDate(Math.min(dia, ultimoDia));
                 }
-                
-                const dText = document.getElementById("summaryDurationText");
-                if (dText) dText.textContent = `${activeMultiplier} mes(es) · ${activeMultiplier * 30} días`;
-                
-                const tText = document.getElementById("summaryTotalText");
-                if (tText) tText.textContent = `S/ ${finalPrice}.00`;
-
-                // Calcular fecha de vencimiento estimada
-                const now = new Date();
-                now.setDate(now.getDate() + (activeMultiplier * 30));
-                const d = String(now.getDate()).padStart(2, '0');
-                const m = String(now.getMonth() + 1).padStart(2, '0');
-                const y = now.getFullYear();
-                const endText = document.getElementById("summaryEndDateText");
-                if (endText) endText.textContent = `${d}/${m}/${y}`;
-
-                const discRow = document.getElementById("discountRow");
-                if (discRow) {
-                    if (discPct > 0) {
-                        discRow.classList.remove("d-none");
-                        const dSpan = document.getElementById("summaryDiscountText");
-                        if (dSpan) dSpan.textContent = `-${discPct}% (S/ ${ahorro}.00)`;
-                    } else {
-                        discRow.classList.add("d-none");
-                    }
-                }
+                element("summaryEndDateText").textContent = radioOnline.checked
+                    ? new Intl.DateTimeFormat("es-PE", { dateStyle: "short", timeZone: "UTC" }).format(fecha)
+                    : "Según la fecha de pago";
             }
 
-            // Manejo de botones de duración (1 mes, 3 meses, 1 año)
-            const durationBtns = document.querySelectorAll(".duration-btn");
-            durationBtns.forEach(btn => {
-                btn.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    durationBtns.forEach(b => {
-                        b.classList.remove("btn-primary");
-                        b.classList.add("btn-outline");
+            document.querySelectorAll(".duration-btn").forEach(button => {
+                button.setAttribute("aria-pressed", String(button.dataset.mode === fieldPeriodo.value));
+                button.addEventListener("click", () => {
+                    fieldPeriodo.value = button.dataset.mode;
+                    document.querySelectorAll(".duration-btn").forEach(candidate => {
+                        const activo = candidate === button;
+                        candidate.classList.toggle("btn-primary", activo);
+                        candidate.classList.toggle("btn-outline", !activo);
+                        candidate.setAttribute("aria-pressed", String(activo));
                     });
-                    this.classList.remove("btn-outline");
-                    this.classList.add("btn-primary");
-
-                    const mult = parseInt(this.getAttribute("data-mult"), 10) || 1;
-                    const disc = parseFloat(this.getAttribute("data-disc")) || 1.0;
-                    activeMultiplier = mult;
-                    activeDiscount = disc;
-                    updateCalculatedPrices();
+                    actualizarResumen();
                 });
             });
 
-            // Botón Usar mismos datos de socio para comprobante
-            const btnCopy = document.getElementById("btnCopySocioData");
-            if (btnCopy) {
-                btnCopy.addEventListener("click", () => {
-                    const nombres = document.getElementById("nombres").value.trim();
-                    const apellidos = document.getElementById("apellidos").value.trim();
-                    const dni = document.getElementById("dni").value.trim();
-                    if (!nombres || !dni) {
-                        alert("Por favor completa primero los nombres y DNI en el Paso 1.");
-                        return;
-                    }
-                    document.getElementById("tipoComprobante").value = "BOLETA";
-                    toggleComprobanteBoxes();
-                    alert(`Datos vinculados para la boleta: ${nombres} ${apellidos} (DNI ${dni}).`);
+            element("btnApplyCoupon").addEventListener("click", () => {
+                const codigo = element("inputPromoCode").value.trim().toUpperCase();
+                fieldCupon.value = cupones.has(codigo) ? codigo : "";
+                element("couponErrorMsg").classList.toggle("d-none", !codigo || !!fieldCupon.value);
+                actualizarResumen();
+            });
+            element("inputPromoCode").addEventListener("input", () => {
+                fieldCupon.value = "";
+                element("couponErrorMsg").classList.add("d-none");
+                actualizarResumen();
+            });
+
+            function actualizarComprobante() {
+                const factura = element("tipoComprobante").value === "FACTURA";
+                element("boxRucFactura").style.display = factura ? "" : "none";
+                [element("rucFactura"), element("razonSocialFactura")].forEach(input => {
+                    input.disabled = !factura;
+                    input.required = factura;
                 });
             }
+            element("tipoComprobante").addEventListener("change", actualizarComprobante);
+            element("btnCopySocioData")?.addEventListener("click", () => {
+                element("tipoComprobante").value = "BOLETA";
+                actualizarComprobante();
+                element("tipoComprobante").focus();
+            });
 
-            // Alternar campos de Factura vs Boleta
-            const selComprobante = document.getElementById("tipoComprobante");
-            function toggleComprobanteBoxes() {
-                const isFactura = selComprobante.value === "FACTURA";
-                document.getElementById("boxRucFactura").style.display = isFactura ? "block" : "none";
-                document.getElementById("boxRazonSocial").style.display = isFactura ? "block" : "none";
+            function actualizarPago() {
+                const enLinea = radioOnline.checked;
+                element("cardPaymentBox").classList.toggle("d-none", !enLinea);
+                element("recepcionNoticeBox").classList.toggle("d-none", enLinea);
+                element("optPayOnline").classList.toggle("border-primary", enLinea);
+                element("optPayOnline").classList.toggle("border-secondary", !enLinea);
+                element("optPayRecepcion").classList.toggle("border-primary", !enLinea);
+                element("optPayRecepcion").classList.toggle("border-secondary", enLinea);
+                element("summaryStartDateText").textContent = enLinea
+                    ? new Intl.DateTimeFormat("es-PE", {dateStyle: "short", timeZone: "UTC"})
+                        .format(new Date(summary.dataset.fecha + "T00:00:00Z"))
+                    : "Al confirmar en recepción";
+                actualizarResumen();
             }
-            if (selComprobante) selComprobante.addEventListener("change", toggleComprobanteBoxes);
+            form.querySelectorAll("input[name=metodoPago]").forEach(radio => radio.addEventListener("change", actualizarPago));
 
-            // Alternar Pago Online vs Recepción
-            const cardBox = document.getElementById("cardPaymentBox");
-            const recepcionBox = document.getElementById("recepcionNoticeBox");
-            const optOnline = document.getElementById("optPayOnline");
-            const optRec = document.getElementById("optPayRecepcion");
+            const mensajes = {
+                nombres: "Ingresa tus nombres.",
+                apellidos: "Ingresa tus apellidos.",
+                dni: "Ingresa un DNI de 8 dígitos.",
+                telefono: "Ingresa un teléfono de 9 dígitos.",
+                fechaNacimiento: "Ingresa una fecha de nacimiento válida.",
+                email: "Ingresa un correo electrónico válido.",
+                password: "Usa una contraseña de al menos 6 caracteres y hasta 72 bytes.",
+                confirmPassword: "Confirma la contraseña. Ambos campos deben coincidir.",
+                rucFactura: "Ingresa un RUC de 11 dígitos.",
+                razonSocialFactura: "Ingresa la razón social.",
+                termsCheck: "Acepta las condiciones para completar la inscripción."
+            };
 
-            if (optOnline && optRec) {
-                optOnline.addEventListener("click", () => {
-                    document.getElementById("radioPayOnline").checked = true;
-                    optOnline.classList.add("border-primary", "bg-elevated");
-                    optOnline.classList.remove("border-secondary", "bg-card");
-                    optRec.classList.remove("border-primary", "bg-elevated");
-                    optRec.classList.add("border-secondary", "bg-card");
-                    if (cardBox) cardBox.classList.remove("d-none");
-                    if (recepcionBox) recepcionBox.classList.add("d-none");
-                });
-
-                optRec.addEventListener("click", () => {
-                    document.getElementById("radioPayRecepcion").checked = true;
-                    optRec.classList.add("border-primary", "bg-elevated");
-                    optRec.classList.remove("border-secondary", "bg-card");
-                    optOnline.classList.remove("border-primary", "bg-elevated");
-                    optOnline.classList.add("border-secondary", "bg-card");
-                    if (cardBox) cardBox.classList.add("d-none");
-                    if (recepcionBox) recepcionBox.classList.remove("d-none");
-                });
-            }
-
-            // Validación en vivo de cupón
-            const btnCoupon = document.getElementById("btnApplyCoupon");
-            if (btnCoupon) {
-                btnCoupon.addEventListener("click", () => {
-                    const code = document.getElementById("inputPromoCode").value.trim().toUpperCase();
-                    const msgSuccess = document.getElementById("couponSuccessMsg");
-                    const msgError = document.getElementById("couponErrorMsg");
-                    const couponRow = document.getElementById("couponDiscountRow");
-
-                    if (code === "ENERGY2X1" || code === "APERTURA10" || code === "SHAKERPRO") {
-                        couponDiscountAmount = 30; // S/ 30 de descuento directo
-                        document.getElementById("fieldCupon").value = code;
-                        msgSuccess.classList.remove("d-none");
-                        msgError.classList.add("d-none");
-                        couponRow.classList.remove("d-none");
-                        document.getElementById("couponDiscountText").textContent = "-S/ 30.00";
-                        updateCalculatedPrices();
-                    } else {
-                        couponDiscountAmount = 0;
-                        document.getElementById("fieldCupon").value = "";
-                        msgSuccess.classList.add("d-none");
-                        msgError.classList.remove("d-none");
-                        couponRow.classList.add("d-none");
-                        updateCalculatedPrices();
-                    }
-                });
-            }
-
-            // Navegación entre pasos
-            function showStep(step) {
-                for (let i = 1; i <= 4; i++) {
-                    const el = document.getElementById(`wizardStep${i}`);
-                    const ind = document.getElementById(`stepIndicator${i}`);
-                    if (el) el.classList.toggle("d-none", i !== step);
-                    if (ind) {
-                        const badge = ind.querySelector(".badge");
-                        const text = ind.querySelector("span:last-child");
-                        if (i === step) {
-                            badge.className = "badge bg-primary text-dark rounded-circle px-2 py-1 fs-6";
-                            text.className = "text-light fw-bold";
-                        } else if (i < step) {
-                            badge.className = "badge bg-dark text-success border border-success rounded-circle px-2 py-1 fs-6";
-                            text.className = "text-muted";
-                        } else {
-                            badge.className = "badge bg-dark text-muted border border-secondary rounded-circle px-2 py-1 fs-6";
-                            text.className = "text-muted";
-                        }
-                    }
+            function validarCampo(campo) {
+                campo.setCustomValidity("");
+                const texto = campo.value.trim();
+                if (["nombres", "apellidos", "razonSocialFactura"].includes(campo.id) && !texto) {
+                    campo.setCustomValidity(mensajes[campo.id]);
+                } else if (campo.id === "password"
+                           && (texto.length < 6 || new TextEncoder().encode(campo.value).length > 72)) {
+                    campo.setCustomValidity(mensajes.password);
+                } else if (campo.id === "confirmPassword" && campo.value !== element("password").value) {
+                    campo.setCustomValidity(mensajes.confirmPassword);
+                } else if (campo.id === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(texto)) {
+                    campo.setCustomValidity(mensajes.email);
+                } else if (!campo.validity.valid && mensajes[campo.id]) {
+                    campo.setCustomValidity(mensajes[campo.id]);
                 }
-                window.scrollTo({ top: 80, behavior: "smooth" });
+                return campo.validity.valid;
             }
 
-            const bNext2 = document.getElementById("btnNextToStep2");
-            if (bNext2) {
-                bNext2.addEventListener("click", () => {
-                    const nombres = document.getElementById("nombres").value.trim();
-                    const apellidos = document.getElementById("apellidos").value.trim();
-                    const dni = document.getElementById("dni").value.trim();
-                    const tel = document.getElementById("telefono").value.trim();
+            function mostrarPaso(paso, enfocar = true) {
+                for (let i = 1; i <= 4; i++) {
+                    element("wizardStep" + i).classList.toggle("d-none", i !== paso);
+                    const indicador = element("stepIndicator" + i);
+                    if (i === paso) indicador.setAttribute("aria-current", "step");
+                    else indicador.removeAttribute("aria-current");
+                    indicador.querySelector(".badge").className = i === paso
+                        ? "badge bg-primary text-dark rounded-circle px-2 py-1 fs-6"
+                        : "badge bg-dark text-muted border border-secondary rounded-circle px-2 py-1 fs-6";
+                    indicador.querySelector("span:last-child").className = i === paso
+                        ? "text-light fw-bold" : "text-muted";
+                }
+                if (enfocar) element("wizardStep" + paso).querySelector("h3").focus();
+            }
 
-                    if (!nombres || !apellidos || !dni) {
-                        alert("Por favor completa los nombres, apellidos y DNI.");
-                        return;
-                    }
-                    if (dni.length !== 8) {
-                        alert("El DNI debe tener exactamente 8 dígitos.");
-                        return;
-                    }
-                    showStep(2);
+            function validarPaso(paso) {
+                const campos = [...element("wizardStep" + paso).querySelectorAll("input, select")];
+                const invalido = campos.find(campo => campo.willValidate && !validarCampo(campo));
+                if (!invalido) return true;
+                mostrarPaso(paso, false);
+                invalido.reportValidity();
+                return false;
+            }
+
+            function cargarRevision() {
+                element("revSocioName").textContent = element("nombres").value + " " + element("apellidos").value;
+                element("revSocioDoc").textContent = "DNI " + element("dni").value;
+                element("revSocioEmail").textContent = element("email").value;
+                element("revSocioTel").textContent = element("telefono").value ? "Tel. " + element("telefono").value : "Sin teléfono";
+                element("revPlanName").textContent = element("summaryPlanName").textContent + " · " + element("summaryPeriodBadge").textContent;
+                element("revPaymentMode").textContent = radioOnline.checked ? "Pago simulado" : "Pago en recepción (reserva por 72 horas)";
+            }
+
+            form.querySelectorAll("input, select").forEach(campo => campo.addEventListener("input", () => campo.setCustomValidity("")));
+            for (let paso = 1; paso <= 3; paso++) {
+                element("btnNextToStep" + (paso + 1)).addEventListener("click", () => {
+                    if (!validarPaso(paso)) return;
+                    if (paso === 3) cargarRevision();
+                    mostrarPaso(paso + 1);
                 });
+                element("btnBackToStep" + paso).addEventListener("click", () => mostrarPaso(paso));
             }
+            form.addEventListener("submit", evento => {
+                for (let paso = 1; paso <= 4; paso++) {
+                    if (validarPaso(paso)) continue;
+                    evento.preventDefault();
+                    return;
+                }
+                element("btnSubmitFinal").disabled = true;
+            });
 
-            const bBack1 = document.getElementById("btnBackToStep1");
-            if (bBack1) bBack1.addEventListener("click", () => showStep(1));
-
-            const bNext3 = document.getElementById("btnNextToStep3");
-            if (bNext3) {
-                bNext3.addEventListener("click", () => {
-                    const email = document.getElementById("email").value.trim();
-                    const pass = document.getElementById("password").value;
-                    const cPass = document.getElementById("confirmPassword").value;
-                    if (!email || !pass) {
-                        alert("Por favor completa tu correo y contraseña.");
-                        return;
-                    }
-                    if (pass.length < 6) {
-                        alert("La contraseña debe tener mínimo 6 caracteres.");
-                        return;
-                    }
-                    if (pass !== cPass) {
-                        alert("Las contraseñas no coinciden. Por favor verifica.");
-                        return;
-                    }
-                    showStep(3);
-                });
-            }
-
-            const bBack2 = document.getElementById("btnBackToStep2");
-            if (bBack2) bBack2.addEventListener("click", () => showStep(2));
-
-            const bNext4 = document.getElementById("btnNextToStep4");
-            if (bNext4) {
-                bNext4.addEventListener("click", () => {
-                    // Cargar datos en la pantalla de revisión
-                    document.getElementById("revSocioName").textContent = `${document.getElementById("nombres").value.toUpperCase()} ${document.getElementById("apellidos").value.toUpperCase()}`;
-                    document.getElementById("revSocioDoc").textContent = `DNI ${document.getElementById("dni").value}`;
-                    document.getElementById("revSocioEmail").textContent = document.getElementById("email").value;
-                    document.getElementById("revSocioTel").textContent = document.getElementById("telefono").value ? `Tel. ${document.getElementById("telefono").value}` : "Sin teléfono";
-                    
-                    const pName = document.getElementById("summaryPlanName").textContent;
-                    const pBadge = document.getElementById("summaryPeriodBadge").textContent;
-                    document.getElementById("revPlanName").textContent = `${pName} · ${pBadge}`;
-                    
-                    const isOnline = document.getElementById("radioPayOnline").checked;
-                    document.getElementById("revPaymentMode").textContent = isOnline ? "Pago en Línea con Tarjeta (Activación Inmediata)" : "Pago Presencial en Recepción (Reserva 72 hrs)";
-                    showStep(4);
-                });
-            }
-
-            const bBack3 = document.getElementById("btnBackToStep3");
-            if (bBack3) bBack3.addEventListener("click", () => showStep(3));
-
-            // Disparar sincronización inicial
-            updateCalculatedPrices();
+            actualizarComprobante();
+            actualizarPago();
+            const pasoError = Number(form.dataset.pasoError) || 1;
+            if (pasoError === 4) cargarRevision();
+            mostrarPaso(pasoError, false);
+            element("mensajeErrorRegistro")?.focus();
         });
         </script>
     </section>

@@ -12,6 +12,9 @@ import pe.edu.utp.Grupo04.dto.CompraRequestDTO;
 import pe.edu.utp.Grupo04.model.Plan;
 import pe.edu.utp.Grupo04.model.Producto;
 import pe.edu.utp.Grupo04.model.Socio;
+import pe.edu.utp.Grupo04.model.Orden;
+import pe.edu.utp.Grupo04.repository.OrdenRepository;
+import pe.edu.utp.Grupo04.repository.SocioRepository;
 import pe.edu.utp.Grupo04.service.MembresiaService;
 import pe.edu.utp.Grupo04.service.PlanService;
 import pe.edu.utp.Grupo04.service.ProductoService;
@@ -43,6 +46,12 @@ public class OrdenCompraServiceTest {
     @Mock
     private MembresiaService membresiaService;
 
+    @Mock
+    private OrdenRepository ordenRepository;
+
+    @Mock
+    private SocioRepository socioRepository;
+
     @InjectMocks
     private OrdenCompraServiceImpl ordenCompraService;
 
@@ -69,6 +78,12 @@ public class OrdenCompraServiceTest {
         planPrueba.setNombre("Plan Plus");
         planPrueba.setPrecio(119.00);
         planPrueba.setDuracionDias(30);
+        when(socioRepository.findLockedById(10L)).thenReturn(Optional.of(socioPrueba));
+        when(ordenRepository.saveAndFlush(any(Orden.class))).thenAnswer(invocation -> {
+            Orden orden = invocation.getArgument(0);
+            orden.setId(1L);
+            return orden;
+        });
     }
 
     @Test
@@ -100,7 +115,9 @@ public class OrdenCompraServiceTest {
         assertEquals(298.00, ((Number) orden.get("total")).doubleValue());
         assertNotNull(orden.get("base"));
         assertNotNull(orden.get("igv"));
-        assertEquals("PROTOTIPO — SIN VALIDEZ TRIBUTARIA", orden.get("leyendaLegal"));
+        assertEquals("Documento interno sin validez tributaria.", orden.get("leyendaLegal"));
+        assertEquals("SIMULADO", orden.get("cardBrand"));
+        assertNull(orden.get("cardLast4"));
 
         verify(productoService, times(1)).descontarStock(eq(1L), eq(2));
     }
@@ -127,7 +144,29 @@ public class OrdenCompraServiceTest {
         assertEquals("ACTIVADA", orden.get("estadoEntrega"));
         assertEquals(119.00, ((Number) orden.get("total")).doubleValue());
 
-        verify(membresiaService, times(1)).asignarPlanASocio(eq(10L), eq(2L), any(LocalDate.class));
+        verify(membresiaService, times(1)).asignarPlanASocio(eq(10L), eq(2L), any(LocalDate.class),
+                eq("MENSUAL"), eq(1));
+    }
+
+    @Test
+    @DisplayName("Renueva por el periodo anual seleccionado con el precio calculado por el servidor")
+    void registrarRenovacionAnual() {
+        when(socioService.buscarPorUsername("carlos")).thenReturn(Optional.of(socioPrueba));
+        when(planService.buscarPorId(2L)).thenReturn(Optional.of(planPrueba));
+        planPrueba.setPrecio(119.05);
+
+        CompraRequestDTO req = new CompraRequestDTO();
+        req.setTipoConcepto("MEMBRESIA");
+        req.setPlanId(2L);
+        req.setPeriodo("ANUAL");
+
+        Map<String, Object> orden = ordenCompraService.registrarCompra(req, "carlos");
+
+        assertEquals(1142.88, ((Number) orden.get("total")).doubleValue());
+        assertEquals("ANUAL", orden.get("periodoMembresia"));
+        verify(membresiaService).asignarPlanASocio(eq(10L), eq(2L), any(LocalDate.class),
+                eq("ANUAL"), eq(12));
+        verifyNoInteractions(productoService);
     }
 
     @Test
@@ -135,6 +174,7 @@ public class OrdenCompraServiceTest {
     void testMarcarEntregado() {
         when(socioService.buscarPorUsername(any())).thenReturn(Optional.of(socioPrueba));
         when(productoService.buscarPorId(any())).thenReturn(Optional.of(productoPrueba));
+        var guardada = org.mockito.ArgumentCaptor.forClass(Orden.class);
 
         CompraRequestDTO req = new CompraRequestDTO();
         req.setTipoConcepto("PRODUCTO");
@@ -142,12 +182,15 @@ public class OrdenCompraServiceTest {
         req.setItems(List.of(new CompraItemDTO(1L, "Whey Protein", "Suplementos", "/img/whey.jpg", 149.00, 1)));
 
         Map<String, Object> orden = ordenCompraService.registrarCompra(req, "carlos");
+        verify(ordenRepository).saveAndFlush(guardada.capture());
+        when(ordenRepository.findLockedById(1L)).thenReturn(Optional.of(guardada.getValue()));
+        when(ordenRepository.findById(1L)).thenReturn(Optional.of(guardada.getValue()));
         String codigo = (String) orden.get("codigo");
 
         boolean marcado = ordenCompraService.marcarEntregado(codigo);
         assertTrue(marcado);
 
-        Map<String, Object> buscada = ordenCompraService.buscarPorCodigoODefault(codigo);
+        Map<String, Object> buscada = ordenCompraService.buscarPorCodigo(codigo).orElseThrow();
         assertEquals("ENTREGADO", buscada.get("estadoEntrega"));
     }
 }

@@ -1,7 +1,7 @@
 # Documentación de Aportes - Jeferson Alonso Almerco Ramírez
 **Rol:** Seguridad, Autenticación y Autorización, Control de Cuentas, JWT y Configuración (Semana 15 - Sesión 30)  
 **Rama:** `LaRamitaDeAlonso`  
-**Fecha de Actualización:** 18 de Noviembre de 2026  
+**Fecha de Actualización:** 23 de Noviembre de 2026  
 
 ---
 
@@ -11,9 +11,9 @@ A continuación se detalla la resolución técnica de los 4 puntos requeridos pa
 
 ### Punto 1. PostgreSQL: Migración de `usuarios_rol_check` y Compatibilidad con `main`
 * **Problema:** En el esquema previo de la rama `main`, la tabla `usuarios` contaba con la restricción `CHECK (rol IN ('ADMINISTRADOR', 'CLIENTE'))`. Al intentar insertar un `GESTOR_TECNICO` o iniciar la aplicación con cuentas heredadas con `rol = 'ADMINISTRADOR'`, el motor PostgreSQL/H2 generaba violaciones de integridad `JdbcSQLIntegrityConstraintViolationException`.
-* **Solución Implementada (`DataInitializerConfig.java`):**
+* **Solución Implementada (`DataInitializerConfig.java` y `database/migrar_roles_alonso.sql`):**
   1. Se agregó un runner con `@Order(1)` que elimina la restricción check previa (`ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_rol_check`).
-  2. Se ejecuta la migración nativa de datos: `UPDATE usuarios SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR' OR rol IS NULL`.
+  2. Se ejecuta la migración nativa de datos: `UPDATE usuarios SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR'`.
   3. Se asegura la columna `token_version` con valor por defecto `1`.
   4. Se crea la nueva restricción con los 4 roles del sistema: `ALTER TABLE usuarios ADD CONSTRAINT usuarios_rol_check CHECK (rol IN ('CLIENTE', 'RECEPCION', 'ADMINISTRACION', 'GESTOR_TECNICO'))`.
 * **Verificación de prueba:** En `SecurityAlonsoTests.testMigracionSqlEsquemaMain`, se replica exactamente la estructura de `main` con la restricción heredada, se comprueba que `GESTOR_TECNICO` no podía crearse bajo `main`, se ejecuta la migración, y se valida que la cuenta pasa a `ADMINISTRACION` y la creación de `GESTOR_TECNICO` se realiza con éxito.
@@ -51,9 +51,9 @@ A continuación se detalla la resolución técnica de los 4 puntos requeridos pa
 ---
 
 ### Punto 4. Pruebas Automatizadas y Documentación
-* Todas las 51 pruebas automatizadas del proyecto pasan al 100% de forma limpia:
-  - 13 pruebas de seguridad y RBAC en [SecurityAlonsoTests.java](file:///c:/Users/PC/Downloads/Marcos-Gym-System/src/test/java/pe/edu/utp/Grupo04/security/SecurityAlonsoTests.java).
-  - 38 pruebas de servicios, validadores y modelos existentes.
+* Suite completa de pruebas automatizadas del proyecto pasando al 100% de forma limpia:
+  - Pruebas de seguridad y RBAC en [SecurityAlonsoTests.java](file:///c:/Users/PC/Downloads/Marcos-Gym-System/src/test/java/pe/edu/utp/Grupo04/security/SecurityAlonsoTests.java).
+  - Pruebas de servicios, validadores y modelos existentes.
 * Cobertura de regresión añadida:
   - `testMigracionSqlEsquemaMain`: Validación contra el esquema check constraint de `main`.
   - `testRestriccionesOperativasPorRol`: Verificación de bloqueo 403 Forbidden a modificaciones cruzadas de Productos, Socios y Entrega de pedidos.
@@ -76,7 +76,7 @@ export DB_PASSWORD="<password>"
 export JWT_SECRET="ClaveSecretaSuperLargaYSeguraParaEnergyGym2026AlonsoMinimo256Bits!"
 export JWT_EXPIRATION_MS="86400000"
 
-# Aprovisionamiento Opcional del Gestor Técnico Inicial
+# Aprovisionamiento del Gestor Técnico Inicial
 export TECNICO_INITIAL_USERNAME="tecnico@energygym.pe"
 export TECNICO_INITIAL_PASSWORD="PasswordSeguro2026!"
 ```
@@ -93,16 +93,17 @@ $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot"
 ```
 Acceso web: `http://localhost:8080/inicio`
 
+### Actualizar una base existente con el perfil prod
+
+Ejecuta `database/migrar_roles_alonso.sql` en PostgreSQL antes del primer arranque con `ddl-auto=validate`. En desarrollo con `ddl-auto=update`, la migración se ejecuta durante el arranque. El aprovisionamiento inicial solo crea una cuenta si no hay un gestor activo y el correo configurado está libre.
+
 ---
 
 ## 3. Cuentas y Credenciales de Prueba por Rol
 
-El sistema inicializa automáticamente las cuentas de prueba para cada rol si dicho rol no cuenta con ningún usuario registrado en la base de datos (si un rol ya tiene usuarios, no crea duplicados):
-
 | Rol | Usuario / Correo | Contraseña | Destino al Iniciar Sesión | Alcance de Permisos |
 | :--- | :--- | :--- | :--- | :--- |
-| **GESTOR_TECNICO** | `tecnico@energygym.pe` | `Tecnico2026!` | `/tecnico/cuentas` | Panel exclusivo de Cuentas y roles, bitácora de auditoría, asignación de roles y desactivación. Aislado de compras y datos comerciales. |
-| **ADMINISTRACION** | `admin@energygym.pe` | `Admin2026!` | `/admin/dashboard` | Dashboard de indicadores, catálogo de productos (crear/editar/desactivar), planes, promociones, reportes y consulta de socios/pagos. |
-| **RECEPCION** | `recepcion@energygym.pe` | `Recepcion2026!` | `/admin/socios` | Registro y edición de socios, asignación de membresías, afluencia, registro de pagos presenciales en caja y entrega de pedidos en línea. |
-| **CLIENTE** | `cliente@energygym.pe` *(o socio registrado)* | `Cliente2026!` | `/cliente/mi-membresia` | Tienda virtual, carrito de compras, pagos en línea, descarga de comprobantes/boletas electrónicas y reserva de clases. |
-
+| **GESTOR_TECNICO** | `tecnico@energygym.pe` | Configurada en `TECNICO_INITIAL_PASSWORD` | `/tecnico/cuentas` | Panel exclusivo de Cuentas y roles, bitácora de auditoría, asignación de roles y desactivación. Aislado de compras y datos comerciales. |
+| **ADMINISTRACION** | `admin@energygym.pe` | Configurada en BD | `/admin/dashboard` | Dashboard de indicadores, catálogo de productos (crear/editar/desactivar), planes, promociones, reportes y consulta de socios/pagos. |
+| **RECEPCION** | `recepcion@energygym.pe` | Configurada en BD | `/admin/socios` | Registro y edición de socios, asignación de membresías, afluencia, registro de pagos presenciales en caja y entrega de pedidos en línea. |
+| **CLIENTE** | `cliente@energygym.pe` *(o socio registrado)* | Configurada en registro | `/cliente/mi-membresia` | Tienda virtual, carrito de compras, pagos en línea, descarga de comprobantes/boletas electrónicas y reserva de clases. |

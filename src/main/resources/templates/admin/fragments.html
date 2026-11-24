@@ -3,83 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:replace="${title}">Panel Admin - Energy Gym</title>
+    <title th:replace="${title}">Panel Operativo - Energy Gym</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <!-- Custom CSS -->
-    <link rel="stylesheet" th:href="@{/css/style.css?v=5}" href="../../static/css/style.css">
+    <link rel="stylesheet" th:href="@{/css/style.css(v=11)}" href="../../static/css/style.css">
     <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
     <!-- Spring Security CSRF Meta Tags -->
     <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
     <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Saltar al contenido principal</a>
 
 <div class="admin-wrapper">
-    <!-- ADMIN SIDEBAR -->
-    <aside class="admin-sidebar" id="adminSidebar">
+    <!-- SIDEBAR DIFERENCIADO POR ROL (D7: Administración / Recepción / Gestor Técnico) -->
+    <aside class="admin-sidebar" id="adminSidebar" aria-label="Menú lateral del sistema">
         <div class="p-4 border-bottom border-secondary d-flex align-items-center justify-content-between">
-            <a class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/admin/dashboard}">
-                <span class="text-primary fs-4">⚡</span>
+            <!-- Marca según rol (sin enlaces hacia rutas no permitidas) -->
+            <a sec:authorize="hasRole('ADMINISTRACION')"
+               class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/admin/dashboard}">
+                <span class="text-primary fs-4" aria-hidden="true">⚡</span>
                 <div>
                     <div class="font-anton text-lg tracking-wide leading-none">ENERGY GYM</div>
-                    <small class="text-primary text-2xs fw-bold tracking-wider">ADMIN CONSOLE</small>
+                    <small class="text-primary text-2xs fw-bold tracking-wider">ADMINISTRACIÓN</small>
                 </div>
             </a>
-            <button class="btn btn-sm btn-outline d-lg-none px-2 py-1" id="closeSidebarBtn">
-                <i class="fa-solid fa-xmark"></i>
+            <a sec:authorize="hasRole('RECEPCION')"
+               class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/admin/socios}">
+                <span class="text-primary fs-4" aria-hidden="true">⚡</span>
+                <div>
+                    <div class="font-anton text-lg tracking-wide leading-none">ENERGY GYM</div>
+                    <small class="text-primary text-2xs fw-bold tracking-wider">RECEPCIÓN</small>
+                </div>
+            </a>
+            <a sec:authorize="hasRole('GESTOR_TECNICO')"
+               class="text-light text-decoration-none d-flex align-items-center gap-2" th:href="@{/tecnico/cuentas}">
+                <span class="text-primary fs-4" aria-hidden="true">⚡</span>
+                <div>
+                    <div class="font-anton text-lg tracking-wide leading-none">ENERGY GYM</div>
+                    <small class="text-primary text-2xs fw-bold tracking-wider">GESTOR TÉCNICO</small>
+                </div>
+            </a>
+            <button type="button" class="btn btn-sm btn-outline d-lg-none px-2 py-1" id="closeSidebarBtn" aria-label="Cerrar menú lateral">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
         </div>
 
-        <div class="flex-grow-1 d-flex flex-column gap-1 px-3 py-3">
+        <!-- Menú exclusivo de GESTOR TÉCNICO (solo Cuentas y Roles) -->
+        <nav sec:authorize="hasRole('GESTOR_TECNICO')"
+             class="flex-grow-1 d-flex flex-column gap-1 px-3 py-3" aria-label="Menú de gestor técnico">
+            <div class="text-muted text-2xs fw-bold px-3 py-1 tracking-wider">SEGURIDAD Y ACCESOS</div>
+            <a th:href="@{/tecnico/cuentas}"
+               th:class="'sidebar-link ' + (${activeItem == 'cuentas'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'cuentas' ? 'page' : null}">
+                <i class="fa-solid fa-users-gear" aria-hidden="true"></i> <span>CUENTAS Y ROLES</span>
+            </a>
+        </nav>
+
+        <!-- Menú de ADMINISTRACIÓN y RECEPCIÓN (filtrado estrictamente por rol) -->
+        <nav sec:authorize="hasAnyRole('ADMINISTRACION', 'RECEPCION')"
+             class="flex-grow-1 d-flex flex-column gap-1 px-3 py-3" aria-label="Menú operativo y administrativo">
             <div class="text-muted text-2xs fw-bold px-3 py-1 tracking-wider">PRINCIPAL</div>
-            <a sec:authorize="hasRole('ADMINISTRACION')" th:href="@{/admin/dashboard}" th:class="'sidebar-link ' + (${activeItem == 'dashboard'} ? 'active' : '')">
-                <i class="fa-solid fa-chart-pie"></i> <span>DASHBOARD</span>
+            <a sec:authorize="hasRole('ADMINISTRACION')"
+               th:href="@{/admin/dashboard}"
+               th:class="'sidebar-link ' + (${activeItem == 'dashboard'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'dashboard' ? 'page' : null}">
+                <i class="fa-solid fa-chart-pie" aria-hidden="true"></i> <span>DASHBOARD</span>
             </a>
-            <a th:href="@{/admin/socios}" th:class="'sidebar-link ' + (${activeItem == 'socios'} ? 'active' : '')">
-                <i class="fa-solid fa-users"></i> <span>SOCIOS</span>
+            <a th:href="@{/admin/socios}"
+               th:class="'sidebar-link ' + (${activeItem == 'socios'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'socios' ? 'page' : null}">
+                <i class="fa-solid fa-users" aria-hidden="true"></i> <span>SOCIOS</span>
             </a>
-            <a th:href="@{/admin/planes}" th:class="'sidebar-link ' + (${activeItem == 'planes'} ? 'active' : '')">
-                <i class="fa-solid fa-layer-group"></i> <span>PLANES</span>
+            <a th:href="@{/admin/planes}"
+               th:class="'sidebar-link ' + (${activeItem == 'planes'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'planes' ? 'page' : null}">
+                <i class="fa-solid fa-layer-group" aria-hidden="true"></i> <span>PLANES</span>
             </a>
-            <a th:href="@{/admin/membresias}" th:class="'sidebar-link ' + (${activeItem == 'membresias'} ? 'active' : '')">
-                <i class="fa-solid fa-id-card"></i> <span>MEMBRESÍAS</span>
+            <a th:href="@{/admin/membresias}"
+               th:class="'sidebar-link ' + (${activeItem == 'membresias'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'membresias' ? 'page' : null}">
+                <i class="fa-solid fa-id-card" aria-hidden="true"></i> <span>MEMBRESÍAS</span>
             </a>
-            <a th:href="@{/admin/pagos}" th:class="'sidebar-link ' + (${activeItem == 'pagos'} ? 'active' : '')">
-                <i class="fa-solid fa-money-bill-wave"></i> <span>PAGOS</span>
+            <a th:href="@{/admin/membresias/congelamientos}"
+               th:class="'sidebar-link ' + (${activeItem == 'congelamientos'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'congelamientos' ? 'page' : null}">
+                <i class="fa-solid fa-snowflake" aria-hidden="true"></i> <span>PAUSAS DE MEMBRESÍA</span>
+            </a>
+            <a th:href="@{/admin/pagos}"
+               th:class="'sidebar-link ' + (${activeItem == 'pagos'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'pagos' ? 'page' : null}">
+                <i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i> <span>PAGOS</span>
             </a>
 
             <div class="text-muted text-2xs fw-bold px-3 pt-3 pb-1 tracking-wider">COMERCIAL</div>
-            <a th:href="@{/admin/productos}" th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')">
-                <i class="fa-solid fa-jar"></i> <span>PRODUCTOS</span>
+            <a th:href="@{/admin/productos}"
+               th:class="'sidebar-link ' + (${activeItem == 'productos'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'productos' ? 'page' : null}">
+                <i class="fa-solid fa-jar" aria-hidden="true"></i> <span>PRODUCTOS</span>
             </a>
-            <a th:href="@{/admin/reservas}" th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')">
-                <i class="fa-solid fa-bag-shopping"></i> <span>RESERVAS</span>
+            <a th:href="@{/admin/reservas}"
+               th:class="'sidebar-link ' + (${activeItem == 'reservas'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'reservas' ? 'page' : null}">
+                <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> <span>RESERVAS</span>
             </a>
-            <a th:href="@{/admin/promociones}" th:class="'sidebar-link ' + (${activeItem == 'promociones'} ? 'active' : '')">
-                <i class="fa-solid fa-bolt"></i> <span>PROMOCIONES</span>
+            <a th:href="@{/admin/promociones}"
+               th:class="'sidebar-link ' + (${activeItem == 'promociones'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'promociones' ? 'page' : null}">
+                <i class="fa-solid fa-bolt" aria-hidden="true"></i> <span>PROMOCIONES</span>
             </a>
 
             <div class="text-muted text-2xs fw-bold px-3 pt-3 pb-1 tracking-wider">OPERACIONES</div>
-            <a th:href="@{/admin/afluencia}" th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')">
-                <i class="fa-solid fa-people-group"></i> <span>AFLUENCIA</span>
+            <a th:href="@{/admin/afluencia}"
+               th:class="'sidebar-link ' + (${activeItem == 'afluencia'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'afluencia' ? 'page' : null}">
+                <i class="fa-solid fa-people-group" aria-hidden="true"></i> <span>AFLUENCIA</span>
             </a>
-            <a sec:authorize="hasRole('ADMINISTRACION')" th:href="@{/admin/equipos}" th:class="'sidebar-link ' + (${activeItem == 'equipos'} ? 'active' : '')">
-                <i class="fa-solid fa-dumbbell"></i> <span>EQUIPOS</span>
+            <a sec:authorize="hasRole('ADMINISTRACION')"
+               th:href="@{/admin/equipos}"
+               th:class="'sidebar-link ' + (${activeItem == 'equipos'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'equipos' ? 'page' : null}">
+                <i class="fa-solid fa-dumbbell" aria-hidden="true"></i> <span>EQUIPOS</span>
             </a>
-            <a sec:authorize="hasRole('ADMINISTRACION')" th:href="@{/admin/mantenimientos}" th:class="'sidebar-link ' + (${activeItem == 'mantenimientos'} ? 'active' : '')">
-                <i class="fa-solid fa-screwdriver-wrench"></i> <span>MANTENIMIENTO</span>
+            <a sec:authorize="hasRole('ADMINISTRACION')"
+               th:href="@{/admin/mantenimientos}"
+               th:class="'sidebar-link ' + (${activeItem == 'mantenimientos'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'mantenimientos' ? 'page' : null}">
+                <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> <span>MANTENIMIENTO</span>
             </a>
-            <a sec:authorize="hasRole('ADMINISTRACION')" th:href="@{/admin/reporte-mantenimiento}" th:class="'sidebar-link ' + (${activeItem == 'reporte'} ? 'active' : '')">
-                <i class="fa-solid fa-clipboard-check"></i> <span>REPORTE TÉCNICO</span>
+            <a sec:authorize="hasRole('ADMINISTRACION')"
+               th:href="@{/admin/reporte-mantenimiento}"
+               th:class="'sidebar-link ' + (${activeItem == 'reporte'} ? 'active' : '')"
+               th:attr="aria-current=${activeItem == 'reporte' ? 'page' : null}">
+                <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> <span>REPORTE TÉCNICO</span>
             </a>
-        </div>
+        </nav>
 
         <div class="p-3 mt-auto border-top border-secondary">
             <form th:action="@{/logout}" method="post" class="m-0 p-0">
                 <button type="submit" class="sidebar-link text-danger border-0 bg-transparent w-100 text-start" style="cursor: pointer;">
-                    <i class="fa-solid fa-right-from-bracket"></i> <span>CERRAR SESIÓN</span>
+                    <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> <span>CERRAR SESIÓN</span>
                 </button>
             </form>
         </div>
@@ -88,58 +155,65 @@
     <!-- ADMIN MAIN AREA -->
     <div class="admin-main">
         <header class="admin-topbar">
-            <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-sm btn-outline d-lg-none px-3 py-2" id="openSidebarBtn">
-                    <i class="fa-solid fa-bars"></i>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <button type="button" class="btn btn-sm btn-outline d-lg-none px-3 py-2" id="openSidebarBtn"
+                        aria-label="Abrir menú lateral" aria-controls="adminSidebar" aria-expanded="false">
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
                 <div class="d-none d-md-flex align-items-center gap-2 text-xs text-muted">
-                    <span class="pulse-dot"></span>
+                    <span class="pulse-dot" aria-hidden="true"></span>
                     <span>SISTEMA OPERATIVO EN LÍNEA</span>
-                    <span class="text-secondary">|</span>
-                    <span id="liveClock" class="text-light fw-bold"></span>
+                    <span class="text-secondary" aria-hidden="true">|</span>
+                    <span id="liveClock" class="text-light fw-bold" aria-live="off"></span>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
                 <a th:href="@{/inicio}" class="btn btn-outline py-2 px-3 text-xs d-none d-sm-inline-flex">
-                    <i class="fa-solid fa-globe"></i> WEB PÚBLICA
+                    <i class="fa-solid fa-globe" aria-hidden="true"></i> WEB PÚBLICA
                 </a>
                 <div class="d-flex align-items-center gap-2 ps-2 border-start border-secondary">
-                    <div class="rounded-circle bg-primary text-dark fw-bold d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 0.8rem;">
-                        AD
+                    <div class="rounded-circle bg-primary text-dark fw-bold d-flex align-items-center justify-content-center"
+                         style="width: 34px; height: 34px; font-size: 0.8rem;" aria-hidden="true">
+                        <span sec:authorize="hasRole('ADMINISTRACION')">AD</span>
+                        <span sec:authorize="hasRole('RECEPCION')">RC</span>
+                        <span sec:authorize="hasRole('GESTOR_TECNICO')">GT</span>
                     </div>
                     <div class="d-none d-sm-block text-start">
-                        <div class="font-anton text-light text-xs tracking-wide leading-none" th:text="${#authentication != null ? #authentication.name : 'USUARIO'}">ADMIN</div>
+                        <div class="font-anton text-light text-xs tracking-wide leading-none"
+                             th:text="${#authentication != null ? #authentication.name : 'USUARIO'}">USUARIO</div>
                         <small class="text-primary text-2xs fw-bold" sec:authorize="hasRole('ADMINISTRACION')">ADMINISTRACIÓN</small>
                         <small class="text-primary text-2xs fw-bold" sec:authorize="hasRole('RECEPCION')">RECEPCIÓN</small>
+                        <small class="text-primary text-2xs fw-bold" sec:authorize="hasRole('GESTOR_TECNICO')">GESTOR TÉCNICO</small>
                     </div>
                 </div>
             </div>
         </header>
 
         <!-- Dynamic Admin Page Content -->
-        <div th:replace="${content}"></div>
+        <div id="main-content" th:replace="${content}"></div>
     </div>
 </div>
 
 <!-- Universal Dynamic Modal for Admin CRUD & Details -->
-<div class="modal fade" id="dynamicGymModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="dynamicGymModal" tabindex="-1" aria-labelledby="dynamicGymModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content gym-modal">
             <div class="modal-header">
                 <h5 class="modal-title font-anton text-primary tracking-wide" id="dynamicGymModalTitle">GESTIÓN ENERGY GYM</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar ventana"></button>
             </div>
             <div class="modal-body" id="dynamicGymModalBody"></div>
         </div>
     </div>
 </div>
 
-<!-- Toast Container -->
-<div class="gym-toast-container" id="gymToastContainer"></div>
+<!-- Accessible Toast Container -->
+<div class="gym-toast-container" id="gymToastContainer" aria-live="polite" aria-atomic="true"></div>
 
 <!-- Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <!-- Custom JS (ES6 Modules) -->
-<script type="module" th:src="@{/js/main.js}" src="../../static/js/main.js"></script>
+<script type="module" th:src="@{/js/main.js(v=8)}" src="../../static/js/main.js"></script>
 </body>
 </html>

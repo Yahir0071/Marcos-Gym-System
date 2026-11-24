@@ -1,5 +1,7 @@
 package pe.edu.utp.Grupo04.service.impl;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,11 +15,14 @@ import pe.edu.utp.Grupo04.security.SecurityTokenRevocationManager;
 import pe.edu.utp.Grupo04.service.GestionCuentasService;
 
 import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @Transactional
 public class GestionCuentasServiceImpl implements GestionCuentasService {
+    private static final List<Rol> ROLES_INTERNOS = List.of(Rol.RECEPCION, Rol.ADMINISTRACION, Rol.GESTOR_TECNICO);
 
     private final UsuarioRepository usuarioRepository;
     private final AuditoriaCuentaRepository auditoriaRepository;
@@ -36,23 +41,26 @@ public class GestionCuentasServiceImpl implements GestionCuentasService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Usuario> listarCuentasInternas() {
-        return usuarioRepository.findAll().stream()
-                .filter(u -> u.getRol() == Rol.RECEPCION || u.getRol() == Rol.ADMINISTRACION || u.getRol() == Rol.GESTOR_TECNICO)
-                .toList();
+    public Slice<Usuario> listarCuentasInternas(int pagina) {
+        return usuarioRepository.findByRolInOrderByUsernameAsc(
+                ROLES_INTERNOS.stream().map(Rol::name).toList(), PageRequest.of(pagina, 25));
     }
 
     @Override
     public Usuario crearCuentaInterna(CuentaInternaDTO dto, String autorUsername) {
-        if (dto.getRol() == Rol.CLIENTE) {
-            throw new IllegalArgumentException("No se pueden crear cuentas de CLIENTE desde el panel de Gestión Técnica.");
+        if (dto.getRol() == null || !ROLES_INTERNOS.contains(dto.getRol())) {
+            throw new IllegalArgumentException("Selecciona un rol interno.");
         }
-        if (usuarioRepository.findByUsername(dto.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("Ya existe una cuenta con el correo: " + dto.getUsername());
+        if (dto.getPassword().getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("La contraseña supera el tamaño permitido. Usa una más corta.");
+        }
+        String correo = dto.getUsername().strip().toLowerCase(Locale.ROOT);
+        if (usuarioRepository.findByUsername(correo).isPresent()) {
+            throw new IllegalArgumentException("Ya existe una cuenta con ese correo.");
         }
 
         Usuario usuario = new Usuario();
-        usuario.setUsername(dto.getUsername().trim());
+        usuario.setUsername(correo);
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario.setRol(dto.getRol());
         usuario.setActivo(true);
@@ -66,11 +74,10 @@ public class GestionCuentasServiceImpl implements GestionCuentasService {
 
     @Override
     public Usuario cambiarRol(Long idUsuario, Rol nuevoRol, String autorUsername) {
-        if (nuevoRol == Rol.CLIENTE) {
-            throw new IllegalArgumentException("No se puede asignar el rol CLIENTE a una cuenta interna.");
+        if (nuevoRol == null || !ROLES_INTERNOS.contains(nuevoRol)) {
+            throw new IllegalArgumentException("Selecciona un rol interno.");
         }
-        Usuario usuario = usuarioRepository.findById(idUsuario)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario));
+        Usuario usuario = buscarCuentaInterna(idUsuario);
 
         // Evitar que el Gestor Técnico se cambie a sí mismo de rol si es el usuario logueado
         if (usuario.getUsername().equalsIgnoreCase(autorUsername) && nuevoRol != Rol.GESTOR_TECNICO) {
@@ -78,6 +85,9 @@ public class GestionCuentasServiceImpl implements GestionCuentasService {
         }
 
         Rol rolAnterior = usuario.getRol();
+        if (rolAnterior == nuevoRol) {
+            return usuario;
+        }
         usuario.setRol(nuevoRol);
         Usuario actualizado = usuarioRepository.save(usuario);
 
@@ -92,8 +102,7 @@ public class GestionCuentasServiceImpl implements GestionCuentasService {
 
     @Override
     public Usuario alternarEstadoCuenta(Long idUsuario, String autorUsername) {
-        Usuario usuario = usuarioRepository.findById(idUsuario)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario));
+        Usuario usuario = buscarCuentaInterna(idUsuario);
 
         if (usuario.getUsername().equalsIgnoreCase(autorUsername)) {
             throw new IllegalStateException("No puede desactivar su propia cuenta en sesión activa.");
@@ -115,7 +124,13 @@ public class GestionCuentasServiceImpl implements GestionCuentasService {
     @Override
     @Transactional(readOnly = true)
     public List<AuditoriaCuenta> listarAuditoria() {
-        return auditoriaRepository.findAllByOrderByFechaHoraDesc();
+        return auditoriaRepository.findTop50ByOrderByFechaHoraDescIdDesc();
+    }
+
+    private Usuario buscarCuentaInterna(Long idUsuario) {
+        return usuarioRepository.findById(idUsuario)
+                .filter(usuario -> ROLES_INTERNOS.contains(usuario.getRol()))
+                .orElseThrow(() -> new IllegalArgumentException("La cuenta interna no está disponible."));
     }
 
     private void registrarAuditoria(String autor, String accion, String usuarioAfectado, String detalle) {

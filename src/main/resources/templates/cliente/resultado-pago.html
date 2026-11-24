@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/base :: layout(~{::title}, ~{::section})}">
+<head><title>Resultado del pago simulado - Energy Gym</title></head>
+<body>
+<section class="client-wrapper">
+    <div th:replace="~{fragments/cliente-sidebar :: sidebar('compras')}"></div>
+    <div class="client-main">
+        <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
+        <div class="client-content"
+             th:with="estado=${ordenActual['estadoPago']},membresia=${ordenActual['tipoConcepto'] == 'MEMBRESIA'}">
+            <p class="text-muted mb-1">Operación <span th:text="${ordenActual['codigo']}"></span></p>
+            <h1 class="page-title font-anton"
+                th:switch="${estado}">
+                <span th:case="'PAGADO'">Pago simulado aprobado</span>
+                <span th:case="'EN_PROCESO'">Pago simulado pendiente</span>
+                <span th:case="'RECHAZADO'">Pago simulado rechazado</span>
+                <span th:case="*">Pago simulado cancelado</span>
+            </h1>
+            <p class="text-muted">No genera cargos.</p>
+
+            <div class="card border-secondary p-4" style="max-width: 52rem;">
+                <p th:if="${estado == 'PAGADO' and membresia}">Consulta los datos de la renovación en Mi membresía.</p>
+                <p th:if="${estado == 'PAGADO' and !membresia and ordenActual['estadoEntrega'] != 'ENTREGADO'}">
+                    Presenta el código de la operación para recoger el pedido en recepción.
+                </p>
+                <p th:if="${estado == 'PAGADO' and ordenActual['estadoEntrega'] == 'ENTREGADO'}">El pedido fue entregado.</p>
+                <p th:if="${estado == 'EN_PROCESO'}">La operación está pendiente. Puedes aprobarla o cancelarla aquí.</p>
+                <p th:if="${estado == 'RECHAZADO' or estado == 'CANCELADO'}">Puedes iniciar un nuevo intento.</p>
+                <ul class="list-unstyled m-0">
+                    <li th:each="it : ${ordenActual['items']}" class="d-flex justify-content-between gap-3 mb-2">
+                        <span th:text="${it['qty'] + ' × ' + it['name']}"></span>
+                        <strong class="text-nowrap" th:text="${'S/ ' + it['subFormatted']}"></strong>
+                    </li>
+                </ul>
+                <div class="d-flex justify-content-between gap-3 border-top border-secondary pt-3 mt-2">
+                    <span>Total simulado</span>
+                    <strong class="font-anton fs-4 text-primary text-nowrap" th:text="${'S/ ' + ordenActual['totalFormatted']}"></strong>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <th:block th:if="${estado == 'PAGADO'}">
+                        <a th:href="@{/cliente/boleta-venta(codigo=${ordenActual['codigo']})}" class="btn btn-primary">Ver comprobante interno</a>
+                        <a th:if="${membresia}" th:href="@{/cliente/mi-membresia}" class="btn btn-outline">Ver mi membresía</a>
+                        <a th:unless="${membresia}" th:href="@{/cliente/detalle-pedido(codigo=${ordenActual['codigo']})}" class="btn btn-outline">Ver detalle</a>
+                    </th:block>
+                    <th:block th:if="${estado == 'EN_PROCESO'}">
+                        <a th:href="@{/cliente/compra-exitosa(codigo=${ordenActual['codigo']})}"
+                           th:data-codigo="${ordenActual['codigo']}" class="btn btn-primary" id="btnApprovePendingOrder">Simular aprobación</a>
+                        <a th:href="@{/cliente/pago-cancelado(codigo=${ordenActual['codigo']})}"
+                           th:data-codigo="${ordenActual['codigo']}" class="btn btn-outline" id="btnCancelPendingOrder">Cancelar operación</a>
+                    </th:block>
+                    <th:block th:if="${estado == 'RECHAZADO' or estado == 'CANCELADO'}">
+                        <a th:if="${membresia}" th:href="@{/cliente/pago-en-linea(planId=${ordenActual['planId']},periodo=${ordenActual['periodoMembresia']})}"
+                           class="btn btn-primary">Reintentar renovación</a>
+                        <a th:if="${ordenActual['reservaId'] != null}" th:href="@{/cliente/pago-en-linea(reservaId=${ordenActual['reservaId']})}"
+                           class="btn btn-primary">Reintentar pago de reserva</a>
+                        <a th:if="${!membresia and ordenActual['reservaId'] == null}" th:href="@{/cliente/carrito}"
+                           class="btn btn-primary">Volver al carrito</a>
+                    </th:block>
+                    <a th:href="@{/cliente/mis-compras}" class="btn btn-outline">Ir a mis compras</a>
+                </div>
+                <p id="checkoutError" class="text-danger mt-3 mb-0" role="alert"></p>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

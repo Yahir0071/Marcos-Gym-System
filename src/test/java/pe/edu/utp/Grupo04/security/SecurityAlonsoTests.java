@@ -6,10 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.transaction.annotation.Transactional;
 import pe.edu.utp.Grupo04.dto.CuentaInternaDTO;
 import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.model.enums.Rol;
@@ -24,6 +27,7 @@ import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -56,12 +60,55 @@ class SecurityAlonsoTests {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @BeforeEach
     void setUp() {
+        prepararUsuarioDePrueba("recep@energygym.pe", Rol.RECEPCION);
+        prepararUsuarioDePrueba("admin@energygym.pe", Rol.ADMINISTRACION);
+        prepararUsuarioDePrueba("tecnico@energygym.pe", Rol.GESTOR_TECNICO);
+        prepararUsuarioDePrueba("cliente@energygym.pe", Rol.CLIENTE);
+
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
+    }
+
+    private void prepararUsuarioDePrueba(String username, Rol rol) {
+        if (usuarioRepository.findByUsername(username).isPresent()) {
+            return;
+        }
+        Usuario usuario = new Usuario();
+        usuario.setUsername(username);
+        usuario.setPassword("sin-inicio-de-sesion-en-pruebas-mock");
+        usuario.setRol(rol);
+        usuarioRepository.save(usuario);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("El cliente vuelve al producto que estaba consultando después de iniciar sesión")
+    void vuelveAlProductoDespuesDelLogin() throws Exception {
+        String correo = UUID.randomUUID() + "@example.test";
+        String clave = UUID.randomUUID().toString();
+        Usuario usuario = new Usuario();
+        usuario.setUsername(correo);
+        usuario.setPassword(passwordEncoder.encode(clave));
+        usuario.setRol(Rol.CLIENTE);
+        usuarioRepository.save(usuario);
+
+        var solicitud = mockMvc.perform(get("/cliente/detalle-producto").param("id", "42"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"))
+                .andReturn();
+        MockHttpSession sesion = (MockHttpSession) solicitud.getRequest().getSession(false);
+        assertNotNull(sesion);
+        mockMvc.perform(post("/login").session(sesion).with(csrf())
+                        .param("username", correo).param("password", clave))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/cliente/detalle-producto?id=42"));
     }
 
     @Test
@@ -174,7 +221,7 @@ class SecurityAlonsoTests {
 
             // 3. Ejecutar la rutina de migración de Alonso
             stmt.execute("ALTER TABLE usuarios_test_main DROP CONSTRAINT usuarios_test_rol_check");
-            int migrados = stmt.executeUpdate("UPDATE usuarios_test_main SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR' OR rol IS NULL");
+            int migrados = stmt.executeUpdate("UPDATE usuarios_test_main SET rol = 'ADMINISTRACION' WHERE rol = 'ADMINISTRADOR'");
             assertEquals(1, migrados);
 
             stmt.execute("ALTER TABLE usuarios_test_main ADD CONSTRAINT usuarios_test_rol_check CHECK (rol IN ('CLIENTE', 'RECEPCION', 'ADMINISTRACION', 'GESTOR_TECNICO'))");
@@ -231,19 +278,26 @@ class SecurityAlonsoTests {
                         .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO")))
                 .andExpect(status().isForbidden());
 
-        // 3. Cliente sí puede descargar su boleta de venta
+        mockMvc.perform(get("/api/boleta-venta/descargar")
+                        .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO")))
+                .andExpect(status().isForbidden());
+
+        // Un código ausente no descarga un comprobante de respaldo.
         mockMvc.perform(get("/cliente/boleta-venta/descargar")
                         .with(user("cliente@energygym.pe").roles("CLIENTE")))
-                .andExpect(status().isOk());
+                .andExpect(status().isNotFound());
 
-        // 4. Recepción y Administración sí pueden auditar y descargar boletas
-        mockMvc.perform(get("/cliente/boleta-venta/descargar")
+        mockMvc.perform(get("/admin/boleta-venta/descargar").param("codigo", "#PED-99999")
                         .with(user("recep@energygym.pe").roles("RECEPCION")))
-                .andExpect(status().isOk());
+                .andExpect(status().isNotFound());
 
-        mockMvc.perform(get("/cliente/boleta-venta/descargar")
+        mockMvc.perform(get("/admin/boleta-venta/descargar").param("codigo", "#PED-99999")
                         .with(user("admin@energygym.pe").roles("ADMINISTRACION")))
-                .andExpect(status().isOk());
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/admin/boleta-venta/descargar").param("codigo", "#PED-99999")
+                        .with(user("tecnico@energygym.pe").roles("GESTOR_TECNICO")))
+                .andExpect(status().isForbidden());
     }
 
     @Test

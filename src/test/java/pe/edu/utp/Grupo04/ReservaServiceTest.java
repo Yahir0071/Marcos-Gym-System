@@ -7,9 +7,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pe.edu.utp.Grupo04.exception.AccesoDenegadoException;
 import pe.edu.utp.Grupo04.model.Producto;
 import pe.edu.utp.Grupo04.model.Reserva;
 import pe.edu.utp.Grupo04.model.Socio;
+import pe.edu.utp.Grupo04.model.Usuario;
 import pe.edu.utp.Grupo04.model.enums.EstadoReserva;
 import pe.edu.utp.Grupo04.repository.ProductoRepository;
 import pe.edu.utp.Grupo04.repository.ReservaRepository;
@@ -42,13 +44,19 @@ public class ReservaServiceTest {
     private ReservaServiceImpl reservaService;
 
     private Socio socio;
+    private Usuario usuario;
     private Producto producto;
 
     @BeforeEach
     void setUp() {
+        usuario = new Usuario();
+        usuario.setId(1L);
+        usuario.setUsername("carlos@gmail.com");
+
         socio = new Socio();
         socio.setId(1L);
         socio.setNombres("Carlos");
+        socio.setUsuario(usuario);
 
         producto = new Producto();
         producto.setId(10L);
@@ -98,12 +106,75 @@ public class ReservaServiceTest {
         reserva.setCantidad(3);
         reserva.setEstado(EstadoReserva.PENDIENTE);
 
-        when(reservaRepository.findById(100L)).thenReturn(Optional.of(reserva));
+        when(reservaRepository.findLockedById(100L)).thenReturn(Optional.of(reserva));
         when(reservaRepository.save(any(Reserva.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Reserva cancelada = reservaService.actualizarEstado(100L, EstadoReserva.CANCELADA);
+        reservaService.actualizarEstado(100L, EstadoReserva.CANCELADA);
 
         assertEquals(EstadoReserva.CANCELADA, cancelada.getEstado());
+        assertThrows(IllegalStateException.class,
+                () -> reservaService.actualizarEstado(100L, EstadoReserva.PENDIENTE));
         verify(productoService, times(1)).restaurarStock(10L, 3);
+    }
+
+    @Test
+    @DisplayName("C03 - El cliente dueño de la reserva sí puede cancelarla y se restaura el inventario")
+    void testCancelarReservaPorCliente_Exitoso() {
+        Reserva reserva = new Reserva();
+        reserva.setId(100L);
+        reserva.setSocio(socio);
+        reserva.setProducto(producto);
+        reserva.setCantidad(2);
+        reserva.setEstado(EstadoReserva.PENDIENTE);
+
+        when(reservaRepository.findLockedById(100L)).thenReturn(Optional.of(reserva));
+        when(reservaRepository.save(any(Reserva.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reserva cancelada = reservaService.cancelarReservaPorCliente(100L, "carlos@gmail.com");
+
+        assertEquals(EstadoReserva.CANCELADA, cancelada.getEstado());
+        verify(productoService, times(1)).restaurarStock(10L, 2);
+    }
+
+    @Test
+    @DisplayName("C03 - Debe rechazar con AccesoDenegadoException si un cliente intenta cancelar la reserva de otro")
+    void testCancelarReservaPorCliente_RechazaReservaAjena() {
+        Reserva reserva = new Reserva();
+        reserva.setId(100L);
+        reserva.setSocio(socio); // Pertenece a carlos@gmail.com
+        reserva.setProducto(producto);
+        reserva.setCantidad(2);
+        reserva.setEstado(EstadoReserva.PENDIENTE);
+
+        when(reservaRepository.findLockedById(100L)).thenReturn(Optional.of(reserva));
+
+        // Intento de cancelación por otro usuario (juan@gmail.com)
+        assertThrows(AccesoDenegadoException.class, () -> {
+            reservaService.cancelarReservaPorCliente(100L, "juan@gmail.com");
+        });
+
+        verify(productoService, never()).restaurarStock(anyLong(), anyInt());
+        verify(reservaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("M12 - No permite doble cancelación ni duplicar devolución de stock")
+    void testCancelarReservaPorCliente_NoPermiteDobleCancelacion() {
+        Reserva reserva = new Reserva();
+        reserva.setId(100L);
+        reserva.setSocio(socio);
+        reserva.setProducto(producto);
+        reserva.setCantidad(2);
+        reserva.setEstado(EstadoReserva.CANCELADA); // Ya cancelada previamente
+
+        when(reservaRepository.findLockedById(100L)).thenReturn(Optional.of(reserva));
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
+            reservaService.cancelarReservaPorCliente(100L, "carlos@gmail.com");
+        });
+
+        assertTrue(ex.getMessage().contains("previamente"));
+        verify(productoService, never()).restaurarStock(anyLong(), anyInt());
     }
 }

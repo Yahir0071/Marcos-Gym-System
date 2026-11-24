@@ -1,19 +1,22 @@
 package pe.edu.utp.Grupo04.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.utp.Grupo04.dto.ReservaDTO;
+import pe.edu.utp.Grupo04.exception.AccesoDenegadoException;
+import pe.edu.utp.Grupo04.exception.RecursoNoEncontradoException;
+import pe.edu.utp.Grupo04.model.Reserva;
 import pe.edu.utp.Grupo04.model.enums.EstadoReserva;
 import pe.edu.utp.Grupo04.service.ReservaService;
 import pe.edu.utp.Grupo04.service.SocioService;
+
+import java.util.Map;
 
 @Controller
 public class ReservaController {
@@ -26,7 +29,6 @@ public class ReservaController {
         this.socioService = socioService;
     }
 
-    // --- ACCIONES DEL CLIENTE ---
     @PostMapping("/cliente/reservar")
     public String reservarProductoCliente(@Valid @ModelAttribute("reservaDTO") ReservaDTO reservaDTO,
                                           BindingResult result,
@@ -54,13 +56,21 @@ public class ReservaController {
         return "cliente/mis-reservas";
     }
 
+    // --- C03 / M12: CANCELACIÓN CON VERIFICACIÓN DE PROPIEDAD Y ESTADO ---
     @PostMapping("/cliente/reservas/cancelar")
     public String cancelarReservaCliente(@RequestParam Long reservaId,
                                          Authentication authentication,
                                          RedirectAttributes flash) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            flash.addFlashAttribute("mensajeError", "Sesión de usuario no válida.");
+            return "redirect:/login";
+        }
+
         try {
-            reservaService.actualizarEstado(reservaId, EstadoReserva.CANCELADA);
+            reservaService.cancelarReservaPorCliente(reservaId, authentication.getName());
             flash.addFlashAttribute("mensajeExito", "Reserva cancelada correctamente.");
+        } catch (AccesoDenegadoException e) {
+            flash.addFlashAttribute("mensajeError", e.getMessage());
         } catch (Exception e) {
             flash.addFlashAttribute("mensajeError", e.getMessage());
         }
@@ -68,29 +78,33 @@ public class ReservaController {
     }
 
     @PostMapping("/api/reservas")
-    @org.springframework.web.bind.annotation.ResponseBody
-    public org.springframework.http.ResponseEntity<?> crearReservaApi(@org.springframework.web.bind.annotation.RequestBody java.util.Map<String, Object> payload,
-                                                                      Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return org.springframework.http.ResponseEntity.status(401).body(java.util.Map.of("error", "No autenticado"));
+    @ResponseBody
+    public ResponseEntity<?> crearReservaApi(@Valid @RequestBody ReservaDTO payload,
+                                             BindingResult result,
+                                             Authentication authentication) {
+        if (CompraApiResponder.username(authentication) == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(Map.of("error", result.getAllErrors().getFirst().getDefaultMessage()));
         }
         try {
-            Long productoId = Long.valueOf(payload.get("productoId").toString());
-            int cantidad = payload.containsKey("cantidad") ? Integer.parseInt(payload.get("cantidad").toString()) : 1;
-            pe.edu.utp.Grupo04.model.Reserva reserva = reservaService.crearReserva(authentication.getName(), productoId, cantidad);
-            return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+            Reserva reserva = reservaService.crearReserva(authentication.getName(), payload.getProductoId(), payload.getCantidad());
+            return ResponseEntity.status(201).body(Map.of(
                     "success", true,
                     "code", "#RES-" + String.format("%05d", reserva.getId()),
                     "producto", reserva.getProducto().getNombre(),
                     "cantidad", reserva.getCantidad(),
+                    "total", reserva.getProducto().getPrecio() * reserva.getCantidad(),
                     "estado", reserva.getEstado().name()
             ));
-        } catch (Exception e) {
-            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        } catch (RecursoNoEncontradoException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    // --- ACCIONES DEL ADMINISTRADOR ---
     @GetMapping("/admin/reservas")
     public String reservasAdmin(Model model) {
         model.addAttribute("reservas", reservaService.listarTodas());
@@ -99,11 +113,14 @@ public class ReservaController {
 
     @PostMapping("/admin/reservas/cambiar-estado")
     public String cambiarEstadoReservaAdmin(@RequestParam Long reservaId,
-                                           @RequestParam EstadoReserva nuevoEstado,
+                                           @RequestParam String nuevoEstado,
                                            RedirectAttributes flash) {
         try {
-            reservaService.actualizarEstado(reservaId, nuevoEstado);
-            flash.addFlashAttribute("mensajeExito", "Estado de la reserva actualizado a: " + nuevoEstado.name());
+            EstadoReserva estado = EstadoReserva.valueOf(nuevoEstado);
+            reservaService.actualizarEstado(reservaId, estado);
+            flash.addFlashAttribute("mensajeExito", "Estado de la reserva actualizado a " + estado.name());
+        } catch (IllegalArgumentException e) {
+            flash.addFlashAttribute("mensajeError", "Selecciona un estado válido para la reserva.");
         } catch (Exception e) {
             flash.addFlashAttribute("mensajeError", e.getMessage());
         }
