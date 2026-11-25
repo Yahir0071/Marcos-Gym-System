@@ -3,7 +3,7 @@
 <head><title>Pago simulado - Energy Gym</title></head>
 <body>
 <section class="client-wrapper">
-    <div th:replace="~{fragments/cliente-sidebar :: sidebar('productos')}"></div>
+    <div th:replace="~{fragments/cliente-sidebar :: sidebar(${planCheckout != null ? 'membresia' : (reservaCheckout != null ? 'reservas' : 'productos')})}"></div>
     <div class="client-main">
         <div th:replace="~{fragments/cliente-topbar :: topbar}"></div>
         <div class="client-content">

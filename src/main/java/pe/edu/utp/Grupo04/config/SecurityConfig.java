@@ -129,8 +129,9 @@ public class SecurityConfig {
                 // 2. Vistas públicas y catálogo público
                 .requestMatchers(HttpMethod.GET, PAGINAS_PUBLICAS).permitAll()
 
-                // 3. Autenticación pública y login JWT
+                // 3. Autenticación pública, login JWT y Chatbot (con CSRF obligatorio en POST)
                 .requestMatchers("/login", "/registrarse", "/registro", "/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/chatbot/**").permitAll()
 
                 // 4. API delimitada JWT demostrable (S15 Sesión 30) - Requiere token JWT
                 .requestMatchers("/api/auth/me", "/api/jwt/**").authenticated()

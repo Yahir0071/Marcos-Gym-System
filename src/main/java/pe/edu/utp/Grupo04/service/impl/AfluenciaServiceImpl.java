@@ -45,6 +45,15 @@ public class AfluenciaServiceImpl implements AfluenciaService {
     }
 
     @Override
+    public int incrementarPorAcceso(LocalDate fecha, FranjaHoraria franjaHoraria, int capacidadMaxima) {
+        LocalDate fechaRegistro = (fecha != null) ? fecha : LocalDate.now();
+        afluenciaRepository.incrementarAfluencia(fechaRegistro, franjaHoraria.name(), LocalDateTime.now(), capacidadMaxima);
+        return afluenciaRepository.findByFechaAndFranjaHoraria(fechaRegistro, franjaHoraria)
+                .map(r -> r.getConcurrenciaAprox() != null ? r.getConcurrenciaAprox() : 0)
+                .orElse(0);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Map<FranjaHoraria, Integer> obtenerAfluenciaVigente() {
         Map<FranjaHoraria, Integer> mapa = new EnumMap<>(FranjaHoraria.class);

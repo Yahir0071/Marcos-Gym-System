@@ -81,6 +81,7 @@
                                 th:data-precio="${plan.precio}"
                                 th:data-duracion="${plan.duracionDias}"
                                 th:data-descripcion="${plan.descripcion}"
+                                th:data-beneficios="${plan.beneficiosCodigos}"
                                 th:data-activo="${plan.activo}"
                                 data-bs-toggle="modal" data-bs-target="#modalNuevoPlan">EDITAR</button>
                         <form th:action="@{/admin/planes/cambiar-estado}" method="post" class="d-inline">
@@ -126,8 +127,20 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="planDescripcion" class="form-label">BENEFICIOS / DESCRIPCIÓN</label>
-                            <textarea id="planDescripcion" name="descripcion" class="form-control" rows="3" placeholder="Detalla las zonas de acceso, beneficios o promociones incluidas..."></textarea>
+                            <label for="planDescripcion" class="form-label">DESCRIPCIÓN CORTA</label>
+                            <textarea id="planDescripcion" name="descripcion" class="form-control" rows="2" placeholder="Resumen breve del plan..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <span class="form-label d-block">BENEFICIOS PREDEFINIDOS</span>
+                            <div class="row g-2 p-2 rounded border border-secondary bg-elevated">
+                                <div class="col-12 col-sm-6" th:each="ben : ${catalogoBeneficios}">
+                                    <div class="form-check">
+                                        <input class="form-check-input plan-benefit-checkbox" type="checkbox"
+                                               name="beneficios" th:value="${ben.name()}" th:id="'ben_' + ${ben.name()}">
+                                        <label class="form-check-label text-xs text-light" th:for="'ben_' + ${ben.name()}" th:text="${ben.etiqueta}">Beneficio</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="planActivo" class="form-label">ESTADO INICIAL</label>

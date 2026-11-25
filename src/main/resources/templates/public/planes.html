@@ -41,20 +41,23 @@
                         <span th:if="${plan.nombre == null or (!plan.nombre.toUpperCase().contains('PLUS') and !plan.nombre.toUpperCase().contains('PREMIUM'))}" class="badge bg-elevated text-muted border border-secondary">ESTÁNDAR</span>
                     </div>
                     <p class="text-muted text-sm mb-4" th:text="${plan.descripcion}">Ideal para empezar tu rutina de fuerza y cardio</p>
-                    <div class="d-flex align-items-baseline gap-2 mb-4">
-                        <h2 class="font-anton m-0 text-3xl plan-price"
-                            th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'text-primary' : 'text-light'"
-                            th:attr="data-base-price=${plan.precio}"
-                            th:text="'S/ ' + ${#numbers.formatDecimal(plan.precio, 1, 'COMMA', 2, 'POINT')}">S/ 119.00</h2>
-                        <span class="text-muted text-xs font-anton plan-period-label">AL MES</span>
+                    <div class="mb-4">
+                        <div class="d-flex align-items-baseline gap-2">
+                            <h2 class="font-anton m-0 text-3xl plan-price"
+                                th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'text-primary' : 'text-light'"
+                                th:attr="data-base-price=${plan.precio}"
+                                th:text="'S/ ' + ${#numbers.formatDecimal(plan.precio, 1, 'COMMA', 2, 'POINT')}">S/ 119.00</h2>
+                            <span class="text-muted text-xs font-anton plan-period-label">AL MES</span>
+                        </div>
+                        <div class="text-xs text-success mt-1 plan-monthly-equiv d-none"></div>
                     </div>
                     <ul class="list-unstyled mb-5 flex-grow-1">
-                        <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Acceso completo en horario de <span th:text="${plan.duracionDias}">30</span> días</li>
-                        <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Equipos biomecánicos de última generación</li>
+                        <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Acceso completo durante <span class="plan-duration-text" th:attr="data-base-days=${plan.duracionDias}" th:text="${plan.duracionDias} + ' días'">30 días</span></li>
                         <li class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i> Horario vigente: Lun–Vie 06:00–23:00 · Sáb 07:00–20:00 · Dom 08:00–14:00</li>
-                        <li th:if="${plan.nombre != null and (plan.nombre.toUpperCase().contains('PLUS') or plan.nombre.toUpperCase().contains('PREMIUM'))}" class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> Acceso a Zona Premium y evaluación física mensual</li>
-                        <li th:if="${plan.nombre != null and plan.nombre.toUpperCase().contains('PREMIUM')}" class="mb-3 text-light text-sm"><i class="fa-solid fa-check text-primary me-2"></i> 4 pases de invitado + 10% descuento en Suplementos</li>
-                        <li th:if="${plan.nombre == null or (!plan.nombre.toUpperCase().contains('PLUS') and !plan.nombre.toUpperCase().contains('PREMIUM'))}" class="mb-3 text-muted text-sm"><i class="fa-solid fa-xmark text-secondary me-2"></i> Acceso a zona VIP y pases de invitado</li>
+                        <li th:each="ben : ${plan.listaBeneficios}" class="mb-3 text-light text-sm">
+                            <i class="fa-solid fa-check text-primary me-2" aria-hidden="true"></i>
+                            <span th:text="${ben.etiqueta}">Beneficio del plan</span>
+                        </li>
                     </ul>
 
                     <!-- Botón de Inscripción Directa Sincronizado -->
@@ -98,7 +101,7 @@
                     <div class="section-subtitle mb-2">COMPARATIVA DETALLADA</div>
                     <h2 id="comparacionPlanes" class="display-3 font-anton leading-none text-light">¿QUÉ PLAN SE ADAPTA A TI?</h2>
                     <p class="text-muted text-sm mx-auto" style="max-width: 600px;">
-                        Compara cada beneficio y servicio incluido en nuestros planes BÁSICO, PLUS y VIP ANUAL.
+                        Compara cada beneficio y servicio incluido en nuestros planes activos.
                     </p>
                 </div>
 
@@ -109,65 +112,32 @@
                         <thead>
                             <tr>
                                 <th scope="col" class="text-start ps-3">Beneficios y áreas incluidas</th>
-                                <th scope="col">Plan Básico</th>
-                                <th scope="col" class="text-primary bg-elevated">Plan Plus</th>
-                                <th scope="col">Plan VIP Anual</th>
+                                <th scope="col" th:each="plan : ${planes}"
+                                    th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'text-primary bg-elevated' : ''"
+                                    th:text="${plan.nombre}">Plan</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <th scope="row" class="text-start ps-3">Máquinas de musculación y peso libre</th>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                                <th scope="row" class="text-start ps-3">Horario vigente (Lun–Dom)</th>
+                                <td th:each="plan : ${planes}"
+                                    th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'bg-elevated' : ''">
+                                    <i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span>
+                                </td>
                             </tr>
-                            <tr>
-                                <th scope="row" class="text-start ps-3">Zona cardio HIIT y máquinas biomecánicas</th>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="text-start ps-3">Horario de atención</th>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="text-start ps-3">Carnet digital</th>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="text-start ps-3">Evaluación física y bioimpedancia mensual</th>
-                                <td><i class="fa-solid fa-circle-xmark text-secondary fs-6" aria-hidden="true"></i><span class="visually-hidden">No incluido</span></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-primary fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td><i class="fa-solid fa-circle-check text-primary fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="text-start ps-3">Pases para invitados cada mes</th>
-                                <td><span class="text-muted text-xs">Sin pases</span></td>
-                                <td class="bg-elevated font-anton text-primary">2 PASES / MES</td>
-                                <td class="font-anton text-light">4 PASES / MES</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="text-start ps-3">Descuento en suplementos</th>
-                                <td><span class="text-muted text-xs">—</span></td>
-                                <td class="bg-elevated font-anton text-primary">5% DSCTO</td>
-                                <td class="font-anton text-light">10% DSCTO</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="text-start ps-3">Pausa por viaje o salud</th>
-                                <td><span class="text-muted text-xs">Hasta 15 días</span></td>
-                                <td class="bg-elevated font-anton text-xs text-light">Hasta 15 días</td>
-                                <td class="font-anton text-xs text-primary">Hasta 15 días</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="text-start ps-3">Pago en línea o en recepción</th>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td class="bg-elevated"><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
-                                <td><i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i><span class="visually-hidden">Incluido</span></td>
+                            <tr th:each="ben : ${catalogoBeneficios}">
+                                <th scope="row" class="text-start ps-3" th:text="${ben.etiquetaComparador}">Beneficio</th>
+                                <td th:each="plan : ${planes}"
+                                    th:classappend="${plan.nombre != null and plan.nombre.toUpperCase().contains('PLUS')} ? 'bg-elevated' : ''">
+                                    <th:block th:if="${plan.tieneBeneficio(ben)}">
+                                        <i class="fa-solid fa-circle-check text-success fs-6" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Incluido</span>
+                                    </th:block>
+                                    <th:block th:unless="${plan.tieneBeneficio(ben)}">
+                                        <i class="fa-solid fa-circle-xmark text-secondary fs-6" aria-hidden="true"></i>
+                                        <span class="visually-hidden">No incluido</span>
+                                    </th:block>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

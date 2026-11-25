@@ -16,6 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initQrPass();
     initDataToastTriggers();
 
+    if (document.getElementById("gymChatbotToggle")) {
+        cargar(import("./core/chatbot.js"), m => m.initChatbot());
+    }
+
     const ruta = window.location.pathname;
     if (document.getElementById("bmiCalculatorForm")) {
         cargar(import("./public/calculator.js"), m => m.initBmiCalculator());

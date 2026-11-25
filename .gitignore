@@ -41,3 +41,6 @@ data/
 !docs/**/data/
 *.md
 HELP.md
+
+.env
+application-local.properties
